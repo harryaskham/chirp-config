@@ -233,6 +233,18 @@ WHY NOW, said plainly: the album's scorer read this song 0.890 like Least Common
 sixteenths, where the scorer can see them. Its note is A6, the fifth: on D6 (the first version) it made the
 two songs MORE alike in their notes (0.715 to 0.744), and with a bounce keeping 0.841 it gave fewer bounces
 the scorer could see (6.576 a second).
+
+v15 (27 Nov): A BIRD IN THE HANGAR (C11T3_BIRD=0 takes it out: v14). For the hangar's first eight bars the drum
+and the bass rest, and there is only the click and what the hangar gives back. Now something small is flying in
+there. It goes round in a circle 6 m across the radius whose centre is 4 m in front of you: so it passes 2 m
+behind your head and 10 m out in front, once every two bars (four times round in the eight bars), at 9.9 m/s,
+which is a swallow's cruising speed. It calls every three sixteenths, two notes, E then A.
+Nothing about where it is has been written by hand: there is no pan, no fader move, no detune. The engine's
+`orbit` effect (Chowning's moving source, 1971) is given the circle and works out, sample by sample, how long the
+sound takes to reach each ear (so the call arrives up to 0.6 ms sooner at the nearer ear, and is flat going away
+and sharp coming back: a third of a semitone each way), how much the head shadows it, and how far it is (five
+times as far in front as behind: 14 dB).
+The calls go to the hangar's air as well, so the hangar answers them.
 """
 import json
 import math
@@ -465,6 +477,15 @@ TRIM_OUT = (152, 160)                                  # ... and goes out again:
 
 
 BALL = os.environ.get("C11T3_BALL", "1") != "0" and TRIM                        # v14: Zeno's ball
+BIRD = os.environ.get("C11T3_BIRD", "1") != "0" and BALL                        # v15: a bird in the hangar (the engine's orbit: a source on a circle)
+BIRD_IN, BIRD_BARS = "the hangar", (0, 8)              # the section, and the bars of it: while the drum and the bass rest
+BIRD_RADIUS, BIRD_AHEAD = 6.0, 4.0                     # m: the circle, and how far in front of you its centre is (so 2 m behind you at the nearest, 10 m in front at the farthest)
+BIRD_LAP = 2                                           # bars to go once round
+BIRD_PHASE = float(os.environ.get("C11T3_BIRD_PHASE", "0"))   # where on the circle it is at the section's first beat (0..1 of a lap)
+BIRD_EVERY = 3                                         # sixteenths between calls
+BIRD_CALL = (("E8", 0.0, 0.03, 0.7), ("A8", 0.0625, 0.04, 0.9))   # a call: (note, beats after the call's time, length in beats, velocity)
+BIRD_GAIN = os.environ.get("C11T3_BIRD_GAIN", "-22dB")                         # set in the WHOLE SONG's master: at -14 dB the call it makes as it passes behind your head peaked -2.2 dBFS, as loud as the click's strokes (-1.7); 8 dB under that the click leads and the bird is 8 dB under it at its nearest
+BIRD_AIR = "-10dB"                                     # what of it goes to the hangar's air
 BALL_RESTS = tuple(int(x) for x in os.environ.get("C11T3_BALL_RESTS", "16,32,48,72,80,96,112,128,136").split(",") if x)   # the bar lines (bars from the start) on which it comes to rest: every door but the last, and the turn of a row in the long rooms
 BALL_BEATS = 7.25                                                               # beats from its first bounce to rest: the first bounce is on the fourth sixteenth of a bar (not on the bass drum, not on the click)
 BALL_E = 2 ** (-1 / float(os.environ.get("C11T3_BALL_HALVES", "6")))            # what a bounce keeps of the speed (0.891; a table-tennis ball's is about 0.9): every flight is this times the last, so the bounces come twice as fast every six
@@ -493,6 +514,29 @@ def ball_height():
     """Metres it fell: a flight of T after a fall from h is T = 2 e sqrt(2 h / g)."""
     t1 = BALL_BEATS * 60 / BPM * (1 - BALL_E)
     return GRAVITY * (t1 / (2 * BALL_E)) ** 2 / 2
+
+
+def bird_span():
+    """(first bar, last bar + 1) in which the bird flies, or None."""
+    sec = next((x for x in SECS if x[0] == BIRD_IN), None)
+    return (sec[1] + BIRD_BARS[0], sec[1] + BIRD_BARS[1]) if BIRD and sec is not None else None
+
+
+def bird_rate():
+    """Laps a second."""
+    return BPM / 60 / BEATS / BIRD_LAP
+
+
+def bird_notes():
+    b0, b1 = bird_span()
+    return [note(n * STEP + dt, p, ln, v) for n in range(b0 * 16, b1 * 16, BIRD_EVERY) for p, dt, ln, v in BIRD_CALL]
+
+
+def bird_facts():
+    """Speed m/s, nearest and farthest m, the most the pitch moves in cents, the level between nearest and farthest in dB."""
+    v = 2 * math.pi * BIRD_RADIUS * bird_rate(); near, far = abs(BIRD_RADIUS - BIRD_AHEAD), BIRD_RADIUS + BIRD_AHEAD
+    vr = v * min(1.0, BIRD_AHEAD / BIRD_RADIUS)        # the most of its speed that is towards or away from you
+    return v, near, far, 1200 * math.log2(SOUND / (SOUND - vr)), 20 * math.log10(far / near)
 
 
 def ball_notes():
@@ -1020,6 +1064,16 @@ def song():
             doc["tracks"].append({"name": f"flut-{side}", "patch": "sr-flutter", "gain": FLUT_GAIN, "pan": pan, "notes": flut_notes(side)})      # dry: an ear each
         doc["about"] = doc["about"].replace(" Generated by", " From v13 the corridor has its other two walls: the ones beside you, 2.34 m apart, between which the click rattles 73 times a second (a flutter echo on D2); in the middle of the corridor the rattle is an octave up and in the middle of the head, and walking to a wall it drops, leans to that wall and changes colour. Generated by")
         assert "From v13" in doc["about"]
+    if bird_span():
+        b0, b1 = bird_span()
+        PATCHES["sr-bird"] = {"about": "Standing Room's bird (chirper-zero, 27 Nov, v15): a very short high sine, two of them to a call (E8 then A8, 30 ms apart). Where it is comes from the track's orbit effect, not from the patch.",
+                              "play": {"vel_sens": 0.5, "gate": 1},
+                              "synth": {"layers": ["sine", "sine ratio=2 level=-18dB"], "amp": {"a": "1ms", "d": "28ms", "s": 0, "r": "10ms", "curve": 3}}}
+        doc["tracks"].append({"name": "bird", "patch": "sr-bird", "gain": BIRD_GAIN, "pan": 0.0, "sends": {"air": BIRD_AIR},
+                              "fx": [{"type": "orbit", "path": "circle", "radius": BIRD_RADIUS, "distance": BIRD_AHEAD, "rate": round(bird_rate(), 6), "phase": BIRD_PHASE, "doppler": 1.0, "level": abs(BIRD_RADIUS - BIRD_AHEAD)}],
+                              "notes": bird_notes()})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v15 a bird flies round in the hangar while the drum rests (bars {b0 + 1} to {b1}): a circle of {BIRD_RADIUS:g} m whose centre is {BIRD_AHEAD:g} m in front of you, once round every {BIRD_LAP} bars, calling every {BIRD_EVERY} sixteenths; where it is heard, how loud and how sharp or flat is worked out from the circle by the engine's orbit effect. Generated by")
+        assert "From v15" in doc["about"]
     if ball_notes():
         PATCHES["sr-ball"] = {"about": "Standing Room's ball (chirper-zero, 27 Nov, v14): a small hard ball on a hard floor: a sine on A6 and a breath of noise with everything under 700 Hz taken off, gone in 22 ms. Its loudness goes as the square of the velocity, so a bounce that keeps 0.891 of the speed is written 0.891 ** 0.5 of the velocity.",
                               "play": {"vel_sens": 1, "gate": 1},
@@ -1119,6 +1173,9 @@ def echoes(a, b, n=16):
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
         sec = 60 / BPM * BEATS
+        if bird_span():
+            b0, b1 = bird_span(); sec = BEATS * 60 / BPM; v, near, far, cents, lv = bird_facts(); ns = bird_notes()
+            print(f"a bird in the hangar, bars {b0 + 1}-{b1} ({int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int(b1 * sec) // 60}:{b1 * sec % 60:04.1f}): a circle of {BIRD_RADIUS:g} m, its centre {BIRD_AHEAD:g} m in front ; once round every {BIRD_LAP} bars ({1 / bird_rate():.2f} s, {v:.1f} m/s) ; {near:g} m away at the nearest, {far:g} m at the farthest ({lv:.1f} dB between) ; the pitch moves {cents:.0f} cents each way at the most ; {len(ns) // len(BIRD_CALL)} calls, one every {BIRD_EVERY} sixteenths, " + " then ".join(c[0] for c in BIRD_CALL) + f" ; {BIRD_GAIN}, {BIRD_AIR} of it to the air")
         if ball_notes():
             fl = ball_flights(); beat = 60 / BPM
             print(f"Zeno's ball: let fall {len(BALL_RESTS)} times from {100 * ball_height():.0f} cm ; a bounce keeps {BALL_E:.4f} of the speed ({20 * math.log10(BALL_E):.2f} dB) ; first flight {1000 * fl[0][1]:.1f} ms, {len(fl)} bounces sounded (to flights of {1000 * fl[-1][1]:.1f} ms, {fl[-1][2]:.1f} dB), all the flights together {BALL_BEATS * beat:.3f} s ({BALL_BEATS:g} beats) ; {BALL_NOTE}, {BALL_GAIN}")
