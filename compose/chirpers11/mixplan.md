@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v17 (12:58): both its ends are 0.3 dB quieter (the master's gain: an octave copy of the low bass
+  inside the song): bars 1 to 16 by four -22.5 -23.5 -23.6 -20.7 dBFS (were -22.2 -23.1 -23.3 -20.4); the last
+  sixteen by four -24.3 -23.6 -23.2 -19.7 (were -24.1 -23.4 -23.0 -19.2); under 75 Hz the last sixteen as they
+  were to 0.3 dB (-58.5 -58.0 -53.3 -59.6). No note is touched in either seam.
 - Wind Down v17 (12:26): its first eight bars are 0.1 to 0.2 dB quieter (bars 1 to 8 by two -30.1 -30.3 -30.1
   -30.1 dBFS, were -29.9 -30.2 -29.9 -30.0: the master's gain); the end within a dB by second (from 396 s -9 -21
   -33 -44 -50 -71 -84 -96). Inside: in bars 129 to 144 the drum is tuned up a fifth (nothing of it under 66 Hz
