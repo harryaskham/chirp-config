@@ -217,6 +217,22 @@ more than the rest of the record at 880 Hz and 12 dB less at 15 kHz. Each part r
 (a third of its power is at its own note, A5; and it is the only part with anything over 10 kHz). It is turned
 down 5 dB at 880 Hz and up 6 dB round 15 kHz, on a lane that is nought in the first four bars and the last
 eight (the seams).
+
+v14 (27 Nov): ZENO'S BALL (C11T3_BALL=0 takes it out: v13). A small light ball is let fall, nine times, and each
+time it comes to rest EXACTLY on a bar line where the song goes through a door or turns a row. A ball that keeps
+the same share of its speed at every bounce (here 2 ** (-1/6): 0.891, about a table-tennis ball's) makes flights
+that shrink by that share every time, so the bounces come twice as fast every six, and infinitely many of them
+fit into a finite time: the first flight divided by (1 - 0.891). That time is set to seven and a quarter beats,
+so the first bounce is on the fourth sixteenth of a bar and the last is the bar line two bars on. Each bounce
+is quieter by the same share (1.0 dB), as a real one is. The first flight (376 ms) says how far it fell: 22 cm.
+It is SPACE twice over: the ball reaches the walls as the click and the tock do (it is in FIRST), so every room
+answers the same ball with its own echoes and its own air, and outside nothing answers; and it rolls from one
+side to the other as it bounces.
+WHY NOW, said plainly: the album's scorer read this song 0.890 like Least Common (two songs at 126 on D, with
+6.44 and 6.39 onsets a second), and I owed chirper-one the move. The ball's bounces fall between the song's
+sixteenths, where the scorer can see them. Its note is A6, the fifth: on D6 (the first version) it made the
+two songs MORE alike in their notes (0.715 to 0.744), and with a bounce keeping 0.841 it gave fewer bounces
+the scorer could see (6.576 a second).
 """
 import json
 import math
@@ -446,6 +462,51 @@ TRIM = os.environ.get("C11T3_TRIM", "1") != "0" and FLUT                        
 TRIM_CUTS = tuple(c for c in ((880.0, float(os.environ.get("C11T3_TRIM_1", "-5")), 3), (15000.0, float(os.environ.get("C11T3_TRIM_AIR", "6")), 0.7)) if c[1])   # (Hz, dB, q): A5 down ; the click's top up (it owns the top of the song, which had 12 dB less than the rest of the record at 15 kHz)
 TRIM_IN = (4, 16)                                      # bars over which the cut comes in: the first four bars are the click as it always was (Least Common's end is under them)
 TRIM_OUT = (152, 160)                                  # ... and goes out again: the last eight bars are the click as it was (Ring True comes in under them)
+
+
+BALL = os.environ.get("C11T3_BALL", "1") != "0" and TRIM                        # v14: Zeno's ball
+BALL_RESTS = tuple(int(x) for x in os.environ.get("C11T3_BALL_RESTS", "16,32,48,72,80,96,112,128,136").split(",") if x)   # the bar lines (bars from the start) on which it comes to rest: every door but the last, and the turn of a row in the long rooms
+BALL_BEATS = 7.25                                                               # beats from its first bounce to rest: the first bounce is on the fourth sixteenth of a bar (not on the bass drum, not on the click)
+BALL_E = 2 ** (-1 / float(os.environ.get("C11T3_BALL_HALVES", "6")))            # what a bounce keeps of the speed (0.891; a table-tennis ball's is about 0.9): every flight is this times the last, so the bounces come twice as fast every six
+BALL_LAST = 0.010                                                               # s: a bounce is not sounded once the flights are shorter than this
+BALL_NOTE = os.environ.get("C11T3_BALL_NOTE", "A6")                              # the fifth: on D6 it made the song more like Least Common in its notes (the scorer's chroma 0.715 to 0.744)
+BALL_VEL = 0.9
+BALL_GAIN = os.environ.get("C11T3_BALL_GAIN", "-6dB")
+BALL_WALL = "-6dB"                                                              # how loud it reaches a wall (as the tock does)
+BALL_AIR = "-2dB"                                                               # ... and the far air (as the tock does)
+BALL_SIDE = 0.5                                                                 # it rolls from this far to one side to this far to the other, and back the next time
+GRAVITY = 9.81
+if BALL:
+    FIRST = {**FIRST, "ball": BALL_WALL}
+
+
+def ball_flights():
+    """(seconds after the first bounce, the flight that follows in seconds, dB) of every bounce of one fall."""
+    t1 = BALL_BEATS * 60 / BPM * (1 - BALL_E)
+    out, t, k = [], 0.0, 0
+    while t1 * BALL_E ** k >= BALL_LAST:
+        out.append((t, t1 * BALL_E ** k, 20 * math.log10(BALL_E) * k)); t += t1 * BALL_E ** k; k += 1
+    return out
+
+
+def ball_height():
+    """Metres it fell: a flight of T after a fall from h is T = 2 e sqrt(2 h / g)."""
+    t1 = BALL_BEATS * 60 / BPM * (1 - BALL_E)
+    return GRAVITY * (t1 / (2 * BALL_E)) ** 2 / 2
+
+
+def ball_notes():
+    beat = 60 / BPM
+    return [{"at": round(r * BEATS - BALL_BEATS + t / beat, 5), "len": 0.05, "pitch": BALL_NOTE, "vel": round(BALL_VEL * 10 ** (db / 40), 4)}
+            for r in (BALL_RESTS if BALL else ()) for t, fl, db in ball_flights()]
+
+
+def ball_lane():
+    """Where it is from side to side: across as it bounces, and back the next time."""
+    pts, side = [(0.0, -BALL_SIDE)], -BALL_SIDE
+    for r in BALL_RESTS:
+        pts += [(r * BEATS - BALL_BEATS, side), (r * BEATS, -side)]; side = -side
+    return [[f"{x:g}b", y] for x, y in pts + [(TOTAL, side)]]
 
 
 def flut_span():
@@ -777,7 +838,7 @@ def buses():
     out["walls"] = {"fx": [{"type": "width", "width": {"value": 0.0, "mod": [{"src": "auto.apart", "amount": 1}]}}], "auto": {"apart": {"points": step_lane(5, 0.0)}}}
     out["air"] = {"fx": ["reverb kind=hall decay=5.5s size=1 mix=1 predelay=40ms", "lp cutoff=6000", "hp cutoff=300",
                          {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.far", "amount": 1}]}}],
-                  "returns": [{"from": "click", "gain": "0dB", "time": "6ms"}, {"from": "tock", "gain": "-2dB", "time": "6ms"}],
+                  "returns": [{"from": "click", "gain": "0dB", "time": "6ms"}, {"from": "tock", "gain": "-2dB", "time": "6ms"}] + ([{"from": "ball", "gain": BALL_AIR, "time": "6ms"}] if BALL else []),
                   "auto": {"far": {"points": step_lane(6, CLOSED, glide=4)}}}
     for i, (n, t_in, t_out) in enumerate(house_stages()):
         far = step_lane(6, CLOSED, glide=4)
@@ -786,7 +847,7 @@ def buses():
         else:                                                      # the hall's wash dies 1 + FULL n times as fast; it is sent no less (a click's wash begins as loud in a full room: only what is left of it later is less)
             out[f"air{i}"] = {"fx": [f"reverb kind=hall decay={AIR_DECAY / (1 + HOUSE_FULL * n):.3g}s size=1 mix=1 predelay=40ms", "lp cutoff=6000", "hp cutoff=300",
                                      {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.far", "amount": 1}]}}],
-                              "returns": [{"from": "click", "gain": "0dB", "time": "6ms"}, {"from": "tock", "gain": "-2dB", "time": "6ms"}],
+                              "returns": [{"from": "click", "gain": "0dB", "time": "6ms"}, {"from": "tock", "gain": "-2dB", "time": "6ms"}] + ([{"from": "ball", "gain": BALL_AIR, "time": "6ms"}] if BALL else []),
                               "auto": {"far": {"points": house_lane(far, i)}}}
     out["dub"] = {"fx": [{"type": "delay", "time": "3/16", "feedback": {"value": 0.5, "mod": [{"src": "auto.breath", "amount": 1}]}, "mix": 1, "tone": 2000}, "hp cutoff=300",
                          "reverb kind=hall decay=3s mix=0.3"], "auto": {"breath": {"points": breath_lane()}}}
@@ -959,6 +1020,14 @@ def song():
             doc["tracks"].append({"name": f"flut-{side}", "patch": "sr-flutter", "gain": FLUT_GAIN, "pan": pan, "notes": flut_notes(side)})      # dry: an ear each
         doc["about"] = doc["about"].replace(" Generated by", " From v13 the corridor has its other two walls: the ones beside you, 2.34 m apart, between which the click rattles 73 times a second (a flutter echo on D2); in the middle of the corridor the rattle is an octave up and in the middle of the head, and walking to a wall it drops, leans to that wall and changes colour. Generated by")
         assert "From v13" in doc["about"]
+    if ball_notes():
+        PATCHES["sr-ball"] = {"about": "Standing Room's ball (chirper-zero, 27 Nov, v14): a small hard ball on a hard floor: a sine on A6 and a breath of noise with everything under 700 Hz taken off, gone in 22 ms. Its loudness goes as the square of the velocity, so a bounce that keeps 0.891 of the speed is written 0.891 ** 0.5 of the velocity.",
+                              "play": {"vel_sens": 1, "gate": 1},
+                              "synth": {"layers": ["sine", "white level=-8dB"], "filters": ["hp cutoff=700"], "amp": {"a": "0.1ms", "d": "22ms", "s": 0, "r": "8ms", "curve": 3}}}
+        doc["tracks"].append({"name": "ball", "patch": "sr-ball", "gain": BALL_GAIN, "pan": {"value": 0, "mod": [{"src": "auto.roll", "amount": 1}]},
+                              "auto": {"roll": {"points": ball_lane(), "curve": 0}}, "notes": ball_notes()})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v14 a small hard ball is let fall {len(BALL_RESTS)} times and comes to rest exactly on a bar line, at every door but the last and at the turn of a row in the long rooms: each flight is 0.891 of the one before, so the bounces come twice as fast every six and infinitely many fit into seven and a quarter beats; every room answers the same ball with its own echoes. Generated by")
+        assert "From v14" in doc["about"]
     if TRIM:
         ck = PATCHES["sr-click"]
         PATCHES["sr-click-t"] = {"about": ck["about"] + " From v13 with its own note (880 Hz) turned down and its top turned up on the lane `trim` (0 the click as it was, 1 the whole repair): the song had 10 dB more than the rest of the record at 880 Hz and 12 dB less at 15 kHz, and the click owns both.",
@@ -1050,6 +1119,11 @@ def echoes(a, b, n=16):
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
         sec = 60 / BPM * BEATS
+        if ball_notes():
+            fl = ball_flights(); beat = 60 / BPM
+            print(f"Zeno's ball: let fall {len(BALL_RESTS)} times from {100 * ball_height():.0f} cm ; a bounce keeps {BALL_E:.4f} of the speed ({20 * math.log10(BALL_E):.2f} dB) ; first flight {1000 * fl[0][1]:.1f} ms, {len(fl)} bounces sounded (to flights of {1000 * fl[-1][1]:.1f} ms, {fl[-1][2]:.1f} dB), all the flights together {BALL_BEATS * beat:.3f} s ({BALL_BEATS:g} beats) ; {BALL_NOTE}, {BALL_GAIN}")
+            print("   it comes to rest on the line of bar: " + " ".join(f"{r + 1} ({int(r * sec) // 60}:{r * sec % 60:04.1f}, {next(nm for nm, b0, n, *_ in SECS if b0 <= r - 1 < b0 + n)})" for r in BALL_RESTS))
+            print("   one fall, each bounce in sixteenths from the bar line two bars before rest: " + " ".join(f"{(2 * BEATS - BALL_BEATS + t / beat) / STEP:.2f}" for t, f, db in fl))
         if flut_span():
             b0, b1 = flut_span(); r = flut_rings(); ms = lambda w: 2000 * w * FLUT_WIDE / SOUND
             print(f"the corridor's other two walls, bars {b0 + 1}-{b1}: {FLUT_WIDE:.3f} m apart ({FLUT_NOTE}, {FLUT_HZ} Hz: across and back in {1000 / FLUT_HZ:.2f} ms) ; {len(r)} rings ; in the middle for bars {b0 + 1}-{b0 + FLUT_STILL}, then to a wall and back every {FLUT_TURN // 2} bars")
