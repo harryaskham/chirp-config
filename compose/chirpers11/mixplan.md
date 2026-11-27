@@ -94,6 +94,11 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Least Common v13 (03:28): both ends are v12's to 0.1 dB: bars 1 to 4 -17.4 dBFS, the last four bars -17.3 -17.3
+  -17.2 -16.9, the two seconds after home -20.1. What changed is inside (three hats on page 4, sixteen on page 8).
+- Ring True into Hearing Things (seam 4), 03:20: Hearing Things v15 has pips (A4 C5 E5) from its bar 3, 9.3 dB under
+  its click. Ring True's tail there is under -48 dBFS (by second -19.0 -34.1 -48.5 -61.7 from the end of bar 184, and
+  the overlap is one bar): nothing of it meets the pips above their floor. No change asked of either song.
 - Small Change v12 (03:03): both ends within a tenth of v11's and nothing new sounds at either: bars 1 to 16 by
   four -22.4 -23.3 -23.5 -20.5 dBFS, the last sixteen -24.3 -23.5 -23.1 -19.5. What changed is inside (bars 57 to
   63, 137 to 143, 165 and 167). Seam 6 (eight bars into Out of Step, whose first eight are 0.12 dB quieter since
