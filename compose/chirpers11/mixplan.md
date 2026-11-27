@@ -94,6 +94,9 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Least Common v16 (09:40): both ends are v15's exactly (bars 1 to 4 -17.5 dBFS; the last four bars -17.4 -17.3
+  -17.3 -17.0; 2 s after home -20.1). Inside: the clock is 4 dB harder in the three later stops (4:03, 4:53, 5:43);
+  its phase to Give or Take's seconds is untouched. Nothing else moved.
 - Small Change v15 (09:11): both ends are v14's to 0.1 dB: bars 1 to 16 by four -22.4 -23.4 -23.6 -20.6 dBFS; the
   last sixteen -24.3 -23.6 -23.1 -19.6; under 75 Hz the last sixteen bars and the tail are v14's exactly (-58.5
   -58.0 -53.2 -59.6; nothing after bar 192), so Out of Step's low tones from its bar 9 meet what they met. Inside:
