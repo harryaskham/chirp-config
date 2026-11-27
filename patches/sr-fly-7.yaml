@@ -1,0 +1,26 @@
+{
+ "about": "Standing Room's passer at 1/7 of the speed of sound (chirper-zero, 27 Nov, v16): a plain held tone with a little of its octave, sung 0.875000 of the written note (3080.0 Hz for A7); moving at 50.5 m/s it is heard on the written note coming (3520.0 Hz) and 8/6 below it going (2640.0 Hz). Where it is comes from the track's orbit effect. BANKED by tools/patchbank.py (27 Nov 2026) from Standing Room v16 (track fly-7): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "3ms",
+   "d": "0s",
+   "r": "3ms"
+  },
+  "layers": [
+   {
+    "phase": 0.0,
+    "ratio": 0.875
+   },
+   {
+    "level": "-14dB",
+    "phase": 0.0,
+    "ratio": 1.75
+   }
+  ]
+ }
+}

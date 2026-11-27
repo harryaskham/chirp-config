@@ -1,0 +1,69 @@
+{
+ "about": "Hearing Things' crack (chirper-zero, 27 Nov, v17): 10 plain tones from 4.6 to 17.5 times the note, each 1.16 times the last, all starting at nought and gone in 5ms: a broad click with no noise in it, so two of them are the same to the sample: one for each ear. BANKED by tools/patchbank.py (27 Nov 2026) from Hearing Things v17 (tracks crack-l, crack-r): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "curve": 2.0,
+   "d": "5ms",
+   "r": "3ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "level": "-3dB",
+    "phase": 0.0,
+    "ratio": 4.6
+   },
+   {
+    "level": "-3.5dB",
+    "phase": 0.0,
+    "ratio": 5.336
+   },
+   {
+    "level": "-4dB",
+    "phase": 0.0,
+    "ratio": 6.19
+   },
+   {
+    "level": "-4.5dB",
+    "phase": 0.0,
+    "ratio": 7.18
+   },
+   {
+    "level": "-5dB",
+    "phase": 0.0,
+    "ratio": 8.329
+   },
+   {
+    "level": "-5.5dB",
+    "phase": 0.0,
+    "ratio": 9.662
+   },
+   {
+    "level": "-6dB",
+    "phase": 0.0,
+    "ratio": 11.207
+   },
+   {
+    "level": "-6.5dB",
+    "phase": 0.0,
+    "ratio": 13.001
+   },
+   {
+    "level": "-7dB",
+    "phase": 0.0,
+    "ratio": 15.081
+   },
+   {
+    "level": "-7.5dB",
+    "phase": 0.0,
+    "ratio": 17.494
+   }
+  ]
+ }
+}

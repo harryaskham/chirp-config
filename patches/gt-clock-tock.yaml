@@ -1,0 +1,30 @@
+{
+ "about": "Give or Take's wall clock, the tock (chirper-zero, 27 Nov, v16): a 9 ms grain of noise through a narrow band at 3000 Hz: one pallet of an escapement. Three of them make a tick (unlock, impulse, drop). BANKED by tools/patchbank.py (27 Nov 2026) from Give or Take v16 (track clock-tock): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "9ms",
+   "r": "5ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 3000,
+    "kind": "bp",
+    "q": 5
+   },
+   {
+    "cutoff": 1200,
+    "kind": "hp"
+   }
+  ],
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}
