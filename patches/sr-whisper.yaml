@@ -1,0 +1,39 @@
+{
+ "about": "Standing Room's whisper (chirper-zero, 27 Nov, v24): 29 ms of hiss, 3000 to 7500 Hz, from the engine's chip noise with no chip's clock: a shift register begun from the same state at every note, so every arrival of it is THE SAME BURST, sample for sample, on every seed: one whisper, coming round the gallery again. BANKED by tools/patchbank.py (27 Nov 2026) from Standing Room v24 (tracks gal-l, gal-r): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "2ms",
+   "d": "0s",
+   "r": "20ms"
+  },
+  "filters": [
+   {
+    "cutoff": 3000,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 7500
+   },
+   {
+    "cutoff": 7500
+   },
+   {
+    "cutoff": 7500
+   }
+  ],
+  "layers": [
+   {
+    "chip": {
+     "clock": 0.0,
+     "kind": "noise"
+    },
+    "type": "chip"
+   }
+  ]
+ }
+}

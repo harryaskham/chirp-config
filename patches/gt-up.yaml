@@ -1,0 +1,49 @@
+{
+ "about": "Give or Take's record coming up to speed (chirper-zero, 27 Nov, v24): deck B's sixteenth click as the groove holds it, played at whatever speed the platter has: the engine's chip noise with no chip's clock, a shift register begun from the same state at every note and clocked from the note played (D3 at full speed) and the track's lane (auto.spd, semitones): every click is the same steps of the register, slower and longer the slower the platter. Then the headphone: the cue's own small speaker (nothing under 1.8 kHz, a ring at 3.2 kHz, little over 7 kHz), which does not slow down with the record. BANKED by tools/patchbank.py (27 Nov 2026) from Give or Take v24 (track start): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`spd`): give the track that plays it `auto: {spd: \u2026}`, as the song does.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "0s",
+   "r": "3ms"
+  },
+  "filters": [
+   {
+    "cutoff": 1800,
+    "kind": "hp",
+    "q": 0.8
+   },
+   {
+    "cutoff": 3200,
+    "gain": "6dB",
+    "kind": "peak",
+    "q": 2
+   },
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "chip": {
+     "clock": 0.0,
+     "kind": "noise"
+    },
+    "type": "chip"
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 1.0,
+     "src": "auto.spd"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

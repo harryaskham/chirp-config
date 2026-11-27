@@ -1,0 +1,45 @@
+{
+ "about": "Small Change: the spun coin (v19). A coin on a table is a small free plate struck on its edge at every rattle: a thin plate's modes (dense, out of tune with each other, from 4.2 kHz up; the patch's note is the seed's three octaves up), struck near the edge, and a short click on its front. Each stroke's ring is on the note (expr.ring: T60 in seconds over 4 ms): the song damps it by the law the rattle quickens by. BANKED by tools/patchbank.py (27 Nov 2026) from Small Change v19 (tracks spun-l, spun-r, flick): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.8
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "0s",
+   "r": "400ms"
+  },
+  "filters": [
+   {
+    "cutoff": 2500,
+    "kind": "hp"
+   }
+  ],
+  "layers": [
+   {
+    "bright": 0.8,
+    "decay": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ring"
+      }
+     ],
+     "value": 0.004
+    },
+    "modes": "plate",
+    "strike": 0.7,
+    "type": "modal"
+   },
+   {
+    "level": "-9dB",
+    "machine": {
+     "decay": "8ms",
+     "part": "hat"
+    },
+    "type": "machine"
+   }
+  ]
+ }
+}
