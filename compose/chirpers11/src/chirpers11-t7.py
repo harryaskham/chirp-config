@@ -332,6 +332,18 @@ the same spectrum, to the dB, and another sound: its harmonics are out of step. 
 "slips" (bars 65 to 72) A's click on sixteenths 6 and 14 is given a second copy through such a chain,
 on A's side: 32 filters for two bars, then 64, 128, 256: the click's third harmonic comes 14, 29,
 57 and then 114 ms after its twenty-fourth.
+
+v24 (27 Nov): THE WHISTLE IS PUT IN STEP (C11T7_BACK=0 takes it out: v23). The same chains, the
+other way. If a chain holds every frequency back by its own time, then a sound in which every
+frequency is sounded that much EARLY comes out of it with all of them together: a click. That
+sound is a rising whistle: the low frequencies first (they will be held longest), the high ones
+last. It is how a radar puts a long weak chirp back into one sharp pulse, and (the other way
+round) what a bat's ear does with its call. In the last row of "drifts" (bars 129 to 136) a
+whistle from 588 Hz to 6 kHz goes into the chain of 256 filters (it is 107 ms long), then 128
+(53 ms), 64 (27 ms), 32 (13 ms): two bars each, each 3 dB up on the last, so the same energy goes
+in every time, and the same click comes out, on A's side, half a sixteenth after A's clicks on 6
+and 14, where nothing in the song strikes: a click where only a whistle was written. The whistle
+itself is heard going in, quietly, on B's side, ending as the click sounds.
 """
 import json
 import math
@@ -632,6 +644,16 @@ DISP_VEL = 0.9                                         # A's
 DISP_PAN = -0.35                                       # A's side in this row
 DISP_KEEP = "-120dB"                                   # a held note this far down goes into each chain for as long as its stage lasts, AND NOTHING ELSE KEEPS THE CHAIN RUNNING: the engine stops a bus's effects when the last voice that feeds it ends (it takes a filter to have no tail), and the click's voice ends after 27 ms, while 256 all-pass filters are still giving it back 100 ms later. Read on the bench without it: the click's third harmonic came out 30 dB down, the sixth 18 to 33, the stroke 25 ms long. With it: every band within 0.1 dB of the click's own
 DISP_GAIN = os.environ.get("C11T7_DISP_GAIN", "-8dB")  # set in the whole song's master between two readings, BEFORE their scores were read (A's click is -2dB): what is heard of the copy is its TAIL, after A's own click is over: between 500 and 1500 Hz, from 30 to 110 ms after the stroke, the mix is 6.1, 8.5 and 9.4 dB over what it was at -6dB (64, 128, 256 filters) and 3.0, 4.1, 5.0 dB over at -12dB; with 32 filters there is no tail at either (the copy is over in 24 ms: a click on a click). Nearer the louder: a chirp has to be heard as one. THE MASTER DELIVERS THE COPY 8 dB LOUDER THROUGH 256 FILTERS THAN THROUGH 32 (the same energy went in: its peak is 7 dB lower, and this master holds peaks)
+BACK = os.environ.get("C11T7_BACK", "1") != "0" and DISP   # v24: the other half of v23: a whistle goes into the same chains and a CLICK comes out (pulse compression: a radar's chirp, a bat's call): each frequency of the whistle is sounded as much BEFORE the instant as the chain will hold it back, so the chain puts them all in step
+BACK_IN = ("drifts", 3)                                # the section and the row of it (from 0): the last row of "drifts", which had nothing of its own
+BACK_STAGES = tuple(reversed(DISP_STAGES))             # the chains, two bars each, the longest first: the whistle halves every two bars and the click that comes out is the same click
+BACK_SPAN = (588.0, 6000.0)                            # Hz the whistle rises through: from the click's third harmonic
+BACK_NOTE = "D5"                                       # the note the whistle's tone is written on (587.33 Hz): its lane (semitones over it) draws the rise
+BACK_POINTS = 80                                       # points of the lane to a whistle, evenly spaced in pitch
+BACK_ON = (6.5, 14.5)                                  # the sixteenths of the bar the click comes out on: HALF A SIXTEENTH AFTER A's own clicks on 6 and 14 (the ones that came apart in v23), where nothing else in the song strikes: a click is heard where only a whistle was written
+BACK_PAN = (0.35, -0.35)                               # the whistle as it goes in is heard on B's side; the click comes out on A's
+BACK_HEARD = os.environ.get("C11T7_BACK_HEARD", "-34dB")   # the whistle as it is heard going in: ONE fader for all four lengths. Read in the whole song's master with the short ones 3 dB up a halving (as they go into the chains): the 107 and 53 ms whistles came level with the music in their ear over their own time (-1.3, +0.8 dB) and the 27 and 13 ms ones 10 dB over it: too much of a zip. At one fader they are about -1, -2, +4 and +1
+BACK_GAIN = os.environ.get("C11T7_BACK_GAIN", "-31dB")     # the whistle into the longest chain (a shorter one 3 dB up for every halving: the same energy in, so the same click out). ALONE at -28dB the click that comes out has A's own click's energy to 0.3 dB and its peak to 0.8, out of every chain. Set in the whole song's master between two readings, BEFORE their scores were read: at -28dB the click is 0 to 3 dB under A's own click beside it by energy, at -34dB 1.5 to 5: THIS MASTER GIVES 2 dB FOR 6 OF FADER ON A CLICK. 16 and 15 of the 16 stand 6 dB or more over the music in their ear
 SWARM = os.environ.get("C11T7_SWARM", "1") != "0" and FOCUS      # v18: the click comes apart and finds itself (twelve clicks that listen only to each other)
 SWARM_ROWS = tuple(int(x) for x in os.environ.get("C11T7_SWARM_ROWS", "56,120").split(","))    # the first bar (from 0) of each row it plays in: the two breaks in which the bass drum rests and then comes in
 SWARM_BARS = ROW                                                     # how long a row is
@@ -694,6 +716,51 @@ def gear_notes():
         for p, q, turns in (gear_plan() if way == "up" else gear_plan()[::-1]):
             out += [{"at": round(b + j * q / p, 6), "len": 0.25, "pitch": GEAR_NOTE, "vel": GEAR_ACCENT[0 if j % p == 0 else 1]} for j in range(p * turns)]
             b += q * turns
+    return out
+
+
+def back_row():
+    """The first bar of the row in which the whistle is put in step, or None."""
+    sec = next((x for x in SECS if x[0] == BACK_IN[0]), None)
+    return sec[1] + ROW * BACK_IN[1] if BACK and sec is not None and BACK_IN[1] * ROW < sec[2] else None
+
+
+def back_strokes(j):
+    """The beats on which stage j's clicks come out."""
+    b0, per = back_row(), ROW // len(BACK_STAGES)
+    return [(b0 + j * per + i) * BEATS + st * STEP for i in range(per) for st in BACK_ON]
+
+
+def back_whistle(k, at):
+    """One whistle into a chain of k filters, to come out a click at beat `at`: [(beat, semitones over BACK_NOTE)]: the frequency f is sounded disp_late(f, k) seconds before the instant."""
+    lo, hi = BACK_SPAN; base = 440 * 2 ** (({"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}[BACK_NOTE[0]] + (-1 if "b" in BACK_NOTE else 0) + 12 * (int(BACK_NOTE[-1]) - 4) - 9) / 12)
+    out = []
+    for i in range(BACK_POINTS + 1):
+        f = lo * (hi / lo) ** (i / BACK_POINTS)
+        out.append((at - disp_late(f, k) * BPM / 60, 12 * math.log2(f / base)))
+    return out
+
+
+def back_lane(j):
+    """Stage j's lane: its whistles one after another; between two the lane goes back down while nothing sounds."""
+    pts = []
+    for at in back_strokes(j):
+        wh = back_whistle(BACK_STAGES[j], at)
+        if not pts:
+            pts.append(["0b", round(wh[0][1], 4)])
+        else:
+            pts.append([f"{wh[0][0] - 0.5:.5f}b", round(wh[0][1], 4)])
+        pts += [[f"{t:.5f}b", round(st, 4)] for t, st in wh]
+        pts.append([f"{wh[-1][0] + 0.25:.5f}b", round(wh[-1][1], 4)])
+    pts.append([f"{BARS * BEATS:g}b", pts[-1][1]])
+    return pts
+
+
+def back_notes(j):
+    out = []
+    for at in back_strokes(j):
+        wh = back_whistle(BACK_STAGES[j], at)
+        out.append({"at": round(wh[0][0], 5), "len": round(wh[-1][0] - wh[0][0], 5), "pitch": BACK_NOTE, "vel": 0.8})
     return out
 
 
@@ -1355,6 +1422,21 @@ def song():
                                   "auto": {"open": {"points": open_lane()}}, "notes": disp_notes(di_j)})      # dry: the chain is all it goes through
         doc["about"] = doc["about"].replace(" Generated by", f" From v23 A's click comes apart (bars {di_b0 + 1} to {di_b0 + ROW}): on two sixteenths of every bar a second copy of it goes through a chain of all-pass filters, which change nothing in it but the phase of each frequency: the spectrum is the click's, and the sound is a falling chirp, because its harmonics no longer start together: the chain holds the low ones back longest. Every two bars the chain is twice as long ({', '.join(str(k) for k in DISP_STAGES)} filters): the click's third harmonic (588 Hz) comes {', '.join(f'{1000 * (disp_late(588.0, k) - disp_late(4704.0, k)):.0f}' for k in DISP_STAGES)} ms after its twenty-fourth. Generated by")
         assert "From v23" in doc["about"]
+    if back_row() is not None:
+        assert ROW % len(BACK_STAGES) == 0 and all(k in DISP_STAGES for k in BACK_STAGES)
+        bk_b0 = back_row(); bk_per = ROW // len(BACK_STAGES)
+        PATCHES["os-whistle"] = {"about": "Out of Step's whistle (chirper-zero, 27 Nov, v24): one plain tone whose note is drawn by its track's lane (auto.glide, semitones): a rise through the click's band, each frequency sounded as long before the instant as a chain of all-pass filters will hold it back. Through that chain it is a click; heard as it goes in, a short rising whistle.",
+                                 "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": ["sine phase=0"], "pitch": {"value": 0, "mod": [{"src": "auto.glide", "amount": 1}]}, "amp": {"a": "1ms", "d": "0s", "s": 1, "r": "1ms"}}}
+        for bk_j, bk_k in enumerate(BACK_STAGES):
+            bk_n = DISP_STAGES.index(bk_k) + 1; bk_up = 10 * math.log10(max(BACK_STAGES) / bk_k); bk_lane = back_lane(bk_j)
+            doc["tracks"].append({"name": f"back-{bk_n}", "patch": "os-whistle", "gain": f"{float(BACK_GAIN[:-2]) + bk_up:.2f}dB", "pan": BACK_PAN[1], "out": f"chain-{bk_n}",
+                                  "auto": {"glide": {"points": bk_lane, "curve": 0}}, "notes": back_notes(bk_j)})      # into the chain: what is heard of this track is the click
+            doc["tracks"].append({"name": f"heard-{bk_n}", "patch": "os-whistle", "gain": BACK_HEARD, "pan": BACK_PAN[0],
+                                  "auto": {"glide": {"points": bk_lane, "curve": 0}}, "notes": back_notes(bk_j)})      # dry: the whistle as it goes in
+            doc["tracks"].append({"name": f"hold-{bk_n}", "patch": "os-keep", "gain": DISP_KEEP, "pan": 0.0, "out": f"chain-{bk_n}",
+                                  "notes": [{"at": (bk_b0 + bk_j * bk_per) * BEATS - 1, "len": bk_per * BEATS + 1, "pitch": "G1", "vel": 0.5}]})      # the keeper again (v23): the chain must be running before the whistle starts and after it ends
+        doc["about"] = doc["about"].replace(" Generated by", f" From v24 the same chains are used the other way (bars {bk_b0 + 1} to {bk_b0 + ROW}): a rising whistle goes in and a click comes out. Each frequency of the whistle, from {BACK_SPAN[0]:g} Hz to {BACK_SPAN[1]:g}, is sounded as long before the instant as the chain will hold it back, so the chain puts them all in step: a radar's pulse, a bat's call. The whistle is {', '.join(f'{1000 * (disp_late(BACK_SPAN[0], k) - disp_late(BACK_SPAN[1], k)):.0f}' for k in BACK_STAGES)} ms long through {', '.join(str(k) for k in BACK_STAGES)} filters, two bars each, 3 dB up for every halving: the same energy goes in, and the same click comes out, half a sixteenth after A's clicks on 6 and 14, where nothing else strikes. The whistle is heard as it goes in, quietly, on B's side; the click comes out on A's. Generated by")
+        assert "From v24" in doc["about"]
     return doc
 
 
@@ -1384,6 +1466,11 @@ def lock(k):
 if __name__ == "__main__":
     if os.environ.get("C11T7_SHOW"):
         sec = 60 / BPM * BEATS
+        if back_row() is not None:
+            bk_b0 = back_row(); bk_per = ROW // len(BACK_STAGES)
+            print(f"the whistle is put in step (pulse compression), bars {bk_b0 + 1}-{bk_b0 + ROW} ({int(bk_b0 * sec) // 60}:{bk_b0 * sec % 60:04.1f}): a rise from {BACK_SPAN[0]:g} to {BACK_SPAN[1]:g} Hz into the chains of v23 ; a click comes out on sixteenths {', '.join(str(x) for x in BACK_ON)} ; into the longest chain {BACK_GAIN}, 3 dB up a halving ; heard {BACK_HEARD}")
+            for bk_j, bk_k in enumerate(BACK_STAGES):
+                print(f"   bars {bk_b0 + bk_j * bk_per + 1}-{bk_b0 + (bk_j + 1) * bk_per}: {bk_k} filters ; the whistle starts {1000 * disp_late(BACK_SPAN[0], bk_k):.1f} ms before the instant and ends {1000 * disp_late(BACK_SPAN[1], bk_k):.1f} ms before it ({1000 * (disp_late(BACK_SPAN[0], bk_k) - disp_late(BACK_SPAN[1], bk_k)):.1f} ms long)")
         if disp_row() is not None:
             di_b0 = disp_row(); di_per = ROW // len(DISP_STAGES)
             print(f"the click comes apart (all-pass: phase only), bars {di_b0 + 1}-{di_b0 + ROW} ({int(di_b0 * sec) // 60}:{di_b0 * sec % 60:04.1f}): A's click on sixteenths {', '.join(str(x) for x in DISP_ON)} again through a chain of all-pass filters ({DISP_BAND[0]:g} to {DISP_BAND[1]:g} Hz, q {DISP_Q:g}) ; {DISP_GAIN}, pan {DISP_PAN}")
