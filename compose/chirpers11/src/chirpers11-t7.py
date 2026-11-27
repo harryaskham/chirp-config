@@ -298,6 +298,18 @@ of a wave further on, and the clicks swell and die every eight turns (six beats)
 bars: an accent nobody plays, three against four, made of phase alone. The track is heard through a
 shelf (12 dB up over 600 Hz, where a plain tone has nothing): the tone is as it was and only the turns
 are brighter; without it the tone had to be the loudest thing in the row to be heard clicking.
+
+v21 (27 Nov): THE PENDULUM GOES OVER THE TOP (C11T7_OVER=0 takes it out: v20). The song begins with a
+pendulum, and a pendulum has two kinds of motion: it swings, or it goes round. Between them is the one
+swing that just reaches the top, which takes for ever. In a row of "drifts" that had nothing of its own
+(bars 113-120) a real pendulum is pushed from one to the other. Its acceleration is the sine of its
+angle, so a wide swing takes LONGER than a small one (the fault every clock's escapement is built to
+hide), and the escapement pushes it at every pass through the bottom, by the same share of its speed:
+that is its tick, in the middle. A small tick eight times a beat is where the bob is (left and right
+by the sine of the angle, quieter the higher it is). It swings wider and slower; the seventh swing
+reaches 176.8 degrees and all but stops there, far off, for more than a bar; it falls back the way it
+came; and at the next push it goes over. After that there is no swinging back: it goes round and
+round, the same way, each turn quicker than the last, till the row ends. The phase that swung now runs.
 """
 import json
 import math
@@ -563,6 +575,21 @@ TURN_SHELF = (600, "12dB")                             # the track is heard thro
 TURN_WAVES = 70 + 1 / 16                               # the note's waves in one turn: the click's note has 70 (196 Hz); a sixteenth of a wave more (1.5 cents) and each turn catches the wave a sixteenth of a turn further on: nought, a third, two thirds, nearly all, all of its height and back, every 8 turns (6 beats)
 TURN_SLOW = 0.0993e-3                                  # seconds: MEASURED, not chosen. This engine's slow oscillators are late: their phase is summed in single precision, and at 1.4 Hz the upper half of the square's cycle lasts 0.245 ms too long and the lower 0.04 too short (the step is 489.3 parts in 2 to the 24 and is rounded to 489 there). The note is tuned to the turn as it is made, not as it is written; by the row's end the turns are 3 ms late
 TURN_GAIN = os.environ.get("C11T7_TURN_GAIN", "-34dB")  # set in the whole song's master between two readings: at -30dB the tone was level with all the music from 150 to 260 Hz, the large turns 9 dB over what was in their gaps (the largest 22) and the highest sample -2.6 dBFS: louder than the song's own clicks; at -36dB the tone was 6.5 dB under, the large turns 5 dB over their gaps and under the song's clicks
+OVER = os.environ.get("C11T7_OVER", "1") != "0" and TURN     # v21: the pendulum goes over the top
+OVER_IN = ("drifts", int(os.environ.get("C11T7_OVER_ROW", "1")))   # the section and the row of it (from 0): a row of "drifts" that had nothing of its own
+OVER_PERIOD = 4.0                                      # beats: the time of one small swing there and back: a bar
+OVER_START = 60.0                                      # degrees from straight down that the first swing reaches
+OVER_PUSHES = 6                                        # passes through the bottom before the swing that all but reaches the top: the escapement pushes at every pass, in the way it is going, by the same share of its speed
+OVER_NEAR = 176.8                                      # degrees that swing reaches: 3.2 short of the top, where a pendulum all but stops. The push is worked out from this: (sin(NEAR / 2) / sin(START / 2)) ** (1 / PUSHES)
+OVER_STEPS = 960                                       # steps of a beat the motion is worked out in (leapfrog: the angle's acceleration is -(2 pi / PERIOD)^2 sin(angle))
+OVER_PER_BEAT = 8                                      # the bob is heard as a small tick this many times a beat, evenly IN TIME, each where the bob is then
+OVER_OFF = 0.5                                         # of the gap between two of them: the first is half a thirty-second after the line, so every one falls between the sixteenths and the thirty-seconds
+OVER_PAN = 0.9                                         # level with the pivot (90 degrees) it is this far to the side: the pan is OVER_PAN * sin(angle)
+OVER_FAR = 9.0                                         # dB quieter at the top than at the bottom: by height, (1 - cos(angle)) / 2
+OVER_VEL = 0.8                                         # the bob's tick at the bottom
+OVER_NOTE = "B8"                                       # the bob's tick (7.9 kHz: chosen by the scorer's bands: the band of this song with the most room; nothing of it over 10 kHz)
+OVER_TICK = ("B7", 0.9, 4.0)                           # the escapement's tick at every pass through the bottom: its note (an octave under the bob's), velocity, dB over the bob's fader; in the middle. At -16dB (this) a tick was -17 to -24 dBFS in its own 4 ms and 15 to 29 dB over the music from 3 to 5 kHz; at -8dB it was -12 to -16 dBFS, as loud as the song's own clicks
+OVER_GAIN = os.environ.get("C11T7_OVER_GAIN", "-20dB") # the bob's fader, set in the whole song's master between two readings. This song has little from 6.5 to 9.5 kHz, so the bob stands well over what is there at any fader (median 22 dB over at -14dB, 14 dB at -22dB) and the master delivers it as written (8 dB for 8): the question is how much of the row it takes. At -14dB the music under it was 0.11 dB down; at -22dB 0.02
 SWARM = os.environ.get("C11T7_SWARM", "1") != "0" and FOCUS      # v18: the click comes apart and finds itself (twelve clicks that listen only to each other)
 SWARM_ROWS = tuple(int(x) for x in os.environ.get("C11T7_SWARM_ROWS", "56,120").split(","))    # the first bar (from 0) of each row it plays in: the two breaks in which the bass drum rests and then comes in
 SWARM_BARS = ROW                                                     # how long a row is
@@ -625,6 +652,42 @@ def gear_notes():
         for p, q, turns in (gear_plan() if way == "up" else gear_plan()[::-1]):
             out += [{"at": round(b + j * q / p, 6), "len": 0.25, "pitch": GEAR_NOTE, "vel": GEAR_ACCENT[0 if j % p == 0 else 1]} for j in range(p * turns)]
             b += q * turns
+    return out
+
+
+def over_row():
+    """The first bar of the row in which the pendulum goes over the top, or None."""
+    sec = next((x for x in SECS if x[0] == OVER_IN[0]), None)
+    return sec[1] + ROW * OVER_IN[1] if OVER and sec is not None and OVER_IN[1] * ROW < sec[2] else None
+
+
+_over = {}
+
+
+def over_path():
+    """(angles, ticks, push): the pendulum's angle in radians from straight down at every 1 / OVER_STEPS of a beat of the row; every pass through the bottom as (beat from the row's line, the angle's whole turns so far, speed after the push in units of the speed that just reaches the top); and the push (speed is multiplied by it at every pass). A real pendulum: its acceleration is -w0^2 sin(angle), so a wide swing takes longer than a small one, and one that reaches the top takes for ever."""
+    if "p" not in _over:
+        w0 = 2 * math.pi / OVER_PERIOD; k0 = math.sin(math.radians(OVER_START) / 2)
+        push = (math.sin(math.radians(OVER_NEAR) / 2) / k0) ** (1 / OVER_PUSHES)
+        th, om, dt = 0.0, 2 * w0 * k0, 1 / OVER_STEPS
+        angles, ticks = [0.0], [(0.0, 0, k0)]
+        for i in range(ROW * BEATS * OVER_STEPS):
+            om_h = om - w0 * w0 * math.sin(th) * dt / 2; th2 = th + om_h * dt; om2 = om_h - w0 * w0 * math.sin(th2) * dt / 2
+            c1, c2 = th / (2 * math.pi), th2 / (2 * math.pi)
+            if math.floor(c1) != math.floor(c2):                                   # it has passed straight down (a whole number of turns): the escapement's tick and its push
+                whole = max(math.floor(c1), math.floor(c2)); om2 *= push
+                ticks.append(((i + (whole * 2 * math.pi - th) / (th2 - th)) * dt, whole, abs(om2) / (2 * w0)))
+            th, om = th2, om2; angles.append(th)
+        _over["p"] = (angles, ticks, push)
+    return _over["p"]
+
+
+def over_bob():
+    """[(beat from the row's line, angle, pan, velocity)] of the bob's ticks."""
+    angles = over_path()[0]; out = []
+    for j in range(ROW * BEATS * OVER_PER_BEAT):
+        t = (j + OVER_OFF) / OVER_PER_BEAT; th = angles[int(round(t * OVER_STEPS))]
+        out.append((t, th, round(OVER_PAN * math.sin(th), 4), round(OVER_VEL * 10 ** (-OVER_FAR * (1 - math.cos(th)) / 2 / 20), 4)))
     return out
 
 
@@ -1167,6 +1230,17 @@ def song():
         doc["tracks"].append({"name": "turn", "patch": "os-turn", "gain": TURN_GAIN, "pan": 0.0, "fx": [{"type": "eq", "bands": [f"highshelf cutoff={TURN_SHELF[0]} gain={TURN_SHELF[1]}"]}], "notes": [note(tu0, NOTE, tu1 - tu0, 0.8)]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v20 the note the roll arrives at stays for {TURN_BARS} bars, one plain tone, and is turned upside down every three sixteenths, half-way between two sixteenths, where nobody strikes: nothing is struck, and every turn is a click, because the ear does not hear which way up a tone is but hears it change. How loud the click is depends on where in its wave the tone is caught: at its top the step is twice its height, at nought there is none; the tone has a sixteenth of a wave more than a whole number in every turn, so the clicks swell and die away every eight turns, {int(round(TURN_BARS * BEATS / TURN_EVERY / 8))} times in the {TURN_BARS} bars, with nobody playing louder or softer. (The track is heard through a shelf, {TURN_SHELF[1]} up over {TURN_SHELF[0]} Hz, where a plain tone has nothing: only the turns are brighter for it.) Generated by")
         assert "From v20" in doc["about"]
+    if over_row() is not None:
+        if "os-fly" not in PATCHES:
+            raise SystemExit("the bob's tick is the swarm's (os-fly): C11T7_SWARM must be on")
+        ov0 = over_row() * BEATS; ov_bob = over_bob(); ov_ticks = over_path()[1]; ov_push = over_path()[2]
+        doc["tracks"].append({"name": "over-bob", "patch": "os-fly", "gain": OVER_GAIN, "pan": {"value": 0, "mod": [{"src": "auto.swing", "amount": 1}]},
+                              "auto": {"swing": {"points": [["0b", 0.0]] + [[f"{round(ov0 + t, 5):g}b", pan] for t, _, pan, _ in ov_bob], "curve": 0}},
+                              "notes": [{"at": round(ov0 + t, 5), "len": 0.02, "pitch": OVER_NOTE, "vel": vel} for t, _, _, vel in ov_bob]})
+        doc["tracks"].append({"name": "over-tick", "patch": "os-fly", "gain": f"{float(OVER_GAIN[:-2]) + OVER_TICK[2]:g}dB", "pan": 0.0,
+                              "notes": [{"at": round(ov0 + t, 5), "len": 0.02, "pitch": OVER_TICK[0], "vel": OVER_TICK[1]} for t, _, _ in ov_ticks]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v21 the pendulum the song began with is pushed until it goes over the top (bars {over_row() + 1} to {over_row() + ROW}, a row of the drifts that had nothing of its own). It is a real pendulum, so a wide swing takes longer than a small one, and the escapement pushes it at every pass through the bottom (its tick, in the middle; {(ov_push - 1) * 100:.1f}% of its speed each time). A small tick {OVER_PER_BEAT} times a beat is where the bob is: it swings from side to side, wider and slower ({' '.join(f'{b - a:.2f}' for (a, _, _), (b, _, _) in zip(ov_ticks[:OVER_PUSHES + 1], ov_ticks[1:OVER_PUSHES + 2]))} beats from tick to tick), all but stops at the top, far off, falls back, and at the next push goes over: after that it only goes round, {abs(over_path()[0][-1]) / (2 * math.pi):.1f} turns by the row's end, each quicker than the last. Generated by")
+        assert "From v21" in doc["about"]
     return doc
 
 
@@ -1254,6 +1328,13 @@ if __name__ == "__main__":
         if jet_span():
             sec = BEATS * 60 / BPM; lo, hi = jet_span()
             print(f"   the break through a phaser, bars {lo + 1}-{hi} ({int(lo * sec) // 60}:{lo * sec % 60:04.1f}-{int(hi * sec) // 60}:{hi * sec % 60:04.1f}): the click's note ({NOTE}, {WAVE_HZ:.1f} Hz) held, {JET_GAIN} ; {JET_STAGES} all-pass stages, depth {JET_DEPTH}, feedback {JET_FEEDBACK}, mix {JET_MIX} ; a sweep there and back every {JET_RATE} ({int(JET_RATE[:-1]) * 60 / BPM:.2f} s): {(hi - lo) * BEATS / int(JET_RATE[:-1]):g} sweeps")
+        if over_row() is not None:
+            ov_ticks = over_path()[1]; ov_bob = over_bob(); ov_b0 = over_row()
+            print(f"   the pendulum goes over the top ({OVER_GAIN}), bars {ov_b0 + 1}-{ov_b0 + ROW} ({int(ov_b0 * BEATS * 60 / BPM) // 60}:{ov_b0 * BEATS * 60 / BPM % 60:04.1f}): a small swing takes {OVER_PERIOD:g} beats ; it starts at {OVER_START:g} degrees ; pushed {(over_path()[2] - 1) * 100:.2f}% at every pass through the bottom ; {len(ov_bob)} ticks of the bob ({OVER_NOTE}), {len(ov_ticks)} of the escapement ({OVER_TICK[0]})")
+            print("      passes through the bottom (bar.beat: speed after the push, 1 = just reaches the top ; beats since the last): " + " ".join(f"{ov_b0 + 1 + int(t // BEATS)}.{t % BEATS + 1:.2f}:{k:.3f};{t - (ov_ticks[i - 1][0] if i else 0):.2f}" for i, (t, _, k) in enumerate(ov_ticks)))
+            ov_a = over_path()[0]; ov_top = max(range(int(ov_ticks[OVER_PUSHES + 1][0] * OVER_STEPS)), key=lambda q: abs(ov_a[q]))
+            print(f"      the highest it swings before it goes over: {abs(math.degrees(ov_a[ov_top])):.1f} degrees at beat {ov_top / OVER_STEPS:.2f} of the row ; over 150 degrees for {sum(1 for q in ov_a[:int(ov_ticks[OVER_PUSHES + 1][0] * OVER_STEPS)] if abs(q) > math.radians(150)) / OVER_STEPS:.2f} beats ; whole turns by the row's end: {abs(ov_a[-1]) / (2 * math.pi):.2f}")
+            print("      the bob's pan at each half beat: " + " ".join(f"{ov_bob[q][2]:+.2f}" for q in range(0, len(ov_bob), OVER_PER_BEAT // 2)))
         if turn_span():
             tu0, tu1 = turn_span(); tu_sec = 60 / BPM; tu = turn_steps()
             print(f"   a click that nobody struck ({TURN_GAIN}): {NOTE} held, one plain tone at {turn_hz():.3f} Hz ({1200 * math.log2(turn_hz() / WAVE_HZ):+.2f} cents), bars {int(tu0 // BEATS) + 1}-{int(tu1 // BEATS)} ({int(tu0 * tu_sec) // 60}:{tu0 * tu_sec % 60:04.1f}-{int(tu1 * tu_sec) // 60}:{tu1 * tu_sec % 60:04.1f}), turned over every {TURN_EVERY:g} beats from {TURN_FIRST:g} after the line ({TURN_EVERY * tu_sec * 1000:.2f} ms written, {TURN_SLOW * 1000:.3f} more as made): {len(tu)} turns, {TURN_WAVES:g} waves in each ; a shelf, {TURN_SHELF[1]} over {TURN_SHELF[0]} Hz")
