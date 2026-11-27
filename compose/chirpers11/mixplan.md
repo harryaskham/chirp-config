@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Ring True v21 (20:05): both ends within 0.3 dB of v20's: bars 1 to 8 by two -17.7 -17.7 -17.8 -17.7 dBFS (v20
+  -17.8 four times); bar 184 -11.1; the tail by second -18.3 -33.2 -47.6 -60.9 (-18.5 -33.5 -47.8 -61.1: the
+  metal's patch no longer wanders from stroke to stroke, so its hall's copy adds in step); highest sample -1.46.
+  Inside: the metal's ring is a pair that breathes (bars 49 to 64, 97 to 144); by section whole within 0.1 dB.
 - Least Common v21 (19:31): both ends are v20's: bars 1 to 4 -17.6 dBFS; the last four bars -17.4 -17.4 -17.3
   -17.0; 2 s after home -20.3 (-20.2); highest sample -1.49. Inside: page 3 (1:40 to 2:17) is 0.5 to 0.8 dB up and
   its drum is off the beat (every 3, 5, 7 sixteenths); nothing of it is within fifty seconds of either seam.
