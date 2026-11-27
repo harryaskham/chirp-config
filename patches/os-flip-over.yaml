@@ -1,0 +1,30 @@
+{
+ "about": "Out of Step's phrase in and out of phase (chirper-zero, 27 Nov, v29): a soft struck tone, a sine and its octave, upside down: every part of it half a turn on. `os-flip` in one ear and `os-flip-over` in the other are the same sound with one ear's wave turned over: together on one speaker they are nothing. BANKED by tools/patchbank.py (27 Nov 2026) from Out of Step v29 (track flip-out): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "3ms",
+   "d": "300ms",
+   "r": "80ms",
+   "s": 0.3
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.5
+   },
+   {
+    "level": "-12dB",
+    "phase": 0.5,
+    "ratio": 2.0
+   }
+  ]
+ }
+}

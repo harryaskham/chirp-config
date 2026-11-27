@@ -1,0 +1,22 @@
+{
+ "about": "Standing Room's tone, all the rest of it (chirper-zero, 27 Nov, v29): the same sine, silent for the start's first 10 ms, then rising in 40 ms in a straight line, held, and going out in 400 ms. BANKED by tools/patchbank.py (27 Nov 2026) from Standing Room v29 (track went-r): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "40ms",
+   "curve": 0.0,
+   "d": "0s",
+   "delay": "10.5ms",
+   "r": "400ms"
+  },
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ]
+ }
+}

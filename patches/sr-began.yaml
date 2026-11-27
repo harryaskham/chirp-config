@@ -1,0 +1,23 @@
+{
+ "about": "Standing Room's tone, its start (chirper-zero, 27 Nov, v29): a plain sine that starts at once, is whole for 10 ms and falls to nothing in the next 40 ms, in a straight line. With `sr-went` on the same note at the same instant it is one unbroken tone. BANKED by tools/patchbank.py (27 Nov 2026) from Standing Room v29 (track began-l): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "0.5ms",
+   "curve": 0.0,
+   "d": "40ms",
+   "h": "10ms",
+   "r": "5ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ]
+ }
+}

@@ -1,0 +1,35 @@
+{
+ "about": "Give or Take's counting tune (chirper-zero, 27 Nov, v29): a soft hollow pluck: a plain tone with a little of its third and fifth harmonics, struck and gone in a fifth of a second; every note as loud as every other. BANKED by tools/patchbank.py (27 Nov 2026) from Give or Take v29 (tracks give, take): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "200ms",
+   "r": "60ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   },
+   {
+    "level": "-12dB",
+    "phase": 0.0,
+    "ratio": 3.0
+   },
+   {
+    "level": "-20dB",
+    "phase": 0.0,
+    "ratio": 5.0
+   }
+  ]
+ }
+}
