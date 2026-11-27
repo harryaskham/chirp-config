@@ -1,0 +1,58 @@
+{
+ "about": "Standing Room's hangar door, band 1 of 7 (chirper-zero, 27 Nov, v26): plain noise from 95 to 177 Hz, held; its loudness is its track's `gain` on `auto.tail` (dB) and its place the track's pan on `auto.wide`. In the hangar this band takes 9.02 s to fall 60 dB. BANKED by tools/patchbank.py (27 Nov 2026) from Standing Room v26 (tracks slam-1-l, slam-1-r): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "0s",
+   "r": "20ms"
+  },
+  "filters": [
+   {
+    "cutoff": 95,
+    "kind": "hp",
+    "q": 0.5098
+   },
+   {
+    "cutoff": 95,
+    "kind": "hp",
+    "q": 0.6013
+   },
+   {
+    "cutoff": 95,
+    "kind": "hp",
+    "q": 0.9
+   },
+   {
+    "cutoff": 95,
+    "kind": "hp",
+    "q": 2.5629
+   },
+   {
+    "cutoff": 177,
+    "q": 0.5098
+   },
+   {
+    "cutoff": 177,
+    "q": 0.6013
+   },
+   {
+    "cutoff": 177,
+    "q": 0.9
+   },
+   {
+    "cutoff": 177,
+    "q": 2.5629
+   }
+  ],
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}

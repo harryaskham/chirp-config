@@ -1,0 +1,22 @@
+{
+ "about": "Wind Down: the needle lifted out of the groove (v20): a soft low thump, a sine and its octave, 90 ms. BANKED by tools/patchbank.py (27 Nov 2026) from Wind Down v20 (track lift): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "2ms",
+   "d": "90ms",
+   "r": "30ms",
+   "s": 0
+  },
+  "layers": [
+   {},
+   {
+    "level": "-6dB",
+    "semi": 12
+   }
+  ]
+ }
+}

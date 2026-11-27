@@ -1,0 +1,33 @@
+{
+ "about": "Wind Down: the record's run-out groove (v20): a speck in the groove, the same at every turn: the engine's chip noise with no chip's clock (the same samples at each note-on; chirper-zero's finding, Give or Take v24), 4 ms, 180 to 2600 Hz. The note sets the step rate: the joint is the lowest and dullest. BANKED by tools/patchbank.py (27 Nov 2026) from Wind Down v20 (track groove): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.3ms",
+   "d": "0s",
+   "r": "3ms"
+  },
+  "filters": [
+   {
+    "cutoff": 180,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 2600
+   }
+  ],
+  "layers": [
+   {
+    "chip": {
+     "clock": 0.0,
+     "kind": "noise"
+    },
+    "type": "chip"
+   }
+  ]
+ }
+}
