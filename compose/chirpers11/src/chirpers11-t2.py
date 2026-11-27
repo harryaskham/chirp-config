@@ -99,6 +99,25 @@ every 7. Those meetings, a click with the drum, were the only ones in the song t
          knock is now the head of each. It stops four bars before the end (the low end of a seam is the next
          song's). Its notes are 98 to 370 Hz, where this song stood 7 to 11 dB under the album's envelope.
 
+v19 (27 Nov): ON THE PAGE BEFORE HOME THE DRUM HAS TWO NOTES. Two switches on (`--without-two`, `-last`; both off
+is v18 byte for byte; `last` is v17's, built then and left off) and one built and left off (`--with-halve`). v18 made
+the last page a section of its own and its note said home must sound different from page 7. It also said why
+wrongly: the scorer's loss there is not timbre (spread 5.15 of a wanted 2.5) but DENSITY: its strong onsets a second,
+section by section, are 4.9 6.4 6.6 6.4 4.6 8.1 7.1 6.6 6.1 at the highest cut, a spread of 0.16 of their mean where
+0.2 is wanted. Nothing short of two strokes a second on a whole page moves that, so this round is for the ear and
+says what the scorer made of it.
+  TWO   on page 7 the drum is counted in two: on every second beat it plays the page's own note (D2), and on the
+        beats between the note of the page before (B flat 1, a third under): two kettledrums, high and low, 45
+        strokes each. With the three, the five and the seven beats of the clicks the page is counted in 2, 3, 5 and
+        7: the first four primes. It keeps G for home: the drum falls onto G1 at the last turn as it did.
+  HALVE (off) the first build: on those beats the drum simply rests (half time, 45 strokes for 90), its answers
+        (the knocks) standing alone. It did what it was built for (the low band 35 dB down on the beats it left)
+        and cost 0.85 on the spectrum term: half the page's frames have nothing under 110 Hz, and the term is a
+        mean of dB over frames in bands that are already 4 to 7 dB short. Kept for an ear.
+  LAST  (v17's, now on) the hat waits through page 7 as well and comes in on the last page, ringing. Page 7 is then
+        the two-note drum, the bass, the clicks, the counting clap from side to side and the held tones; home has
+        the drum on one note again, the hat that rings, the pings and the bass's leaps.
+
 v18 (27 Nov): THE LAST TURN IS HEARD. Two switches on (`--without-recap`, `-pause`; both off is v17 byte for byte)
 and one built, rendered and left off (`--with-bars`). Read first: four tries had left the last turn (into page 8,
 5:50) at 0.12 on the scorer's curve: a barer break (v16 BREATH: 0.16), the drum's note (v17), the hat waiting a page
@@ -357,7 +376,8 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
       'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
-      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True, 'wall': True, 'leave': True, 'breath': False, 'struck': True, 'ground': True, 'last': False, 'recap': True, 'pause': True, 'bars': False}
+      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True, 'wall': True, 'leave': True, 'breath': False, 'struck': True, 'ground': True, 'recap': True, 'pause': True, 'bars': False, 'last': True, 'two': True, 'halve': False}
+TWO = {'page': 6, 'every': 2, 'back': 1}   # v19: the page (from 0) on which the drum is counted in two; one beat in every so many keeps the page's note; how many pages back the other beats' note is taken from
 PAUSE = {'page': 7, 'meet': (3, 5), 'who': ('bass', 'tone', 'knock'), 'from': 3}   # v18: v16's BREATH, a meeting longer: the page before whose turn the low band is left bare; the two cycles; the tracks that rest; how many of their meetings before the turn the rest begins (it ends at the last, where the bass leads)
 THIRD = {'notes': {(3, 5): 'D3', (3, 7): 'Bb2', (5, 7): 'F2'}, 'db': -24, 'vel': .7, 'from': 75}   # v18 BARS: the meetings of cycles of 3, 5 and 7 BARS: the tones' three notes an octave down again; the track's fader (the tones' own); velocity
 RECAP = {'page': 7}                     # v18: the page (from 0) on which the pings come back in the second half (they came back on page 6)
@@ -710,7 +730,10 @@ def build():
         if len(heads) >= 2:
             held.append((s, tuple(heads)))
         if s % BEAT == 0 and not broken(s):
-            if not (ON['skip'] and r // PAGE == SKIP['page'] - pages and tuple(heads) == SKIP['meet']):   # v10 SKIP: the beat is given to the answer
+            if ON['two'] and r // PAGE == TWO['page'] - pages and r % PAGE // BEAT % TWO['every']:   # v19 TWO: on this page the drum is counted in two: the beats between have the page before's note (REST: or nothing)
+                if not ON['halve']:
+                    add('kick', s, 2, ground(s - TWO['back'] * PAGE), .95 if s % BAR == 0 else .88)
+            elif not (ON['skip'] and r // PAGE == SKIP['page'] - pages and tuple(heads) == SKIP['meet']):   # v10 SKIP: the beat is given to the answer
                 add('kick', s, 2, ground(s), .95 if s % BAR == 0 else .88)
             knock(s)
         elif s % BEAT == 0 and ON['carry']:                  # v7: the answer goes on through the break
@@ -756,7 +779,10 @@ def build():
     marks += [('the drum answers each click that lands on it: a knock every 3, 5 and 7 beats', KNOCK_FROM)] * ON['knock']
     marks += [('second half: three, five and seven beats', HALF)] + [(f'page {p + 5} (the three meet on beat {p * PAGE // BEAT % 4 + 1})', HALF + p * PAGE) for p in range(1, pages)]
     marks += [(f"the triad turns over: {' '.join(TURNED[p % len(TURNED)][c] for c in CYCLES)}", HALF + p * PAGE) for p in range(1, pages)] * (ON['turn'] and ON['knock'])
-    marks += [("the hat waits a page: this one has the pings, the counting clap and the drum on its new note, and no hat", HALF + 2 * PAGE), ("the hat comes in on the last page", HALF + 3 * PAGE)] * ON['last']
+    marks += [("the hat waits a page: this one has the pings, the counting clap and the drum on its new note, and no hat" if not ON['recap'] or RECAP['page'] * PAGE <= HALF + 2 * PAGE else "the hat waits a page: this one has the counting clap and the drum on its new note, and no hat and no pings", HALF + 2 * PAGE), ("the hat comes in on the last page", HALF + 3 * PAGE)] * ON['last']
+    marks += [((f"the drum is the two: it plays every second beat of this page ({sum(1 for n in T['kick'] if HALF + TWO['page'] % pages * PAGE <= n['at'] * 4 < HALF + (TWO['page'] % pages + 1) * PAGE)} strokes): with the three, the five and the seven it is counted in the first four primes; on the beats it leaves, its answers stand alone" if ON['halve'] else
+               f"the drum has two notes on this page: its own ({ground(HALF + TWO['page'] % pages * PAGE)}) on every second beat and the page before's ({ground(HALF + (TWO['page'] % pages - TWO['back']) * PAGE)}) between: it is counted in two, and with the three, the five and the seven in the first four primes"), HALF + TWO['page'] % pages * PAGE),
+              ("the four comes back" if ON['halve'] else "the drum is on one note again", HALF + (TWO['page'] % pages + 1) * PAGE)] * ON['two']
     marks += [(f"the drum goes with it: it rests on {ground(HALF + p * PAGE)}, an octave under the triad's lowest note" + (': a fifth down, onto its own note' if ground(HALF + p * PAGE) == 'G1' else ''), HALF + p * PAGE) for p in range(1, pages)] * (ON['ground'] and ON['turn'] and ON['knock'])
     marks += [("each click's echo keeps its old cycle: 3, 5 and 7 sixteenths under 3, 5 and 7 beats", HALF)] * ON['ghost'] + [(f'the clicks are struck {FORE} dB harder', HALF)] * ON['fore']
     marks += [(f"the clap counts with the three: every third beat, the beat after the knock" + (', from side to side' if ON['sway'] else ''), COUNT['page'] * PAGE)] * ON['count']
@@ -989,7 +1015,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f"--{'without' if ON[k] else 'with'}-{k}", action='store_true', help=f"{'leave out' if ON[k] else 'put in'} {k} (of those that are on: the last two off is v17, the last three v16, the last four v15, the last six v14, the last seven v13, the last nine v12, the last eleven v11, the last thirteen v10, the last sixteen v9, the last nineteen v8, the last twenty-one v7, the last twenty-four v6, the last twenty-five v5, the last twenty-eight v4, the last thirty-three v3, the last forty-one v2, all forty-seven v1)")
+        ap.add_argument(f"--{'without' if ON[k] else 'with'}-{k}", action='store_true', help=f"{'leave out' if ON[k] else 'put in'} {k} (of those that are on: the last two off is v18, the last four v17, the last five v16, the last six v15, the last eight v14, the last nine v13, the last eleven v12, the last thirteen v11, the last fifteen v10, the last eighteen v9, the last twenty-one v8, the last twenty-three v7, the last twenty-six v6, the last twenty-seven v5, the last thirty v4, the last thirty-five v3, the last forty-three v2, all forty-nine v1)")
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}') if ON[k] else getattr(a, f'with_{k}')
