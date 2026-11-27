@@ -32,6 +32,22 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v19 (27 Nov), THE PIPE IS FLUTTER-TONGUED, AND THE DRUM HAS ITS WEIGHT BACK. Two switches (`--without-tongue`,
+`-heft`; both off is v18 byte for byte).
+  TONGUE   v18 tried to flutter the air's breath in its patch and found that an LFO does not turn a noise layer's
+           level. This is the player's way: the tongue rolls (flutter-tonguing, frullato), about 25 times a second:
+           a tremolo on the pipe's own track, a third of a sixteenth long (so every stroke, all of them on a beat,
+           meets it at the same place in its turn), TONGUE['depth'] deep, for the sixteen bars with no weight (97 to
+           112), where everything is let go and the pipe is most heard. Those strokes move to a track of their
+           own (air-tongue) with the pipe's patch, place and room; the strings nobody plays still hear them.
+           The breath is then quieter on average, so it has TONGUE['db'] dB. The first build (0.7 deep, 2 dB) read
+           3.7 dB up and down alone and 2.0 in the finished song, where it read 1.1 with no tongue at all: too
+           little. This is 0.85 deep and 4 dB (5.0 alone).
+  HEFT     v18's disc under the weight cost the low band what the ring lost: 1.2 to 2.4 dB under 120 Hz where the
+           drum rings longest, 0.3 to 0.8 dB under 100 Hz against the album. The head's level under the disc is
+           HEFT['db'] dB up: open (on the beat) it is that much over the old drum's head, shut (off the beat)
+           12 dB under that: the turn-taking is kept and the ring's energy is about the old drum's.
+
 v18 (27 Nov), THE RINGS TAKE TURNS. One switch on (`--without-disc`; off is v17 byte for byte) and one built,
 benched and left off (`--with-flutter`). v17 gave the metal a vibraphone's motor: its ring shuts on the beat and
 opens on the off-beat it is struck on. Nothing is added here either: one more ring is turned.
@@ -345,7 +361,9 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True}
+TONGUE = {'section': 6, 'rate': '1/48', 'depth': 0.85, 'db': 4}   # v19: the section (from 0) in which the pipe is flutter-tongued; a roll of the tongue (a third of a sixteenth: 25 a second at 125); how deep (0.85: the level falls to 0.15: 16 dB); dB on those strokes (the first build was 0.7 and 2: too little in the finished song)
+HEFT = {'db': 3, 'patch': 'rt-drum-heft'}   # v19: dB on the weight's head under its disc; the patch's name with it (another sound, another name)
 DISC = {'patch': 'rt-drum-disc', 'db': 6, 'rate': '1/4', 'phase': 0.25}   # v18: the weight's patch with the disc under its head; half the dip, dB; a turn (a beat); where in its turn a stroke begins (0.25: open)
 FLUTTER = {'patch': 'rt-flutter', 'db': 3, 'rate': '1/12', 'phase': 0.25}   # v18: the air's patch with a fluttered breath; dB up and down; a flutter (a third of a beat); where it begins (0.25: at its top)
 MOTOR = {'patch': 'rt-motor', 'db': 6, 'rate': '1/4', 'phase': 0.25}   # v17: the metal's patch with its motor; half the dip, dB (the ring is twice this down on the beat); a turn of the disc; where in its turn a stroke begins (0.25: open). Bench, one stroke let go, alone: 12 dB down 240 and 720 ms after the stroke, level with the old ring at 0 and 480 ms, the same highest sample; at 9 (18 dB dips) the ring between strokes is 9 dB less on average
@@ -558,8 +576,8 @@ def disc_patch(drum):
     """v18 DISC: the weight's patch (drum) with the metal's disc under its head: the head's layer (the second) is DISC['db'] under and moved DISC['db'] up and down by a sine DISC['rate'] long that starts again with every stroke at its top. The thud (the first layer) is not turned."""
     thud, head = drum['synth']['layers'][:2]
     lvl = head['level']
-    head = {**head, 'level': {'value': f"{float(lvl['value'][:-2]) - DISC['db']:g}dB", 'mod': lvl['mod'] + [{'src': 'lfo.motor', 'amount': DISC['db']}]}}
-    return {**drum, 'about': "Ring True: the weight with a disc under its head (v18). rt-drum, and the head's ring is turned once a beat: open on the beat the drum is struck on, " + f"{2 * DISC['db']}" + " dB down on the off-beat. The felt thud is not turned; a stopped stroke is as rt-drum's.",
+    head = {**head, 'level': {'value': f"{float(lvl['value'][:-2]) - DISC['db'] + (HEFT['db'] if ON['heft'] else 0):g}dB", 'mod': lvl['mod'] + [{'src': 'lfo.motor', 'amount': DISC['db']}]}}
+    return {**drum, 'about': "Ring True: the weight with a disc under its head (v18)" + (f", and the head {HEFT['db']} dB up under it (v19): the ring's energy is about rt-drum's" if ON['heft'] else '') + ". rt-drum, and the head's ring is turned once a beat: open on the beat the drum is struck on, " + f"{2 * DISC['db']}" + " dB down on the off-beat. The felt thud is not turned; a stopped stroke is as rt-drum's.",
             'synth': {**drum['synth'], 'layers': [thud, head] + drum['synth']['layers'][2:], 'lfo': {'motor': {'wave': 'sine', 'rate': DISC['rate'], 'phase': DISC['phase'], 'retrig': True}}}}
 
 
@@ -575,7 +593,7 @@ def patch_of(thing):
     if thing == 'metal' and ON['motor']:
         return MOTOR['patch']
     if thing == 'weight' and ON['disc'] and ON['boom'] and ON['note']:
-        return DISC['patch']
+        return HEFT['patch'] if ON['heft'] else DISC['patch']
     if thing == 'air' and ON['flutter'] and ON['flue'] and ON['long']:
         return FLUTTER['patch']
     if thing == 'air' and ON['flue']:
@@ -786,7 +804,7 @@ def song(T, bars=BARS):
     if ON['boom'] and ON['note']:
         doc['patches'] = {**doc['patches'], 'rt-drum': drum_patch()}
         if ON['disc']:                                           # v18 DISC: the weight's patch with the disc under its head
-            doc['patches'] = {**doc['patches'], DISC['patch']: disc_patch(drum_patch())}
+            doc['patches'] = {**doc['patches'], patch_of('weight'): disc_patch(drum_patch())}
     elif ON['boom']:
         doc['patches'] = {**doc['patches'], 'rt-boom': NEW['rt-boom']}
         by_name['weight']['gain'] = BOOM['gain']
@@ -830,6 +848,17 @@ def song(T, bars=BARS):
             t = f"{1000 / hz - 225.1 / SYMPATHY['lp']:.3f}ms"         # a period, less the low-pass's own delay (0.2251 / its cutoff), so the loop is in tune
             doc['buses'][me] = {'pan': side, 'gain': {'value': '0dB', 'mod': [{'src': 'auto.hand', 'amount': 1}]}, 'auto': {'hand': hand}, 'fx': [f"lp cutoff={SYMPATHY['lp']}"],
                                 'returns': [{'from': k, 'gain': SYMPATHY['feed'], 'time': t} for k in SYMPATHY['feeds']] + ([{'from': k, 'gain': OWN['feed'], 'time': t} for k in OWN['feeds']] if ON['own'] else []) + ([{'from': k, 'gain': SKIN['feed'], 'time': t} for k in SKIN['feeds']] if ON['skin'] and name in SKIN['strings'] else []) + [{'from': me, 'gain': f"{20 * log10(SYMPATHY['back']):.2f}dB", 'time': t}]}
+    if ON['tongue'] and bars == BARS:                          # v19 TONGUE: the pipe's let-go strokes of one section on a track of their own, with a rolled tongue
+        air = next(t for t in doc['tracks'] if t['name'] == 'air')
+        a, z = TOP[TONGUE['section']] * 4, TOP[TONGUE['section'] + 1] * 4
+        rolled = [n for n in air['notes'] if a <= n['at'] < z and n['expr']['ring'] > 0]
+        if rolled:
+            air['notes'] = [n for n in air['notes'] if not (a <= n['at'] < z and n['expr']['ring'] > 0)]
+            doc['tracks'].append({**air, 'name': 'air-tongue', 'notes': rolled, 'gain': f"{float(air['gain'][:-2]) + TONGUE['db']:g}dB",
+                                  'fx': list(air.get('fx') or []) + [{'type': 'tremolo', 'depth': TONGUE['depth'], 'rate': TONGUE['rate']}]})
+            for b in doc['buses'].values():                      # whoever hears the pipe hears these strokes too
+                if any(r.get('from') == 'air' for r in b.get('returns', [])):
+                    b['returns'] = b['returns'] + [{**r, 'from': 'air-tongue'} for r in b['returns'] if r.get('from') == 'air']
     return doc
 
 
@@ -863,7 +892,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the forty-two that are on: all off is v1; the last thirty-seven off is v2; the last thirty-three off is v3; the last thirty off is v4; the last twenty-seven off is v5; the last twenty-six off is v6; the last twenty-three off is v7; the last twenty-one off is v8; the last eighteen off is v9; the last fourteen off is v10; the last ten off is v11; the last eight off is v12; the last six off is v13; the last four off is v14; the last three off is v15; the last two off is v16; the last one off is v17)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the forty-four that are on: all off is v1; the last thirty-nine off is v2; the last thirty-five off is v3; the last thirty-two off is v4; the last twenty-nine off is v5; the last twenty-eight off is v6; the last twenty-five off is v7; the last twenty-three off is v8; the last twenty off is v9; the last sixteen off is v10; the last twelve off is v11; the last ten off is v12; the last eight off is v13; the last six off is v14; the last five off is v15; the last four off is v16; the last three off is v17; the last two off is v18)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -914,6 +943,10 @@ if __name__ == '__main__':
             print(f"    the same disc is under the weight: struck on the beat, its head's ring is open on the beat and {2 * DISC['db']} dB down on the off-beat, where the metal's is open: the two rings take turns; the thud is not turned")
         if ON['flutter'] and ON['flue'] and ON['long']:
             print(f"    the air's breath is fluttered: three to the beat, {FLUTTER['db']} dB up and down: three in the breath against four in the hands; its puff is not")
+        if ON['tongue']:
+            print(f"    the pipe is flutter-tongued while there is no weight (bars {TOP[TONGUE['section']] + 1}-{TOP[TONGUE['section'] + 1]}): the tongue rolls three times a sixteenth ({BPM / 60 * 12:g} a second), the breath falling {-20 * log10(1 - TONGUE['depth']):.0f} dB at each roll; every stroke meets it at the same place in its turn")
+        if ON['heft'] and ON['disc'] and ON['boom'] and ON['note']:
+            print(f"    the weight's head is {HEFT['db']} dB up under its disc: open it is over the old drum's head, shut {2 * DISC['db'] - HEFT['db']} dB under it")
         print(f'{BARS} bars, {BARS * sec:.1f} s; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in build().items()))
     else:
         a.out.write_text(dump(bench() if a.bench else song(build())))
