@@ -1,0 +1,20 @@
+{
+ "about": "Out of Step's keeper (chirper-zero, 27 Nov, v23): one plain tone, held, played 120dB down into a chain of filters so that the engine keeps the chain running after the click that went into it has ended. It is not there to be heard, and at that level it is under the last bit of the file. BANKED by tools/patchbank.py (27 Nov 2026) from Out of Step v23 (tracks keep-1, keep-2, keep-3, keep-4): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "0s",
+   "r": "1ms"
+  },
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ]
+ }
+}

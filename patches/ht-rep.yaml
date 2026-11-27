@@ -1,0 +1,40 @@
+{
+ "about": "Hearing Things' hiss that repeats (chirper-zero, 27 Nov, v23): the engine's chip noise with no chip's clock (`clock: 0`): a 15-bit shift register, 32767 steps and then the same steps again, 93 steps to a turn of the note played, tuned -0.1596 semitones so that on B5 it comes round every 3 sixteenths at 125, on B4 every 6, on B6 every 1.5. Held, 3000 to 7500 Hz. There is no rhythm in it but its length. BANKED by tools/patchbank.py (27 Nov 2026) from Hearing Things v23 (track rep): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "4ms",
+   "d": "0s",
+   "r": "4ms"
+  },
+  "filters": [
+   {
+    "cutoff": 3000,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 7500
+   },
+   {
+    "cutoff": 7500
+   },
+   {
+    "cutoff": 7500
+   }
+  ],
+  "layers": [
+   {
+    "chip": {
+     "clock": 0.0,
+     "kind": "noise"
+    },
+    "type": "chip"
+   }
+  ],
+  "pitch": -0.1596
+ }
+}

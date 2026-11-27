@@ -1,0 +1,35 @@
+{
+ "about": "Hearing Things' hiss that never repeats (chirper-zero, 27 Nov, v23): the engine's white noise, held, 3000 to 7500 Hz. The other half of a pair: `ht-rep` is as loud, in the same band, and comes round. BANKED by tools/patchbank.py (27 Nov 2026) from Hearing Things v23 (track run): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "4ms",
+   "d": "0s",
+   "r": "4ms"
+  },
+  "filters": [
+   {
+    "cutoff": 3000,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 7500
+   },
+   {
+    "cutoff": 7500
+   },
+   {
+    "cutoff": 7500
+   }
+  ],
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}

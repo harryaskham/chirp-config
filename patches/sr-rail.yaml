@@ -1,0 +1,26 @@
+{
+ "about": "Standing Room's handrail (chirper-zero, 27 Nov, v23): what the STEEL brings of a knock on a long rail: its ring, a free bar's first 2 ways of ringing (2349, 6475 Hz), 70ms. It comes at 5100 m/s, before the air's. BANKED by tools/patchbank.py (27 Nov 2026) from Standing Room v23 (track rail): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.3ms",
+   "d": "70ms",
+   "r": "20ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "level": "0dB",
+    "phase": 0.0
+   },
+   {
+    "level": "-6dB",
+    "phase": 0.0,
+    "ratio": 2.756
+   }
+  ]
+ }
+}

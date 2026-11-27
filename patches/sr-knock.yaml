@@ -1,0 +1,26 @@
+{
+ "about": "Standing Room's handrail (chirper-zero, 27 Nov, v23): what the AIR brings of the same knock, duller and later (1175, 3237 Hz), 40ms. It comes at 343 m/s, after the steel's. BANKED by tools/patchbank.py (27 Nov 2026) from Standing Room v23 (track knock): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "40ms",
+   "r": "20ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "level": "0dB",
+    "phase": 0.0
+   },
+   {
+    "level": "-10dB",
+    "phase": 0.0,
+    "ratio": 2.756
+   }
+  ]
+ }
+}
