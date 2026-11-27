@@ -99,6 +99,31 @@ every 7. Those meetings, a click with the drum, were the only ones in the song t
          knock is now the head of each. It stops four bars before the end (the low end of a seam is the next
          song's). Its notes are 98 to 370 Hz, where this song stood 7 to 11 dB under the album's envelope.
 
+v18 (27 Nov): THE LAST TURN IS HEARD. Two switches on (`--without-recap`, `-pause`; both off is v17 byte for byte)
+and one built, rendered and left off (`--with-bars`). Read first: four tries had left the last turn (into page 8,
+5:50) at 0.12 on the scorer's curve: a barer break (v16 BREATH: 0.16), the drum's note (v17), the hat waiting a page
+(v17). This round read where the other turns' peaks ARE: page 7's (0.36) is thirteen sixteenths BEFORE its turn: on
+the bass's held note coming into a bare break. It is not the pings: with the pings gone from page 7 it still reads
+0.36. A turn is heard where a held, pitched thing comes into an empty band; the last turn's break was never empty,
+because the bass walked through it.
+  RECAP  the pings (the first half's tune, at the small cycles' own places, over the second half's held tones) come
+         back on the LAST page, not on the seventh: the second half reads: page 5 the slow tune alone; page 6 the
+         triad turns and the drum goes up; page 7 the hat, the clap that counts, the drum on D; page 8 home: the
+         triad in its first position, the drum down a fifth onto its own note, and over them the tune the song
+         began with. Page 7 loses its 48 pings; no stroke is added anywhere. Alone it does nothing for the turn
+         (0.13) and is here for the form.
+  PAUSE  v16's BREATH, a meeting longer: in the last break the walk is one step (D2, to the first meeting of the
+         three and the five), then the bass, the held tone and the knocks rest for 7.5 beats (the clock and the
+         clicks go on), then the bass leads the turn on D2 as it led the others. With RECAP the curve reads 0.23
+         at the turn (0.18 and 0.19 with the short breath): a section at every cut, for the first time.
+  BARS   (off) the same tune a third size up: cycles of 3, 5 and 7 BARS take exactly the half to meet (105 bars):
+         their meetings held an octave under the held tones (D3, B flat 2, F2), resting in the breaks. Three builds
+         (the whole half at -28 dB; the last page only at -24, with and without RECAP): each 0.8 to 1.1 under v17:
+         a held tone under half the song makes its pages more alike in timbre (spread 4.8 dB for 5.3) and takes
+         the recurrence share under its band (0.21 to 0.24 for 0.29), and it did not make a turn heard. Left off.
+WHAT IT COSTS: 0.25 of the score on both seeds, and it is kept under v17: structure is whole (100 for 99.18) and the
+variety term falls two points: the new last section is too like the page before it in timbre. That is the next job.
+
 v17 (27 Nov): THE TRIAD TURNS OVER ON THE DRUM. Two switches: `--without-ground` (on; off is v16 byte for byte) and
 `--with-last` (OFF: built, rendered on both seeds, and not shipped). Read
 first: v7 turned the triad over a page at a time in the second half (the drum's answer: G2 B flat 2 D3, then B flat
@@ -332,7 +357,10 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
       'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
-      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True, 'wall': True, 'leave': True, 'breath': False, 'struck': True, 'ground': True, 'last': False}
+      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True, 'wall': True, 'leave': True, 'breath': False, 'struck': True, 'ground': True, 'last': False, 'recap': True, 'pause': True, 'bars': False}
+PAUSE = {'page': 7, 'meet': (3, 5), 'who': ('bass', 'tone', 'knock'), 'from': 3}   # v18: v16's BREATH, a meeting longer: the page before whose turn the low band is left bare; the two cycles; the tracks that rest; how many of their meetings before the turn the rest begins (it ends at the last, where the bass leads)
+THIRD = {'notes': {(3, 5): 'D3', (3, 7): 'Bb2', (5, 7): 'F2'}, 'db': -24, 'vel': .7, 'from': 75}   # v18 BARS: the meetings of cycles of 3, 5 and 7 BARS: the tones' three notes an octave down again; the track's fader (the tones' own); velocity
+RECAP = {'page': 7}                     # v18: the page (from 0) on which the pings come back in the second half (they came back on page 6)
 GROUND = {'octaves': 1}                 # v17: how far under the triad's lowest note the drum rests in the second half
 BREATH = {'page': 7, 'meet': (3, 5), 'who': ('bass', 'tone', 'knock')}   # v16: the page (from 0) before whose turn the low band is left bare; the two cycles between whose last two meetings before the turn it is; the tracks that rest there
 WALL = {'gain': '-26dB', 'pan': 0.5, 'room': '-10dB', 'hz': (3600, 3000), 'parts': ((0.014, 0.35), (0.008, 0.5), (0.0, 1.0)), 'phase': 0.032}   # v15: the clock's fader (Give or Take's and Wind Down's is -20 dB: here that put its ticks 15 to 20 dB over their band and as high as -13 dBFS; at -32 it was lost in the later breaks), side and send (Give or Take's: 0.5, -10 dB); its two pallets, Hz; a tick's three sounds (seconds before the second, velocity); seconds the album's whole seconds fall after this song's
@@ -697,9 +725,25 @@ def build():
             add('chord', s, 2, ','.join(CHORD), .85)
             continue                                           # after a chord the tone rests until the next two meet
         add('tone', s, nxt - s - 2, TONE[heads], .7)
+    if ON['bars']:                                             # v18 BARS: the same tune a third size up: cycles of 3, 5 and 7 bars, their meetings held
+        T['bars'] = []
+        big = [(HALF + r, tuple(c for c in CYCLES if r % (c * BAR) == 0)) for r in range(BAR, HALF + 1, BAR)]
+        big = [(s, h) for s, h in big if len(h) >= 2 and s >= HALF + THIRD['from'] * BAR]   # the three meet 105 bars on: at home
+        for (s, h), (nxt, _) in zip(big, big[1:]):
+            x = s
+            while x < nxt:                                     # it lets go where the four stops for a page turn, and comes back on the turn
+                if broken(x):
+                    x += 1
+                    continue
+                y = x
+                while y < nxt and not broken(y):
+                    y += 1
+                add('bars', x, y - x - 2, THIRD['notes'][h], THIRD['vel'])
+                x = y
+        marks += [("the same tune a third size up: three, five and seven BARS, which take the whole half to meet: " + (f"their last {len(big) - 1} meetings" if THIRD['from'] > 15 else "their meetings") + " held an octave under the held tones, from here to home, where the three meet: " + ' '.join(THIRD['notes'][h] for _, h in big[:-1]) + ("; it lets go for each page turn's break and comes back on the turn" if THIRD['from'] <= 15 else ''), round(T['bars'][0]['at'] * BEAT))]
     # the same tune at both sizes: from the seventh page the pings come back over the held tones, at the small
     # cycles' own places (three, five and seven sixteenths counted from the top of the half, nobody playing them)
-    for s in range(HALF + 2 * PAGE, TOTAL):
+    for s in range(RECAP['page'] * PAGE if ON['recap'] else HALF + 2 * PAGE, TOTAL):
         small = tuple(c for c in CYCLES if (s - HALF) % c == 0)
         if len(small) == 2:
             up = round(SWELL * (s - (TOTAL - SUPER)) / SUPER, 1) if ON['home'] and s >= TOTAL - SUPER else 0
@@ -716,6 +760,7 @@ def build():
     marks += [(f"the drum goes with it: it rests on {ground(HALF + p * PAGE)}, an octave under the triad's lowest note" + (': a fifth down, onto its own note' if ground(HALF + p * PAGE) == 'G1' else ''), HALF + p * PAGE) for p in range(1, pages)] * (ON['ground'] and ON['turn'] and ON['knock'])
     marks += [("each click's echo keeps its old cycle: 3, 5 and 7 sixteenths under 3, 5 and 7 beats", HALF)] * ON['ghost'] + [(f'the clicks are struck {FORE} dB harder', HALF)] * ON['fore']
     marks += [(f"the clap counts with the three: every third beat, the beat after the knock" + (', from side to side' if ON['sway'] else ''), COUNT['page'] * PAGE)] * ON['count']
+    marks += [("the tune comes back: the pings of the first half, at the small cycles' own places, over the held tones: they waited for home", RECAP['page'] * PAGE)] * ON['recap']
     marks += [("the hat counts with the five: the first hat after each of its knocks is let ring", OPEN['page'] * PAGE)] * ON['open']
     marks += [(f'the drum gives beat {s // BEAT % 4 + 1} to the answer: the three and the five sixteenths meet on it', s) for s in range(LEND['page'] * PAGE, (LEND['page'] + 1) * PAGE, BEAT)
               if ON['lend'] and ON['knock'] and not running_down(s) and not broken(s) and tuple(c for c in CYCLES if s % c == 0) == LEND['meet']]
@@ -802,11 +847,18 @@ def build():
         marks.sort(key=lambda m: m[1])
     if ON['breath'] and ON['rest']:                            # v16 BREATH: the bar before the last page, the band is left bare
         t = BREATH['page'] * PAGE
-        lo, hi = t - 2 * lcm(*BREATH['meet']), t - lcm(*BREATH['meet'])
+        lo, hi = t - BREATH.get('from', 2) * lcm(*BREATH['meet']), t - lcm(*BREATH['meet'])
         for tr in BREATH['who']:
             if tr in T:
                 T[tr] = [{**n, 'len': round(lo / BEAT - n['at'], 4)} if n['at'] < lo / BEAT < n['at'] + n['len'] else n for n in T[tr] if not lo / BEAT <= n['at'] < hi / BEAT]
         marks = sorted(marks + [("the walk stops for breath: the low band is bare to the last meeting of the three and the five, where the bass leads the turn as it led the others", lo)], key=lambda m: m[1])
+    if ON['pause'] and ON['rest']:                             # v18 PAUSE: the same, a meeting longer: the walk is one step, a rest, and the lead
+        t = PAUSE['page'] * PAGE
+        lo, hi = t - PAUSE['from'] * lcm(*PAUSE['meet']), t - lcm(*PAUSE['meet'])
+        for tr in PAUSE['who']:
+            if tr in T:
+                T[tr] = [{**n, 'len': round(lo / BEAT - n['at'], 4)} if n['at'] < lo / BEAT < n['at'] + n['len'] else n for n in T[tr] if not lo / BEAT <= n['at'] < hi / BEAT]
+        marks = sorted(marks + [(f"the walk stops after its first step: the low band is bare for {(hi - lo) / BEAT:g} beats, to the last meeting of the three and the five, where the bass leads the turn as it led the others", lo)], key=lambda m: m[1])
     return T, marks
 
 
@@ -916,6 +968,8 @@ def song():
             else:
                 runs.append([x])
         marks = sorted(marks + [(f"the clock on the wall is heard: {len(r)} ticks, at {r[0]} to {r[-1]} s of the song", int((r[0] + WALL['phase']) * BPM * BEAT / 60)) for r in runs], key=lambda m: m[1])
+    if ON['bars'] and T.get('bars'):                           # v18 BARS: the tones' patch an octave down, dry (the hall has nothing under 350 Hz), under the drum as the tones are
+        doc['tracks'].append(track('bars', 'lc-tone', f"{THIRD['db']}dB", fx=[under]))
     return doc, marks
 
 
@@ -935,7 +989,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f"--{'without' if ON[k] else 'with'}-{k}", action='store_true', help=f"{'leave out' if ON[k] else 'put in'} {k} (of those that are on: the last one off is v16, the last two v15, the last four v14, the last five v13, the last seven v12, the last nine v11, the last eleven v10, the last fourteen v9, the last seventeen v8, the last nineteen v7, the last twenty-two v6, the last twenty-three v5, the last twenty-six v4, the last thirty-one v3, the last thirty-nine v2, all forty-five v1)")
+        ap.add_argument(f"--{'without' if ON[k] else 'with'}-{k}", action='store_true', help=f"{'leave out' if ON[k] else 'put in'} {k} (of those that are on: the last two off is v17, the last three v16, the last four v15, the last six v14, the last seven v13, the last nine v12, the last eleven v11, the last thirteen v10, the last sixteen v9, the last nineteen v8, the last twenty-one v7, the last twenty-four v6, the last twenty-five v5, the last twenty-eight v4, the last thirty-three v3, the last forty-one v2, all forty-seven v1)")
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}') if ON[k] else getattr(a, f'with_{k}')
