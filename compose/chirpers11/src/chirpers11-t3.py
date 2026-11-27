@@ -285,6 +285,20 @@ pipe's note: D3, F3, G3, A3, B flat, C4, D4, E4. Nothing is bent: every whistle 
 5 ms, on G4), each where the arithmetic puts it, on one dry track (`whistle`). You are stood beside the
 pipe's mouth, not in it: each arrival counts as the sine of the angle it comes out at (WHISTLE_SIDE). In the
 mouth the first arrivals, a millisecond apart, add up to a tick 25 dB over the whistle that follows it.
+
+v19 (27 Nov): FASTER THAN SOUND (C11T3_SONIC=0 takes it out: v18). Three things go by in the hangar at a
+seventh, a fifth and a third of the speed of sound (bar lines 87, 88, 89). The fourth goes by at TWICE the
+speed of sound (the line of bar 91), striking a bell every eighth, a note higher each time: the pipes'
+scale, going up (it rests for the two strokes nearest its passing). You do not hear it coming: it outruns everything it does. When it has passed, its sound
+arrives all at once from where it was nearest and spreads BOTH ways. What it struck last before it passed
+is heard first, and then what it struck before that: its whole coming is heard BACKWARDS, the scale
+running down, from the left where it came from, each bell swelling to its stroke and stopping. At twice
+the speed of sound exactly the past comes back at the tempo it happened at, so the backward bells fall on
+the song's sixteenths. And what it strikes when it has gone is heard going away to the right, a third as
+fast and a twelfth lower. Every time, note, level and side is worked out from where it was (the same sums
+as the things that went by before it; the signs come out the other way). A stroke is as loud as it is near
+and as its ring is squeezed (my reasoning from one stroke's energy, not a textbook's formula). No boom is
+sounded: only its bells.
 """
 import json
 import math
@@ -518,6 +532,17 @@ TRIM_OUT = (152, 160)                                  # ... and goes out again:
 
 BALL = os.environ.get("C11T3_BALL", "1") != "0" and TRIM                        # v14: Zeno's ball
 NEXTROOM = os.environ.get("C11T3_NEXT", "1") != "0" and os.environ.get("C11T3_FLY", "1") != "0" and os.environ.get("C11T3_BIRD", "1") != "0" and BALL and SQUARE     # v17: the room next door (heard through its wall as you cross the square)
+SONIC = os.environ.get("C11T3_SONIC", "1") != "0" and os.environ.get("C11T3_WHISTLE", "1") != "0" and NEXTROOM and PIPES_ON    # v19: faster than sound
+SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
+SONIC_MACH = 2.0                                       # its speed, in speeds of sound: at 2 its past is heard at the tempo it happened at
+SONIC_AWAY = 2                                         # sixteenths of sound away at its nearest (81.7 m: as far as the pipes are long)
+SONIC_EVERY = 0.5                                      # beats between its strokes
+SONIC_PHASE = 0.5                                      # of that, from its nearest point to the stroke after: it strikes half an interval before and after, not AT the nearest
+SONIC_NOTES = ("D3", "F3", "G3", "A3", "Bb3", "C4", "D4", None, None, "G4", "A4", "Bb4")    # what it strikes, in order: the pipes' scale, going on up; it rests for the two strokes nearest its passing (E4 would be folded over the instant the first sound arrives; F4, 115 m off, came out as loud as the bass drum when the rest were right)
+SONIC_BEFORE = 8                                       # of those, how many it strikes before it is nearest
+SONIC_RING = 0.12                                      # seconds a stroke rings where it is struck
+SONIC_PAN = 0.9                                        # what is far to one side is this far to that side
+SONIC_GAIN = os.environ.get("C11T3_SONIC_GAIN", "-12dB")  # set in the whole song's master: at -16dB (and every stroke only as loud as it is near) the far bells came out 12 to 18 dB under the music between 100 and 450 Hz and the ones going away 3 dB over the ones heard backwards
 WHISTLE = os.environ.get("C11T3_WHISTLE", "1") != "0" and NEXTROOM and PIPES_ON     # v18: the pipes whistle (culvert whistlers)
 WHISTLE_BEATS = 1                                      # beats from the click to the pipe's far end and back: the pipe is 81.7 m long
 WHISTLE_ECHOES = 3                                     # times the far end is heard: on the three beats after the click
@@ -835,6 +860,25 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def sonic_strokes():
+    """Every stroke of the thing that goes by faster than sound: (seconds struck after its nearest, the note, metres off, seconds HEARD after its nearest, how many times as fast its sound is heard (under nought: backwards), its level against a stroke at the nearest, how far to the side from -1 to 1)."""
+    d = SONIC_AWAY * STEP * 60 / BPM * SOUND; v = SONIC_MACH * SOUND; out = []
+    made = -d / (SOUND * SONIC_MACH * math.sqrt(SONIC_MACH ** 2 - 1))           # when it made the sound that is heard first
+    for i, p in enumerate(SONIC_NOTES):
+        te = (i - SONIC_BEFORE + SONIC_PHASE) * SONIC_EVERY * 60 / BPM; x = v * te; r = math.hypot(d, x)
+        if p is None or te < made < te + SONIC_RING:
+            continue                                                            # a stroke whose ring is folded over that instant (half of it heard backwards, half forwards, in a hundredth of a second) is left out
+        fast = 1 / (1 + v * x / (SOUND * r))
+        out.append((te, p, r, te + r / SOUND, fast, d / r * math.sqrt(abs(fast)), x / r))       # as loud as it is near, and as its ring is squeezed: the same stroke heard in a third of the time has three times the power, heard three times as slow a third
+    return out
+
+
+def sonic_first():
+    """(seconds after its nearest that the first sound of it is heard, seconds before its nearest that sound was made)."""
+    d = SONIC_AWAY * STEP * 60 / BPM * SOUND
+    return d / SOUND * math.sqrt(SONIC_MACH ** 2 - 1) / SONIC_MACH, -d / (SOUND * SONIC_MACH * math.sqrt(SONIC_MACH ** 2 - 1))
 
 
 def whistle_notes():
@@ -1284,6 +1328,27 @@ def song():
         doc["tracks"].append({"name": "whistle", "patch": "sr-step", "gain": WHISTLE_GAIN, "pan": 0.0, "notes": whistle_notes()})     # dry: the pipe is the room
         doc["about"] = doc["about"].replace(" Generated by", f" From v18 the pipes are {whistle_far() / 2:.0f} m long as well, and the click comes back from the far end on each of the three beats after it as a falling whistle, a slower fall each time (a culvert whistler: the clicks that glanced off the walls have farther to come), down towards the octave of the note that pipe sings. Generated by")
         assert "From v18" in doc["about"]
+    if SONIC:
+        so_bell = ["sine", "sine ratio=2 level=-9dB", "sine ratio=3 level=-15dB"]; so_pitch = {"value": 0, "mod": [{"src": "auto.dop", "amount": 1}]}
+        PATCHES["sr-sonic-back"] = {"about": f"Standing Room's bell on the thing that goes by faster than sound, heard BACKWARDS (chirper-zero, 27 Nov, v19): the bell of the thing that goes past (a sine with its octave and twelfth), swelling for {SONIC_RING * 1000:g} ms to its stroke and stopping there: what it struck before it passed. Its pitch is given by where it was (auto.dop, semitones). It is in no room.",
+                                    "play": {"vel_sens": 0.5, "gate": 1}, "synth": {"layers": so_bell, "pitch": so_pitch, "amp": {"a": f"{SONIC_RING * 1000:g}ms", "d": "0ms", "s": 1, "r": "2ms", "curve": 3}}}
+        PATCHES["sr-sonic-on"] = {"about": f"Standing Room's bell on the thing that goes by faster than sound, when it has gone (chirper-zero, 27 Nov, v19): the same bell, ringing {SONIC_RING * 3000:g} ms: three times as long, as it is heard three times as slow and a twelfth lower (auto.dop, semitones). It is in no room.",
+                                  "play": {"vel_sens": 0.5}, "synth": {"layers": so_bell, "pitch": so_pitch, "amp": {"a": "1.5ms", "d": f"{SONIC_RING * 3000:g}ms", "s": 0, "r": "120ms", "curve": 3}}}
+        so_ring = SONIC_RING * BPM / 60
+        for so_nm, so_back in (("sonic-back", True), ("sonic-on", False)):
+            so_notes, so_lanes = [], [[["0b", 0.0]], [["0b", 0.0]]]
+            for so_bar in SONIC_AT:
+                for te, p, r, ta, fast, lev, side in sorted(sonic_strokes(), key=lambda q: q[3]):
+                    if (fast < 0) != so_back:
+                        continue
+                    so_len = round(so_ring / abs(fast), 5); so_at = round(so_bar * BEATS + ta * BPM / 60 - (so_len if so_back else 0), 5)      # a bell heard backwards ends on its stroke; one heard slower rings longer
+                    so_notes.append({"at": so_at, "len": so_len, "pitch": p, "vel": round(0.9 * lev, 4)})
+                    for so_i, so_v in ((0, round(12 * math.log2(abs(fast)), 3)), (1, round(side, 3))):
+                        so_lanes[so_i] += [[f"{so_at - 0.02:.5f}b", so_v], [f"{so_at + so_len + 0.05:.5f}b", so_v]]
+            doc["tracks"].append({"name": so_nm, "patch": "sr-sonic-back" if so_back else "sr-sonic-on", "gain": SONIC_GAIN, "pan": {"value": 0, "mod": [{"src": "auto.side", "amount": SONIC_PAN}]}, "notes": so_notes,
+                                  "auto": {"dop": {"points": so_lanes[0], "curve": 0}, "side": {"points": so_lanes[1], "curve": 0}}})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v19 a fourth thing goes by in the hangar, at {SONIC_MACH:g} times the speed of sound, striking the pipes' scale upwards: it is not heard coming; when it has passed, its coming is heard backwards from the left (the scale running down, each bell swelling to its stroke) and its going a third as fast and a twelfth lower from the right. Generated by")
+        assert "From v19" in doc["about"]
     return doc
 
 
@@ -1340,6 +1405,12 @@ def echoes(a, b, n=16):
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
         sec = 60 / BPM * BEATS
+        if SONIC:
+            so_first, so_made = sonic_first(); so_d = SONIC_AWAY * STEP * 60 / BPM * SOUND; so_six = STEP * 60 / BPM
+            print(f"faster than sound: on the line of bar " + ", ".join(f"{b + 1} ({int(b * BEATS * 60 / BPM) // 60}:{b * BEATS * 60 / BPM % 60:04.1f})" for b in SONIC_AT) + f" something goes by at {SONIC_MACH:g} times the speed of sound ({SONIC_MACH * SOUND:.0f} m/s), {so_d:.1f} m off at its nearest, left to right, striking every {SONIC_EVERY * 60000 / BPM:.0f} ms ({SONIC_GAIN}) ; nothing of it is heard until {so_first * 1000:.0f} ms after it has passed (the sound it made {-so_made * 1000:.0f} ms before) ; far off, its coming is heard {1 / (SONIC_MACH - 1):g} times as fast, backwards ; its going 1/{SONIC_MACH + 1:g} as fast")
+            for te, p, r, ta, fast, lev, side in sorted(sonic_strokes(), key=lambda q: q[3]):
+                so_n = round(ta / so_six)
+                print(f"   heard {ta * 1000:7.1f} ms after the line (sixteenth {so_n:2d} {(ta - so_n * so_six) * 1000:+5.1f} ms): {p:3s} struck {abs(te) * 1000:6.1f} ms {'before' if te < 0 else 'after '} it passed, {r:6.1f} m off ; {'BACKWARDS' if fast < 0 else 'forwards '} at {abs(fast):.3f} of its speed ({1200 * math.log2(abs(fast)):+7.1f} cents: {hz(p) * abs(fast):6.1f} Hz) ; {20 * math.log10(lev):+5.1f} dB ; {'left ' if side < 0 else 'right'} {abs(side):.2f}")
         if WHISTLE and whistle_pipes():
             wh_p = whistle_pipes(); wh_bar = BEATS * 60 / BPM; wh_n = whistle_notes(); wh_t = [n_ * whistle_far() / SOUND for n_ in range(1, WHISTLE_ECHOES + 1)]
             print(f"the pipes whistle, bars {wh_p[0][2] + 1}-{wh_p[-1][2] + 1} ({int(wh_p[0][2] * wh_bar) // 60}:{wh_p[0][2] * wh_bar % 60:04.1f}-{int((wh_p[-1][2] + 1) * wh_bar) // 60}:{(wh_p[-1][2] + 1) * wh_bar % 60:04.1f}): every pipe {whistle_far() / 2:.1f} m long ; the click (sixteenth {CLICK_STEP}) comes back from the far end after " + ", ".join(f"{1000 * x:.0f}" for x in wh_t) + f" ms (the next {WHISTLE_ECHOES} beats), {-WHISTLE_END:g} dB less each time, and as 1 over the distance to the power {WHISTLE_SPREAD:g} ; heard from beside the mouth (the sine of the angle: {WHISTLE_SIDE:g}) ; and by k glances off the walls after hypot(there and back, k widths) / {SOUND:g} ; a glance takes {-WHISTLE_WALL:g} dB ; {len(wh_n)} arrivals, each the stairs' tick on {WHISTLE_NOTE} ({WHISTLE_GAIN})")
