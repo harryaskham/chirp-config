@@ -32,6 +32,33 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v21 (27 Nov), THE METAL IS A PAIR, TUNED APART. Three switches (`--without-twin`, `-quicken`, `-told`; all off is
+v20 byte for byte). The song is called Ring True and nothing in it has ever rung false. Bronze is not played that
+way where it is played most: the metal bars of a gamelan come in pairs, one tuned a few waves a second over the
+other on purpose, so that struck together their ring breathes. The tuner sets the breath's rate. Here it is the
+song's own: the gap between the two bars, in waves a second, is the tempo's.
+  TWIN     wherever the metal is let go (a ring of TWIN['ring'] s or more) a second bar is struck with it, tuned
+           125 x 4 / 60 = 8.33 Hz OVER it: the two are in step at the stroke, against each other a thirty-second
+           later (the ring is gone: not turned down: cancelled), in step again on the next sixteenth: the ring
+           ticks sixteenths, by tuning alone: no gate, no motor. 8.33 Hz is a tenth of a semitone at these notes
+           (F6: 10 cents): one note that shimmers, not two. Each bar is struck 6 dB under the old one, so the
+           stroke's first instant is the old stroke's. Same place (a pair apart in space would beat only in
+           the room, and not at all on headphones). The disc under the bars (v17) turns over both.
+           THE BARS MUST RING TRUE FOR IT. The first build struck the second bar with the song's own metal and
+           the breath came out anywhere from 5 to 12 a second: this engine's struck bar sounds 2 cents under to
+           5 over its written note, differently at every stroke (its `vary`: one bar on F6 read 1395.4 to
+           1400.6 Hz over eight strokes), and two layers in one patch are drawn apart as well. With `vary: 0`
+           the same eight read 1397.5 +- 0.3. So with the pair the metal's patch is TWIN['patch'] (rt-true:
+           rt-motor with no wander): every stroke of the metal is on its note, and its hall's copy with it.
+  QUICKEN  the pair is not that far apart from the start: when the metal is first let go (bars 49-64) the gap
+           is a quarter of that, one wave a BEAT (2.08 Hz: the ring goes out on the beat after the stroke and
+           is back on the next off-beat: what the disc does, done by the second bar); with no weight (bars
+           97-112) one wave an EIGHTH (4.17 Hz); from the peak on (bars 113-144) a SIXTEENTH. The breath
+           doubles twice. Left out, the gap is a sixteenth everywhere.
+  TOLD     v20's --next: the second trade (the string and the skin, bars 125-128) is told once before as
+           well, stopped, in the last cell before the string is let go (bars 63-64), as the first was before
+           the wood was (bars 31-32).
+
 v20 (27 Nov), THE THINGS TRADE CELLS, AND THE HEAD GOES SLACK. Three switches (`--without-trade`, `-slack`,
 `-hint`; all off is v19 byte for byte). Line 309 says of the cell "It never changes", and for 5:53 it had not: nineteen rounds
 were all about how the things ring. What a thing IS, its notes or its sound, had never been put to the ear.
@@ -381,8 +408,10 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True, 'trade': True, 'slack': True, 'hint': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True, 'trade': True, 'slack': True, 'hint': True, 'twin': True, 'quicken': True, 'told': True}
 TRADE = {'to': 128, 'pairs': (('wood', 'metal', 12, 120), ('string', 'skin', 0, 124))}   # v20: the bar (from 0) at which each has its own cell again; the pairs that play each other's: how many semitones the second is over the first, and the bar (from 0) they trade at
+TWIN = {'patch': 'rt-true', 'ring': 0.3, 'db': -6, 'gap': 1, 'bars': ((48, 64, 4), (96, 112, 2), (112, 144, 1))}   # v21: the metal's patch while it is a pair (the motor's, with the engine's stroke-to-stroke wander off: another sound, another name); the least ring, s, at which the second bar is struck; dB on each of the two (in step at the stroke they add to the old stroke); sixteenths to one wave of the gap between them where QUICKEN is off; the bars (from 0, to but not with) in which the metal is a pair, and the sixteenths to a wave there with QUICKEN
+TOLD = {'pair': ('string', 'skin', 0), 'bars': (62, 64)}   # v21: the second pair's trade told once before, stopped: the last cell before the string is let go
 HINT = {'pair': ('wood', 'metal', 12), 'bars': (30, 32)}   # v20: the pair that trades once before, stopped; the bars (from 0, to but not with): the last cell before the wood is let go
 SLACK = {'from': 125, 'steps': (-1, -2, -3), 'db': (0.5, 0.5, 2)}   # v20: the bar (from 0) at which the weight's head goes slack; steps of the five notes on each bar from there; dB on its strokes there (bench: alone, the slack drum read 0.7, 0.4 and 1.8 dB under the tight one, bar by bar)
 TONGUE = {'section': 6, 'rate': '1/48', 'depth': 0.85, 'db': 4}   # v19: the section (from 0) in which the pipe is flutter-tongued; a roll of the tongue (a third of a sixteenth: 25 a second at 125); how deep (0.85: the level falls to 0.15: 16 dB); dB on those strokes (the first build was 0.7 and 2: too little in the finished song)
@@ -614,7 +643,7 @@ def flutter_patch(air):
 
 def cell_of(thing, bar):
     """v20 TRADE: the strokes a thing plays in a bar: its own cell, or in the trading bars its partner's, moved to its own octave."""
-    spans = [(*x, TRADE['to']) for x in TRADE['pairs']] * ON['trade'] + [(*HINT['pair'], *HINT['bars'])] * ON['hint']   # v20 HINT: once before, small
+    spans = [(*x, TRADE['to']) for x in TRADE['pairs']] * ON['trade'] + [(*HINT['pair'], *HINT['bars'])] * ON['hint'] + [(*TOLD['pair'], *TOLD['bars'])] * ON['told']   # v20 HINT: once before, small (v21 TOLD: the second pair too)
     if spans:
         for a, b, semis, at, to in spans:
             if thing in (a, b) and at <= bar < to:
@@ -629,7 +658,7 @@ def slack(bar, what='steps'):
 
 def patch_of(thing):
     if thing == 'metal' and ON['motor']:
-        return MOTOR['patch']
+        return TWIN['patch'] if ON['twin'] else MOTOR['patch']   # v21 TWIN: the bars of a pair ring true
     if thing == 'weight' and ON['disc'] and ON['boom'] and ON['note']:
         return HEFT['patch'] if ON['heft'] else DISC['patch']
     if thing == 'air' and ON['flutter'] and ON['flue'] and ON['long']:
@@ -815,6 +844,18 @@ def build():
                             T[thing].append(m)
                             if thing + '-room' in T:
                                 T[thing + '-room'].append(dict(m))
+    if ON['twin'] and ON['motor'] and T.get('metal'):             # v21 TWIN: the metal is a pair; QUICKEN: the gap between them doubles twice
+        both, second = [], []
+        for n in T['metal']:
+            span = next((x for x in TWIN['bars'] if x[0] <= n['at'] // 4 < x[1]), None)
+            if span and n.get('expr', {}).get('ring', 0) >= TWIN['ring'] and not n['pitch'].endswith('hz'):
+                db = f"{round(float(n.get('gain', '0dB')[:-2]) + TWIN['db'], 2)}dB"
+                both.append({**n, 'gain': db})
+                second.append({**n, 'gain': db, 'pitch': f"{hz(n['pitch']) + BPM * 4 / 60 / (span[2] if ON['quicken'] else TWIN['gap']):.2f}hz"})
+            else:
+                both.append(n)
+        if second:
+            T['metal'], T['metal-twin'] = both, second
     return T
 
 
@@ -854,6 +895,10 @@ def song(T, bars=BARS):
         doc['patches'] = {**doc['patches'], patch_of('air'): flutter_patch(flue_patch()) if patch_of('air') == FLUTTER['patch'] else flue_patch()}   # v18 FLUTTER
     if ON['motor']:                                              # v17 MOTOR: the metal's patch with its disc
         doc['patches'] = {**doc['patches'], MOTOR['patch']: motor_patch(doc['patches'][PATCH['metal']])}
+        if ON['twin']:                                           # v21 TWIN: the same bar and disc with no wander from stroke to stroke
+            true = motor_patch(doc['patches'][PATCH['metal']])
+            doc['patches'] = {**doc['patches'], TWIN['patch']: {**true, 'about': "Ring True: the metal that rings true (v21). rt-motor's bar and disc with the engine's stroke-to-stroke wander off (`vary: 0`): every stroke sounds its written note (rt-motor's are 2 cents under to 5 over it, a new draw each time), so that two of them tuned a set number of waves a second apart breathe at that rate and no other.",
+                                                                 'synth': {**true['synth'], 'layers': [{**true['synth']['layers'][0], 'vary': 0}] + true['synth']['layers'][1:]}}}
     if ON['plate'] and 'plate' in T:
         doc['patches'] = {**doc['patches'], 'rt-plate': NEW['rt-plate']}
         doc['tracks'].append(track('plate', PLATE['gain'], pan=PLATE['pan'], sends={'room': '-16dB'}))
@@ -901,6 +946,11 @@ def song(T, bars=BARS):
             for b in doc['buses'].values():                      # whoever hears the pipe hears these strokes too
                 if any(r.get('from') == 'air' for r in b.get('returns', [])):
                     b['returns'] = b['returns'] + [{**r, 'from': 'air-tongue'} for r in b['returns'] if r.get('from') == 'air']
+    if T.get('metal-twin'):                                       # v21 TWIN: the second bar, beside the first: its fader, its place, its room
+        doc['tracks'].append({**{x: y for x, y in by_name['metal'].items() if x != 'notes'}, 'name': 'metal-twin', 'notes': T['metal-twin']})
+        for b in doc['buses'].values():                          # whoever hears the metal hears both bars
+            if any(r.get('from') == 'metal' for r in b.get('returns', [])):
+                b['returns'] = b['returns'] + [{**r, 'from': 'metal-twin'} for r in b['returns'] if r.get('from') == 'metal']
     return doc
 
 
@@ -934,7 +984,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the forty-seven that are on: all off is v1; the last forty-two off is v2; the last thirty-eight off is v3; the last thirty-five off is v4; the last thirty-two off is v5; the last thirty-one off is v6; the last twenty-eight off is v7; the last twenty-six off is v8; the last twenty-three off is v9; the last nineteen off is v10; the last fifteen off is v11; the last thirteen off is v12; the last eleven off is v13; the last nine off is v14; the last eight off is v15; the last seven off is v16; the last six off is v17; the last five off is v18; the last three off is v19)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the fifty that are on: all off is v1; the last forty-five off is v2; the last forty-one off is v3; the last thirty-eight off is v4; the last thirty-five off is v5; the last thirty-four off is v6; the last thirty-one off is v7; the last twenty-nine off is v8; the last twenty-six off is v9; the last twenty-two off is v10; the last eighteen off is v11; the last sixteen off is v12; the last fourteen off is v13; the last twelve off is v14; the last eleven off is v15; the last ten off is v16; the last nine off is v17; the last eight off is v18; the last six off is v19; the last three off is v20)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -993,6 +1043,10 @@ if __name__ == '__main__':
             print(f"    the things trade cells, one pair at a time, to bar {TRADE['to']}: " + '; '.join(f"from bar {at + 1} the {x} plays the {y}'s" + (f" (an octave {'down' if semis > 0 else 'up'})" if semis else '') + f" and the {y} the {x}'s" + (f" (an octave {'up' if semis > 0 else 'down'})" if semis else '') for x, y, semis, at in TRADE['pairs']) + f"; from bar {TRADE['to'] + 1} each has its own again")
         if ON['hint']:
             print(f"    the trade is told once before, stopped, bars {HINT['bars'][0] + 1}-{HINT['bars'][1]}: the {HINT['pair'][1]} taps the {HINT['pair'][0]}'s cell (an octave up) and the {HINT['pair'][0]} the {HINT['pair'][1]}'s (an octave down); on bar {HINT['bars'][1] + 1} the {HINT['pair'][0]} is let go and has its own")
+        if ON['told']:
+            print(f"    the second trade is told once before too, stopped, bars {TOLD['bars'][0] + 1}-{TOLD['bars'][1]}: the {TOLD['pair'][1]} taps the {TOLD['pair'][0]}'s cell and the {TOLD['pair'][0]} the {TOLD['pair'][1]}'s; on bar {TOLD['bars'][1] + 1} the {TOLD['pair'][0]} is let go and has its own")
+        if ON['twin']:
+            print("    the metal is a pair wherever it is let go: a second bar struck with the first, tuned over it by the tempo: " + '; '.join(f"bars {a + 1}-{b}: {BPM * 4 / 60 / (g if ON['quicken'] else TWIN['gap']):.2f} Hz (one wave {'a beat' if (g if ON['quicken'] else TWIN['gap']) == 4 else 'an eighth' if (g if ON['quicken'] else TWIN['gap']) == 2 else 'a sixteenth'})" for a, b, g in TWIN['bars']) + f": in step at the stroke, against each other half a wave later; each {-TWIN['db']} dB under the old stroke")
         if ON['slack']:
             print(f"    the weight's head goes slack, bars {SLACK['from'] + 1}-{SLACK['from'] + len(SLACK['steps'])}: a step down the five notes each bar: " + ' '.join(step(STROKES['weight'][0][1], k) for k in SLACK['steps']) + f", and {STROKES['weight'][0][1]} again on bar {SLACK['from'] + len(SLACK['steps']) + 1}")
         print(f'{BARS} bars, {BARS * sec:.1f} s; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in build().items()))
