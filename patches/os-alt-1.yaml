@@ -1,0 +1,92 @@
+{
+ "about": "Out of Step's octave by phase alone (chirper-zero, 27 Nov, v27): harmonics 13 to 26 of the written note and nothing under them (1274 to 2548 Hz on G2), the two at each end turned down 6 and 2.5 dB; the even harmonics a quarter turn on (cosines): the wave pulses twice a period, and the note is heard an octave over its written pitch, with the same harmonics at the same strengths as `os-alt-0`. BANKED by tools/patchbank.py (27 Nov 2026) from Out of Step v27 (track alt-high): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "5ms",
+   "d": "0s",
+   "r": "20ms"
+  },
+  "filters": [
+   {
+    "cutoff": 7500
+   }
+  ],
+  "layers": [
+   {
+    "level": "-6dB",
+    "phase": 0.0,
+    "ratio": 13.0
+   },
+   {
+    "level": "-2.5dB",
+    "phase": 0.25,
+    "ratio": 14.0
+   },
+   {
+    "level": "0dB",
+    "phase": 0.0,
+    "ratio": 15.0
+   },
+   {
+    "level": "0dB",
+    "phase": 0.25,
+    "ratio": 16.0
+   },
+   {
+    "level": "0dB",
+    "phase": 0.0,
+    "ratio": 17.0
+   },
+   {
+    "level": "0dB",
+    "phase": 0.25,
+    "ratio": 18.0
+   },
+   {
+    "level": "0dB",
+    "phase": 0.0,
+    "ratio": 19.0
+   },
+   {
+    "level": "0dB",
+    "phase": 0.25,
+    "ratio": 20.0
+   },
+   {
+    "level": "0dB",
+    "phase": 0.0,
+    "ratio": 21.0
+   },
+   {
+    "level": "0dB",
+    "phase": 0.25,
+    "ratio": 22.0
+   },
+   {
+    "level": "0dB",
+    "phase": 0.0,
+    "ratio": 23.0
+   },
+   {
+    "level": "0dB",
+    "phase": 0.25,
+    "ratio": 24.0
+   },
+   {
+    "level": "-2.5dB",
+    "phase": 0.0,
+    "ratio": 25.0
+   },
+   {
+    "level": "-6dB",
+    "phase": 0.25,
+    "ratio": 26.0
+   }
+  ]
+ }
+}

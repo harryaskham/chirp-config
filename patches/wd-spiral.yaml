@@ -1,0 +1,19 @@
+{
+ "about": "Wind Down: the record's surface in the playing groove (v21): one held white hiss (new vinyl at every turn: it never comes round, as the run-out's does), coming in over the first bars; its band and its comings and goings are the track's. BANKED by tools/patchbank.py (27 Nov 2026) from Wind Down v21 (track spiral): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "7.74s",
+   "d": "0s",
+   "r": "30ms"
+  },
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}

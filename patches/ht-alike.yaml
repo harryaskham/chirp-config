@@ -1,0 +1,25 @@
+{
+ "about": "Hearing Things' ticks that are all alike (chirper-zero, 27 Nov, v28): a plain tone on E8 (5274 Hz) that dies in 12 ms; its loudness goes as the velocity squared, and the velocity only undoes what the master does to a tick at its place in the bar. The track `alike-twice` strikes the same tick again at the same instant: the two add to one tick 6 dB up. BANKED by tools/patchbank.py (27 Nov 2026) from Hearing Things v28 (tracks alike, alike-twice): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "12ms",
+   "r": "4ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ]
+ }
+}

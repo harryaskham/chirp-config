@@ -1,0 +1,33 @@
+{
+ "about": "Wind Down: the record's surface in its run-out groove (v20): the engine's chip noise with no chip's clock on D3 (the same samples at each note-on, and too slow a step rate to come round inside a turn), 255 to 2186 Hz, one note a turn: the hiss repeats with the record. BANKED by tools/patchbank.py (27 Nov 2026) from Wind Down v21 (track surface): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "5ms",
+   "d": "0s",
+   "r": "30ms"
+  },
+  "filters": [
+   {
+    "cutoff": 255,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 2186
+   }
+  ],
+  "layers": [
+   {
+    "chip": {
+     "clock": 0.0,
+     "kind": "noise"
+    },
+    "type": "chip"
+   }
+  ]
+ }
+}
