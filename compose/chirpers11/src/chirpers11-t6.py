@@ -58,7 +58,25 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True, 'spun': True, 'lands': True}
+# ---- v18 (27 Nov): A COIN IS SPUN ON THE COUNTER. Two more switches (`--without-spun`, `-lands`; both off is v17
+# byte for byte). The song's effects so far are all sums: amounts made of coins. This one is a coin's own motion. A
+# coin (or Euler's disc) spun on a table rolls on its edge, lying flatter and flatter, and its rattle quickens without
+# limit and then stops dead: a finite-time singularity (Moffatt 2000, who predicted a power of -1/6). Measured (Easwar,
+# Rouyer and Menon 2002: 0.3 to 0.4), the rattle's rate goes about as (t0 - t)^(-1/3), t0 the instant it stops. So the clicks are written from that law and nothing else:
+# beginning at the song's own sixteenths (a rate of four a beat) and ending T beats later, click k of N falls at
+# T (1 - (1 - k/N)^(3/2)), and N = (3/2) * 4 T: the rate is unbounded but the count is finite, half as many again as
+# the sixteenths it runs over (96 for 64). The first gap is a sixteenth to a third of a millisecond; the last is 8 ms
+# (a rattle of 119 a second: nearly a note). It is the second hat's own patch (sc-coin: the song's coin), alternately
+# left and right, as an escapement's two pallets: wide and slow at first, one buzz in the middle at the end: the two
+# sides close as the coin's tilt does, as (t0 - t)^(2/3) (the same measurement: the angle to the table), each track's
+# pan on a lane with a point at every rattle. In mono it is the rattle alone.
+#   SPUN   through the last four bars of the break ('fives and sevens', bars 93 to 96): it stops dead on the one of
+#          bar 97, where the drum comes back. A riser made by a table, not by a filter.
+#   LANDS  through the last four bars of 'home' (bars 173 to 176), over the whole band: it starts in step with the
+#          hat's sixteenths and runs away from them (the next song is Out of Step), and stops dead on the first seed
+#          of 'the last seed', as the drum and the bass leave.
+SPUN = {'bars': 4, 'rate': 4, 'power': 1 / 3, 'gain': '9dB', 'pans': (-0.45, 0.45), 'vel': (0.5, 0.85), 'close': 2 / 3, 'where': {'spun': 'fives and sevens', 'lands': 'home'}}   # v18: how long the coin spins, bars; its rattles a beat as it begins (the sixteenths); the law's power; the two tracks' fader and sides; the first and last click's stroke; the section each switch's coin ends
 # ---- v17 (27 Nov): THE BASS FOLLOWS EVERY SEED. Four more switches (`--without-comes`, `-both`, `-three`, `-lift`;
 # all four off is v16 byte for byte). v16 found the bass's note in the rule (three coins on from the seed) and used it
 # where a section has one seed, and in one section where the seeds change. In the three other sections where the
@@ -489,6 +507,13 @@ def stands(name, notes, every, k):
     return up - 12 if up else 0
 
 
+def spun(end):
+    """v18: a coin spun on the counter that stops dead at the top of bar `end` (bars from 0): the beats of its rattles. The rate begins at SPUN['rate'] a beat and rises as (t0 - t)^(-power); the phase is its integral, so click k of n is at T (1 - (1 - k/n)^(1/(1 - power))) and n = rate * T / (1 - power)."""
+    beats, p = SPUN['bars'] * 4, SPUN['power']
+    n = round(SPUN['rate'] * beats / (1 - p))
+    return [round(end * 4 - beats + beats * (1 - (1 - k / n) ** (1 / (1 - p))), 4) for k in range(n)]
+
+
 def build():
     T = {'kick': [], 'bass': [], 'hat': [], **{f'seed-{k}': [] for k in purses()}, **({'seed-z': []} if ON['zeno'] and ON['roll'] else {}), **({'open': []} if ON['meet'] and ON['owed'] and ON['hat'] else {}), **{f'long-{k}': [] for k in purses()}}
     lifted = []                                                  # v17 LIFT: the bass's moved notes, an octave up
@@ -587,6 +612,11 @@ def build():
         T['bass'].sort(key=lambda n: n['at'])
     if lifted:
         T['bass-up'] = sorted(lifted, key=lambda n: n['at'])
+    for sw in ('spun', 'lands'):                                 # v18: a coin spun on the counter, alternately left and right
+        if ON[sw] and ON['hat']:
+            clicks = spun((next(j for j, sct in enumerate(SECTIONS) if sct[0] == SPUN['where'][sw]) + 1) * SEC)
+            for k, at in enumerate(clicks):
+                T.setdefault(f"spun-{'lr'[k % 2]}", []).append({'at': at, 'len': 0.05, 'pitch': 'A#4', 'vel': round(SPUN['vel'][0] + (SPUN['vel'][1] - SPUN['vel'][0]) * k / len(clicks), 2)})
     return T
 
 
@@ -687,6 +717,15 @@ def song():
                 coin['synth']['filters'] = COIN['filters']
                 doc['patches'] = {**doc['patches'], COIN['patch']: coin}
             doc['tracks'].append({'name': 'hat-x', 'patch': COIN['patch'] if ON['coin'] else 'sc-hat', 'gain': COIN['gain'] if ON['coin'] else RATE['gain'], 'pan': RATE['pan'], 'notes': T['hat-x']})
+    for side, key in enumerate(('spun-l', 'spun-r')):            # v18 SPUN, LANDS: the spun coin's two pallets, closing as the coin's tilt does
+        if T.get(key):
+            pts = [['0b', 0]]
+            for sw in ('spun', 'lands'):
+                if ON[sw]:
+                    c = spun((next(j for j, sct in enumerate(SECTIONS) if sct[0] == SPUN['where'][sw]) + 1) * SEC)
+                    pts += [[f'{at}b', round(1 - (1 - k / len(c)) ** SPUN['close'], 4)] for k, at in enumerate(c)] + [[f'{c[0] + SPUN["bars"] * 4}b', 1], [f'{c[0] + SPUN["bars"] * 4 + 0.05}b', 0]]
+            doc['tracks'].append({'name': key, 'patch': COIN['patch'] if COIN['patch'] in doc['patches'] else 'sc-hat', 'gain': SPUN['gain'], 'notes': T[key],
+                                  'pan': {'value': SPUN['pans'][side], 'mod': [{'src': 'auto.close', 'amount': -SPUN['pans'][side]}]}, 'auto': {'close': {'points': pts, 'curve': 0}}})
     return doc
 
 
@@ -706,7 +745,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last four off is v16, the last six v15, the last eight v14, the last nine v13, the last eleven v12, the last thirteen v11, the last fifteen v10, the last eighteen v9, the last twenty-one v8, the last twenty-three v7, the last twenty-five v6, the last twenty-nine v5, the last thirty v4, the last thirty-three v3, the last thirty-seven v2, all forty v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v17, the last six v16, the last eight v15, the last ten v14, the last eleven v13, the last thirteen v12, the last fifteen v11, the last seventeen v10, the last twenty v9, the last twenty-three v8, the last twenty-five v7, the last twenty-seven v6, the last thirty-one v5, the last thirty-two v4, the last thirty-five v3, the last thirty-nine v2, all forty-two v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -772,6 +811,11 @@ if __name__ == '__main__':
                     print(f"    and in {name} (bars {j * SEC + 1}-{(j + 1) * SEC}), {'a bar' if sct[2] == 1 else f'{sct[2]} bars'} each: " + ' '.join(moved('G2', stands(name, sct[4], sct[2], q)) for q in range(0, SEC, sct[2])))
         if ON['lift'] and (ON['root'] or ON['follow']):
             print(f"    wherever the bass is under its written note a second track plays it an octave up, {-LIFT['db']} dB under: " + f"{len(T.get('bass-up', []))} notes")
+        for sw, what in (('spun', 'it stops dead on the one where the drum comes back'), ('lands', "it starts in step with the hat and runs away from it, and stops dead on the last section's first seed, as the drum and the bass leave")):
+            if ON[sw] and ON['hat']:
+                j = next(j for j, sct in enumerate(SECTIONS) if sct[0] == SPUN['where'][sw])
+                c = spun((j + 1) * SEC) + [(j + 1) * SEC * 4]
+                print(f"    a coin is spun on the counter through the last {SPUN['bars']} bars of {SPUN['where'][sw]} (bars {(j + 1) * SEC - SPUN['bars'] + 1}-{(j + 1) * SEC}): {len(c) - 1} rattles over {SPUN['bars'] * 16} sixteenths, left and right by turns and closing to the middle as its tilt does, quickening as (t0 - t)^(-1/3): the gap goes " + ' '.join(f'{(b - a) * sec * 250:.0f}' for a, b in zip(c[:4], c[1:5])) + ' ... ' + ' '.join(f'{(b - a) * sec * 250:.0f}' for a, b in zip(c[-5:], c[-4:])) + f' ms; {what}')
         print(f'{BARS} bars, {BARS * sec:.1f} s; written notes: ' + ', '.join(f'{k} {len(v)}' for k, v in T.items() if v or not k.startswith('long-')))
     else:
         a.out.write_text(dump(song()))
