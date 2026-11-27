@@ -259,6 +259,21 @@ come back into phase on a chosen bar line. In two rows where the bass drum rests
 a whole beat long to a thump of a twentieth of a second, and is a drum on the line where the drum comes in.
 Nothing changes but phase: its level and its spectrum are the same in the first beat as in the last.
 (The third such row, bars 57-64, was built and taken out: C11T7_FOCUS_ROWS=8,56,120 puts it back.)
+
+v18 (27 Nov): THE CLICK COMES APART AND FINDS ITSELF (C11T7_SWARM=0 takes it out: v17). Twelve small
+clicks, each with its own place and its own note, strike together on the first beat of a break (bars 57
+and 121: the two rows in which the bass drum rests and then comes in).
+Each has its own idea of the tempo: the slowest 4% under, the fastest 4% over, the rest evenly between.
+For two bars nobody listens: the one stroke opens into a fan, the fast ones early and to the right and
+high, the slow ones late and to the left and low: a run downwards across each beat, wider every beat (a
+third of a second by the third bar). Then they begin to listen, harder and harder, and not to the song:
+only to each other. Each leans towards where it hears the rest (Kuramoto's sum of sines, 1975), and, as the
+fireflies of Malaya do (Ermentrout 1991), each also changes its own tempo by what it hears. Nobody tells
+them where the beat is. They come back onto it because for every one that ran ahead one fell as far
+behind: the swarm's mean phase never left it (the mean of their strokes is within 6 ms of the beat
+throughout: a slow one's stroke is a little later than a fast one's is early). By the seventh bar the
+twelve are one click again, to a hundredth of a millisecond, on the beat, and stay there until the drum
+comes in.
 """
 import json
 import math
@@ -509,6 +524,19 @@ FOCUS_PARTS = (21, 35)                                               # the multi
 FOCUS_NOTE = ("G1", 440 * 2 ** ((31 - 69) / 12))                     # the note the held voice is written on and its Hz (it does not sound: every tone is tuned from it)
 FOCUS_OVER = 0.5                                                     # beats the voice is held past the bar line, so that the last thump (on the line, with the drum) is whole
 FOCUS_GAIN = os.environ.get("C11T7_FOCUS_GAIN", "-54dB")              # set in the whole song's master, which lifts a held low part about 20 dB over its fader figure in these rows: at -28 and -36 dB it was louder than the music it lay under
+SWARM = os.environ.get("C11T7_SWARM", "1") != "0" and FOCUS      # v18: the click comes apart and finds itself (twelve clicks that listen only to each other)
+SWARM_ROWS = tuple(int(x) for x in os.environ.get("C11T7_SWARM_ROWS", "56,120").split(","))    # the first bar (from 0) of each row it plays in: the two breaks in which the bass drum rests and then comes in
+SWARM_BARS = ROW                                                     # how long a row is
+SWARM_N = 12                                                         # how many clicks
+SWARM_OFF = 0.04                                                     # the slowest is this far under the tempo and the fastest this far over; the rest evenly between
+SWARM_DEAF = 8                                                       # beats for which nobody listens
+SWARM_LEAN = 0.8                                                     # by the row's end, how hard each leans towards the rest: turns a beat for a mean sine of 1 (it rises from nought when they begin to listen)
+SWARM_LEARN = 0.5                                                    # ... and how fast each changes its own tempo: turns a beat, a beat
+SWARM_SUB = 192                                                      # steps in a beat of the arithmetic (midpoint rule)
+SWARM_NOTES = ("D8", "D#8", "E8", "F8", "F#8", "G8", "G#8", "A8", "A#8", "B8", "C9", "C#9")    # each one's note, the slowest first: 4.7 to 8.9 kHz, where this song has room (nothing over 10 kHz)
+SWARM_PAN = 0.8                                                      # the slowest this far left, the fastest this far right
+SWARM_ROOM = "-16dB"
+SWARM_GAIN = os.environ.get("C11T7_SWARM_GAIN", "-20dB")              # read in the whole song's master: a lone tick's highest sample is -7.5 to -10.8 dBFS there (19 dB over a render of it alone); in step, on the beat with the song's click, the twelve come out 6 dB under what they are apart
 SING = os.environ.get("C11T7_SING", "1") != "0" and os.environ.get("C11T7_VERN", "1") != "0" and os.environ.get("C11T7_FIVE", "1") != "0" and JET      # v16: the clicks sing (every phase set to nought)
 SING_IN = ("slips", 24, 32)                                          # the section, and the bars of it: the bare row between the vernier and the hat
 SING_OF = "a-ear"                                                    # whose strokes: A's, as they are in those bars
@@ -540,6 +568,26 @@ def jet_span():
 def jet_notes():
     lo, hi = jet_span()
     return [{"at": float(lo * BEATS), "len": float((hi - lo) * BEATS), "pitch": NOTE, "vel": 0.8}]
+
+
+def swarm_ticks():
+    """For each of the SWARM_N clicks, the beats (from the row's start) at which it strikes: each runs at its own tempo; from SWARM_DEAF on each leans towards the rest by the mean sine of how far ahead of it they are, and changes its own tempo by the same."""
+    n, beats = SWARM_N, SWARM_BARS * BEATS; dt = 1 / SWARM_SUB
+    lead = [0.0] * n; rate = [SWARM_OFF * (2 * i - (n - 1)) / (n - 1) for i in range(n)]; out = [[0.0] for _ in range(n)]
+    def pull(ld, rt, t):
+        hear = max(0.0, (t - SWARM_DEAF) / (beats - SWARM_DEAF)); them = [sum(math.sin(2 * math.pi * (x - y)) for x in ld) / n for y in ld]
+        return [rt[i] + SWARM_LEAN * hear * them[i] for i in range(n)], [SWARM_LEARN * hear * them[i] for i in range(n)]
+    for k in range(beats * SWARM_SUB):
+        t = k * dt; a1, b1 = pull(lead, rate, t)
+        a2, b2 = pull([lead[i] + 0.5 * dt * a1[i] for i in range(n)], [rate[i] + 0.5 * dt * b1[i] for i in range(n)], t + 0.5 * dt)
+        new = [lead[i] + dt * a2[i] for i in range(n)]; rate = [rate[i] + dt * b2[i] for i in range(n)]
+        for i in range(n):
+            p0, p1 = t + lead[i], t + dt + new[i]
+            if math.floor(p1 + 1e-12) > math.floor(p0 + 1e-12):
+                at = t + dt * (math.floor(p1 + 1e-12) - p0) / (p1 - p0)
+                if at < beats - 0.01: out[i].append(at)
+        lead = new
+    return out
 
 
 def focus_tones():
@@ -1017,6 +1065,16 @@ def song():
                               "notes": [{"at": fo_b * BEATS, "len": FOCUS_BARS * BEATS + FOCUS_OVER, "pitch": FOCUS_NOTE[0], "vel": 0.8} for fo_b in FOCUS_ROWS]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v17, in {len(FOCUS_ROWS)} rows where the bass drum rests and then comes in, fifteen held low tones ({FOCUS_PARTS[0] * BPM / 60:g} to {FOCUS_PARTS[1] * BPM / 60:g} Hz, the beat's own multiples) come slowly into phase: a hum that draws itself together into a thump a beat, and is a drum on the line where the drum comes in. Generated by")
         assert "From v17" in doc["about"]
+    if SWARM:
+        PATCHES["os-fly"] = {"about": "Out of Step's smallest click (chirper-zero, 27 Nov, v18): a millisecond and a half of a plain tone from phase nought, on whatever note it is given (4.7 to 8.9 kHz in the swarm), nothing over 10 kHz: one of twelve that begin as one click, come apart and find each other.",
+                             "play": {"vel_sens": 0.5, "gate": 1},
+                             "synth": {"layers": ["sine phase=0"], "filters": ["lp cutoff=10000"], "amp": {"a": "0.1ms", "d": "1.5ms", "s": 0, "r": "1ms", "curve": 2}}}
+        sw_ticks = swarm_ticks()
+        for sw_i in range(SWARM_N):
+            doc["tracks"].append({"name": f"swarm-{sw_i + 1}", "patch": "os-fly", "gain": SWARM_GAIN, "pan": round(SWARM_PAN * (2 * sw_i - (SWARM_N - 1)) / (SWARM_N - 1), 4), "sends": {"room": SWARM_ROOM},
+                                  "notes": [{"at": round(sw_b * BEATS + sw_at, 5), "len": 0.02, "pitch": SWARM_NOTES[sw_i], "vel": 0.8} for sw_b in SWARM_ROWS for sw_at in sw_ticks[sw_i]]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v18, in {'the two breaks' if len(SWARM_ROWS) == 2 else 'the break'} where the bass drum rests, {SWARM_N} small clicks that begin as one come apart (each has its own tempo, up to {SWARM_OFF * 100:g}% off) and then, listening only to each other, find the beat again and are one click when the drum comes in. Generated by")
+        assert "From v18" in doc["about"]
     return doc
 
 
@@ -1104,6 +1162,12 @@ if __name__ == "__main__":
         if jet_span():
             sec = BEATS * 60 / BPM; lo, hi = jet_span()
             print(f"   the break through a phaser, bars {lo + 1}-{hi} ({int(lo * sec) // 60}:{lo * sec % 60:04.1f}-{int(hi * sec) // 60}:{hi * sec % 60:04.1f}): the click's note ({NOTE}, {WAVE_HZ:.1f} Hz) held, {JET_GAIN} ; {JET_STAGES} all-pass stages, depth {JET_DEPTH}, feedback {JET_FEEDBACK}, mix {JET_MIX} ; a sweep there and back every {JET_RATE} ({int(JET_RATE[:-1]) * 60 / BPM:.2f} s): {(hi - lo) * BEATS / int(JET_RATE[:-1]):g} sweeps")
+        if SWARM:
+            sw_t = swarm_ticks(); sw_ms = 60000 / BPM
+            print(f"   the click comes apart and finds itself, bars " + ", ".join(f"{b + 1}-{b + SWARM_BARS}" for b in SWARM_ROWS) + f": {SWARM_N} clicks ({SWARM_GAIN}; {SWARM_NOTES[0]} on the left to {SWARM_NOTES[-1]} on the right), the slowest {SWARM_OFF * 100:g}% under the tempo, the fastest as far over ; deaf for {SWARM_DEAF} beats, then each leans to the rest (to {SWARM_LEAN:g} turns a beat) and changes its tempo (to {SWARM_LEARN:g}) ; strokes each: {sorted(set(len(x) for x in sw_t))}")
+            sw_rows = [[min(x, key=lambda v: abs(v - sw_b)) - sw_b for x in sw_t] for sw_b in range(SWARM_BARS * BEATS)]
+            print("      first to last, ms, at each beat: " + " ".join(f"{sw_ms * (max(r) - min(r)):.2f}".rstrip("0").rstrip(".") if max(r) - min(r) > 1e-7 else "0" for r in sw_rows))
+            print("      the slowest and the fastest against the beat, ms, at the first beat of each bar: " + " ".join(f"{sw_ms * sw_rows[b][0]:+.2f}/{sw_ms * sw_rows[b][-1]:+.2f}" for b in range(0, SWARM_BARS * BEATS, BEATS)) + f" ; the middle of the swarm, at its furthest from the beat: {max(abs(sum(r)) / len(r) for r in sw_rows) * sw_ms:.3f} ms")
         if FOCUS:
             fo_t = focus_tones(); fo_bar = BEATS * 60 / BPM
             print(f"   the drum comes into focus, bars " + ", ".join(f"{b + 1}-{b + FOCUS_BARS} ({int(b * fo_bar) // 60}:{b * fo_bar % 60:04.1f})" for b in FOCUS_ROWS) + f": {len(fo_t)} held tones ({FOCUS_GAIN}), the multiples {FOCUS_PARTS[0]} to {FOCUS_PARTS[1]} of the beat ({BPM / 60:g} Hz): {fo_t[0][0]:.2f} to {fo_t[-1][0]:.2f} Hz ; at the start tone k is k squared / {2 * (len(fo_t) - 1)} of a turn out (the outermost {fo_t[0][1]:.3f}) and {1000 * ((FOCUS_PARTS[0]) * BPM / 60 - fo_t[0][0]):.1f} mHz flat at the most ; in phase on the line of bars " + ", ".join(str(b + FOCUS_BARS + 1) for b in FOCUS_ROWS))
