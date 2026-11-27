@@ -32,6 +32,26 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v20 (27 Nov), THE THINGS TRADE CELLS, AND THE HEAD GOES SLACK. Three switches (`--without-trade`, `-slack`,
+`-hint`; all off is v19 byte for byte). Line 309 says of the cell "It never changes", and for 5:53 it had not: nineteen rounds
+were all about how the things ring. What a thing IS, its notes or its sound, had never been put to the ear.
+  TRADE  in the second half of the peak (bars 121-128, everything let go) the things play each other's cells,
+         one pair at a time: from bar 121 the wood plays the metal's (its off-beats, an octave down) and the
+         metal the wood's tune (an octave up); from bar 125 the string plays the skin's five strokes and the
+         skin the string's eight. The same notes at the same instants: the sounds have moved. At bar 129,
+         where the stopping begins, each has its own again. (The first build traded both pairs at bar 121.)
+         The metal's disc is not moved: it was struck where the disc is open; on the wood's instants it is
+         struck a sixteenth later, as the disc shuts.
+  HINT   the trade is told once, small, two minutes before: in the family's last cell (bars 31-32, everything
+         still stopped) the metal taps the wood's tune and the wood the metal's off-beats; on bar 33 the wood
+         is let go and rings the tune itself, alone: a call on the wrong thing, then the answer on the right one.
+  SLACK  the weight has been let go since bar 113; in the peak's last three bars its head goes slack: a step
+         down the five notes each bar (G1, F1, D1), and home to B flat 1 on bar 129's one. Alone, the slack
+         drum read 0.7, 0.4 and 1.8 dB under the tight one (the kettle's modes are weaker lower down): it is
+         given 0.5, 0.5 and 2 dB. The hand on the
+         weight (bars 137-138) tightens the head a step and two; this is the same head the other way. 38 Hz
+         was the song's shortest band and nothing was written there: D1 is 36.7 Hz.
+
 v19 (27 Nov), THE PIPE IS FLUTTER-TONGUED, AND THE DRUM HAS ITS WEIGHT BACK. Two switches (`--without-tongue`,
 `-heft`; both off is v18 byte for byte).
   TONGUE   v18 tried to flutter the air's breath in its patch and found that an LFO does not turn a noise layer's
@@ -361,7 +381,10 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True, 'trade': True, 'slack': True, 'hint': True}
+TRADE = {'to': 128, 'pairs': (('wood', 'metal', 12, 120), ('string', 'skin', 0, 124))}   # v20: the bar (from 0) at which each has its own cell again; the pairs that play each other's: how many semitones the second is over the first, and the bar (from 0) they trade at
+HINT = {'pair': ('wood', 'metal', 12), 'bars': (30, 32)}   # v20: the pair that trades once before, stopped; the bars (from 0, to but not with): the last cell before the wood is let go
+SLACK = {'from': 125, 'steps': (-1, -2, -3), 'db': (0.5, 0.5, 2)}   # v20: the bar (from 0) at which the weight's head goes slack; steps of the five notes on each bar from there; dB on its strokes there (bench: alone, the slack drum read 0.7, 0.4 and 1.8 dB under the tight one, bar by bar)
 TONGUE = {'section': 6, 'rate': '1/48', 'depth': 0.85, 'db': 4}   # v19: the section (from 0) in which the pipe is flutter-tongued; a roll of the tongue (a third of a sixteenth: 25 a second at 125); how deep (0.85: the level falls to 0.15: 16 dB); dB on those strokes (the first build was 0.7 and 2: too little in the finished song)
 HEFT = {'db': 3, 'patch': 'rt-drum-heft'}   # v19: dB on the weight's head under its disc; the patch's name with it (another sound, another name)
 DISC = {'patch': 'rt-drum-disc', 'db': 6, 'rate': '1/4', 'phase': 0.25}   # v18: the weight's patch with the disc under its head; half the dip, dB; a turn (a beat); where in its turn a stroke begins (0.25: open)
@@ -589,6 +612,21 @@ def flutter_patch(air):
             'synth': {**air['synth'], 'layers': [layers[0]] + breaths + layers[3:], 'lfo': {'flutter': {'wave': 'sine', 'rate': FLUTTER['rate'], 'phase': FLUTTER['phase'], 'retrig': True}}}}
 
 
+def cell_of(thing, bar):
+    """v20 TRADE: the strokes a thing plays in a bar: its own cell, or in the trading bars its partner's, moved to its own octave."""
+    spans = [(*x, TRADE['to']) for x in TRADE['pairs']] * ON['trade'] + [(*HINT['pair'], *HINT['bars'])] * ON['hint']   # v20 HINT: once before, small
+    if spans:
+        for a, b, semis, at, to in spans:
+            if thing in (a, b) and at <= bar < to:
+                return [(s, up(pitch, semis if thing == b else -semis), vel) for s, pitch, vel in strokes_of(a if thing == b else b)]
+    return strokes_of(thing)
+
+
+def slack(bar, what='steps'):
+    """v20 SLACK: how many steps of the five notes the weight's head is from its own note in a bar (0: none); or, what='db', the dB on its strokes there."""
+    return SLACK[what][bar - SLACK['from']] if ON['slack'] and 0 <= bar - SLACK['from'] < len(SLACK['steps']) else 0
+
+
 def patch_of(thing):
     if thing == 'metal' and ON['motor']:
         return MOTOR['patch']
@@ -726,10 +764,12 @@ def build():
             if alone and thing not in alone and thing not in answering(bar):
                 continue
             r_bar = 1.0 if alone else ring_at(thing, bar)        # whatever sounds in a listening is let go altogether
-            mine = [x for x in strokes_of(thing) if x[0] // BAR == bar % 2]
+            mine = [x for x in cell_of(thing, bar) if x[0] // BAR == bar % 2]
             if ON['aside'] and thing == ASIDE['who'] and laid(ASIDE['for'], bar):   # v14 ASIDE: the big drum stands aside for the skin's bar
                 continue
-            for s, pitch, vel in strokes_of(thing):
+            for s, pitch, vel in cell_of(thing, bar):
+                if thing == 'weight' and slack(bar):             # v20 SLACK: the head is slack: its note is lower
+                    pitch = step(pitch, slack(bar))
                 if ON['empty'] and dropped(thing) and bar == dropped(thing)[0] and s // BAR == bar % 2 and s % BAR > dropped(thing)[1]:
                     continue                                    # v9 EMPTY: its stick is on the floor
                 if s // BAR == bar % 2:
@@ -738,6 +778,8 @@ def build():
                     if off:
                         r = CALL['ring']
                     n = stroke(thing, bar * 4 + (s % BAR) / 4, pitch, vel, r)
+                    if thing == 'weight' and slack(bar, 'db'):   # v20 SLACK: the slack head is as loud as the tight one was
+                        n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + slack(bar, 'db'), 2)}dB"
                     if hand_on(thing, bar) or (off and hand_of(thing)):   # v10: the hand changes what the stroke finds
                         h = hand_on(thing, bar) or hand_of(thing)
                         n['pitch'] = step(pitch, h['steps'][stopping(thing).index(bar) if bar in stopping(thing) else 0]) if 'steps' in h else f"{hz(pitch) * h['ratio']:.1f}hz" if 'ratio' in h else up(pitch, h['semis'])
@@ -892,7 +934,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the forty-four that are on: all off is v1; the last thirty-nine off is v2; the last thirty-five off is v3; the last thirty-two off is v4; the last twenty-nine off is v5; the last twenty-eight off is v6; the last twenty-five off is v7; the last twenty-three off is v8; the last twenty off is v9; the last sixteen off is v10; the last twelve off is v11; the last ten off is v12; the last eight off is v13; the last six off is v14; the last five off is v15; the last four off is v16; the last three off is v17; the last two off is v18)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the forty-seven that are on: all off is v1; the last forty-two off is v2; the last thirty-eight off is v3; the last thirty-five off is v4; the last thirty-two off is v5; the last thirty-one off is v6; the last twenty-eight off is v7; the last twenty-six off is v8; the last twenty-three off is v9; the last nineteen off is v10; the last fifteen off is v11; the last thirteen off is v12; the last eleven off is v13; the last nine off is v14; the last eight off is v15; the last seven off is v16; the last six off is v17; the last five off is v18; the last three off is v19)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -947,6 +989,12 @@ if __name__ == '__main__':
             print(f"    the pipe is flutter-tongued while there is no weight (bars {TOP[TONGUE['section']] + 1}-{TOP[TONGUE['section'] + 1]}): the tongue rolls three times a sixteenth ({BPM / 60 * 12:g} a second), the breath falling {-20 * log10(1 - TONGUE['depth']):.0f} dB at each roll; every stroke meets it at the same place in its turn")
         if ON['heft'] and ON['disc'] and ON['boom'] and ON['note']:
             print(f"    the weight's head is {HEFT['db']} dB up under its disc: open it is over the old drum's head, shut {2 * DISC['db'] - HEFT['db']} dB under it")
+        if ON['trade']:
+            print(f"    the things trade cells, one pair at a time, to bar {TRADE['to']}: " + '; '.join(f"from bar {at + 1} the {x} plays the {y}'s" + (f" (an octave {'down' if semis > 0 else 'up'})" if semis else '') + f" and the {y} the {x}'s" + (f" (an octave {'up' if semis > 0 else 'down'})" if semis else '') for x, y, semis, at in TRADE['pairs']) + f"; from bar {TRADE['to'] + 1} each has its own again")
+        if ON['hint']:
+            print(f"    the trade is told once before, stopped, bars {HINT['bars'][0] + 1}-{HINT['bars'][1]}: the {HINT['pair'][1]} taps the {HINT['pair'][0]}'s cell (an octave up) and the {HINT['pair'][0]} the {HINT['pair'][1]}'s (an octave down); on bar {HINT['bars'][1] + 1} the {HINT['pair'][0]} is let go and has its own")
+        if ON['slack']:
+            print(f"    the weight's head goes slack, bars {SLACK['from'] + 1}-{SLACK['from'] + len(SLACK['steps'])}: a step down the five notes each bar: " + ' '.join(step(STROKES['weight'][0][1], k) for k in SLACK['steps']) + f", and {STROKES['weight'][0][1]} again on bar {SLACK['from'] + len(SLACK['steps']) + 1}")
         print(f'{BARS} bars, {BARS * sec:.1f} s; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in build().items()))
     else:
         a.out.write_text(dump(bench() if a.bench else song(build())))
