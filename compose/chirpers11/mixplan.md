@@ -94,6 +94,9 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v11 (00:59): both ends are v10's: bars 1 to 16 by four -22.3 -23.3 -23.5 -20.5 dBFS, the last
+  sixteen -24.2 -23.5 -23.1 -19.5. What changed is inside (beat four of bars 105, 107, 109, 111; bars 169-176).
+  For every seam: this song's finished highest sample is -1.3 dBFS in every stretch read, its quietest included.
 - Wind Down v11 (00:37): both ends are v10's: bars 1 to 8 by two -29.9 -30.2 -29.9 -30.0 dBFS; from the last
   stroke by second -9 -24 -38 -51 -63 -76 -88. What changed is inside (the last beat of bars 48, 64, 80, 96 and
   112; bars 161-168; bars 191-192, which are 1.1 dB up in the finished song).
