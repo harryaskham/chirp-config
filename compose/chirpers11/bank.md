@@ -54,9 +54,9 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `lc-hat` | Least Common v1 (track hat) | Least Common: the off beat. The drum machine's hat, closed. |
 | `lc-kick` | Least Common v1 (track kick) | Least Common: the four. The drum machine's bass drum resting on G, short enough to leave the sixteenth before the next beat empty. |
 | `lc-knock` | Least Common v6 (track knock) | Least Common: the drum's answer when a click lands on it (v6). A small kettledrum head (modes 1 : 1.5 : 2 : 2.5, so on G2, B flat 2 and D3 everything it has is between 98 and 370 Hz), let ring 800 ms. |
-| `lc-open` | Least Common v9 (track open) | Least Common: the hat let ring, once every five beats: the first hat after the five's knock (v9). The drum machine's hat with ten times the shut one's ring, held half a beat. |
 | `lc-ping` | Least Common v1 (track ping) | Least Common: what two clicks make when they meet. A vibraphone bar with no motor, half a second long. |
 | `lc-root` | Least Common v2 (track bass) | Least Common: the bass once the meetings write its line (v2). A sine and its octave, so that a line on 73 to 117 Hz is also heard on 147 to 233. |
+| `lc-rung` | Least Common v13 (track open) | Least Common: the hat that rings for the five (v13). lc-open's hat with a decay of 1.2 s (6 dB a sixteenth), held three sixteenths and stopped. |
 | `lc-seven` | Least Common v1 (track seven) | Least Common: the click that counts seven. The drum machine's rim, tuned to G: two short pings and a click, a knock. |
 | `lc-three` | Least Common v1 (track three) | Least Common: the click that counts three. Ten milliseconds of noise above 5 kHz: a tick with no note. |
 | `lc-tock` | Least Common v2 (track five) | Least Common: the click that counts five, once it has a tune (v2). The same wooden bar damped twice as fast, so that a note it keeps for twenty strokes is a colour and not a drone. |
@@ -86,6 +86,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `sc-rung` | Small Change v12 (track rung) | Small Change: the hat that rings on the purse's sum where it falls off the beat (v12). sc-open's hat with a decay of 1.2 s (6 dB a sixteenth), held three sixteenths and stopped, above 5 kHz. |
 | `sc-seed` | Small Change v1 (tracks seed-a, seed-b, seed-c) | Small Change: the seed. One vibraphone bar with no motor, short, with two milliseconds of noise on its front (a click that the coins carry too): the only struck note in the song. |
 | `sr-ball` | Standing Room v14 (track ball) | Standing Room's ball (chirper-zero, 27 Nov, v14): a small hard ball on a hard floor: a sine on A6 and a breath of noise with everything under 700 Hz taken off, gone in 22 ms. Its loudness goes as the square of the veloci… |
+| `sr-bird` | Standing Room v15 (track bird) | Standing Room's bird (chirper-zero, 27 Nov, v15): a very short high sine, two of them to a call (E8 then A8, 30 ms apart). Where it is comes from the track's orbit effect, not from the patch. |
 | `sr-chord` | Standing Room v1 (track chord) | Standing Room's dub chord (chirper-zero, 26 Nov): three saws and a square through a short filter envelope, dry; its space is the bus `dub`, a dotted-eighth echo whose feedback breathes. |
 | `sr-clap` | Standing Room v1 (track clap) | Standing Room's clap (chirper-zero, 26 Nov): the machine's clap, three bursts, short, dry. |
 | `sr-click-t` | Standing Room v13 (track click) | Standing Room's click (chirper-zero, 26 Nov): the machine's rim with a breath of white noise, 40 ms, above 500 Hz and lifted 6 dB round 11 kHz: bright enough that a wall can take its top away. From v13 with its own note … |

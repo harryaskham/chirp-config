@@ -1,0 +1,23 @@
+{
+ "about": "Least Common: the hat that rings for the five (v13). lc-open's hat with a decay of 1.2 s (6 dB a sixteenth), held three sixteenths and stopped. BANKED by tools/patchbank.py (27 Nov 2026) from Least Common v13 (track open): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.6
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "0s",
+   "r": "100ms"
+  },
+  "layers": [
+   {
+    "machine": {
+     "decay": "1200ms",
+     "part": "hat"
+    },
+    "type": "machine"
+   }
+  ]
+ }
+}

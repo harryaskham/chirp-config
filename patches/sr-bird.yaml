@@ -1,0 +1,23 @@
+{
+ "about": "Standing Room's bird (chirper-zero, 27 Nov, v15): a very short high sine, two of them to a call (E8 then A8, 30 ms apart). Where it is comes from the track's orbit effect, not from the patch. BANKED by tools/patchbank.py (27 Nov 2026) from Standing Room v15 (track bird): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "28ms",
+   "r": "10ms",
+   "s": 0
+  },
+  "layers": [
+   {},
+   {
+    "level": "-18dB",
+    "ratio": 2.0
+   }
+  ]
+ }
+}
