@@ -310,6 +310,17 @@ of a shift register) played at the speed the platter has at that instant: at a q
 octaves down and four times as long, and quieter in proportion (a cartridge's voltage follows the
 groove's speed). The headphone does not slow down: its small speaker passes nothing under
 1.8 kHz at any speed, so the slowest clicks are thin.
+
+v25 (27 Nov): THE TWO RECORDS BEAT (C11T1_BEAT=0 takes it out: v24). Two copies of one record on
+two decks, and on both a held tone. Deck A's is steady; deck B's turns with its platter, so
+when the hand pushes deck B ahead its tone runs sharp and gets ahead of deck A's wave by wave.
+A whole number of waves apart the two tones add; half a wave off they cancel. So the sum throbs
+once for every wave of drift, and the throbs can be counted: the tone is 64 waves to the beat
+(132.27 Hz), so each throb is a 64th of a beat, 7.56 ms. In the first row of "the nudge" (bars
+97 to 104) the hand pushes deck B a quarter of a beat ahead and lets it come back, twice: 16
+throbs out and 16 back each time: slow as the push begins, quickest as the record runs fastest,
+and STILL at the top, where the decks are furthest apart and for a moment at one speed. It is
+the song's drift made into something you can count; no click is added.
 """
 import json
 import math
@@ -526,6 +537,40 @@ def speed_st(t):
     return 12 * math.log2(max(speed(t), 0.03))
 
 
+def beat_row():
+    """The first bar of the row in which the two records beat, or None."""
+    sec = next((x for x in SECS if x[0] == BEAT_IN[0]), None)
+    return sec[1] + ROW * BEAT_IN[1] if BEAT and sec is not None and BEAT_IN[1] * ROW < sec[2] else None
+
+
+def beat_hz():
+    return BEAT_WAVES * BPM / 60
+
+
+def beat_off():
+    """Semitones from the written note to the tone."""
+    semi = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}[BEAT_NOTE[0]] + (-1 if "b" in BEAT_NOTE[1:] else 0) + 12 * (int(BEAT_NOTE[-1]) + 1)
+    return 12 * math.log2(beat_hz() / (440.0 * 2 ** ((semi - 69) / 12)))
+
+
+def beat_apart(t):
+    """Waves by which deck B's copy of the tone is ahead of deck A's at grid time t (beats): the decks' distance in waves, from the row's start."""
+    return BEAT_WAVES * (d(t) - d(beat_row() * BEATS))
+
+
+def beat_nulls(fine=512):
+    """The grid times (beats) in the row at which the two tones are half a wave apart (they cancel), and the whole waves between them there."""
+    b0 = beat_row() * BEATS
+    out, last = [], math.cos(math.pi * beat_apart(b0))
+    for i in range(1, ROW * BEATS * fine + 1):
+        t = b0 + i / fine
+        now = math.cos(math.pi * beat_apart(t))
+        if (now > 0) != (last > 0):
+            out.append((t - 0.5 / fine, math.floor(beat_apart(t - 0.5 / fine))))
+        last = now
+    return out
+
+
 def up_span():
     """(the beat deck B's motor goes on, the beats its platter takes to come up), or None: it comes up into the cue's first stroke."""
     if not UP:
@@ -733,6 +778,13 @@ UP_LEN = 0.0207                                        # beats a click lasts at 
 UP_VEL = (0.55, 0.34, 0.62, 0.4)                       # the record's sixteenths (the hat's and the cue's own accents), times the speed: a cartridge gives a voltage in proportion to the groove's speed under it: 6 dB less at half speed
 UP_TRIM = -16.1                                        # dB on the track so that a click at full speed has the energy of the cue's own click at the same accent. READ ALONE at the cue's fader: the register's click (8.7 ms of full-scale steps) came out 16.1 dB over the cue's (4.4 ms of dying noise) through the same three filters (16.8 without the headphone's top)
 UP_GAIN = os.environ.get("C11T1_UP_GAIN", "")          # the track's fader: the cue's own (with the trim) unless given. READ IN THE WHOLE SONG'S MASTER (left ear, 1.5 to 8 kHz): with the trim the last four clicks come within 3.3 dB of the cue's first four strokes of the same accents (-3.3 +1.8 -2.6 -1.7): the hand-over is level; 6 dB lower they are 4 to 9 dB under and the cue steps up. THE CLICKS WHOSE NUMBER IS A SQUARE (1, 4, 9) FALL HALF A SIXTEENTH AFTER A BASS DRUM (2 times the root of a square is a whole beat) and the master ducks them 8 to 12 dB; 6 and 12 fall within 30 ms of one and go the same way
+BEAT = os.environ.get("C11T1_BEAT", "1") != "0" and UP   # v25: the two records beat: the same held tone is on both decks, deck A's steady and deck B's turning with its record: where they are in step they add, half a wave apart they cancel: one throb for every wave the decks drift apart
+BEAT_IN = ("the nudge", 0)                             # the section and the row of it (from 0): its first row, which had nothing of its own: the hand pushes deck B a quarter of a beat ahead and lets it come back, twice
+BEAT_WAVES = 64                                        # waves of the tone to a beat of the grid: 132.27 Hz at 124 to the minute (C3 and 19 cents: a note the loop at the end of this section goes through): a quarter of a beat apart is 16 waves exactly, so each throb is a 64th of a beat (7.56 ms) of drift
+BEAT_NOTE = "C3"                                       # the note it is written on; the lane carries the 19 cents
+BEAT_VEL = 0.8
+BEAT_PAN = 0.0                                         # both in the middle: two tones beat in the air only if they come from one place (an ear each and the beat is made in the head: Hearing Things has that)
+BEAT_GAIN = os.environ.get("C11T1_BEAT_GAIN", "-31dB")   # each tone. Set in the whole song's master between two readings, BEFORE their scores were read: at -34dB the swells are 2.1 dB over the rest of the music in the tone's band (its median), at -28dB 8.1 dB over it and the row's other music is pushed 0.17 dB down. At both, all 64 silences are where they are written (3 ms, median)
 BASSB_MODE = os.environ.get("C11T1_BASSB_MODE", "swap")                        # swap: it is heard where deck A's bass is out ; full: wherever deck B's record plays from "no ruler" on
 BASSB_IN = {"swap": ("no ruler", "the stretch", "out"), "full": ("no ruler", "both", "the stretch", "the nudge", "locked", "out")}[BASSB_MODE]
 BASSB_GAIN = os.environ.get("C11T1_BASSB_GAIN", "-15dB")                       # at -10 it was louder than everything else in "no ruler" put together (measured): 5 dB down
@@ -1407,6 +1459,15 @@ def song():
                               "notes": [{"at": round(at, 5), "len": round(ln, 5), "pitch": UP_NOTE, "vel": round(vel, 4)} for _, at, _, _, ln, vel in up]})      # dry: a headphone
         doc["about"] = doc["about"].replace(" Generated by", f" From v24 the song begins with deck B's motor switched on, as it ends with it switched off: in the headphone (the left ear), half a sixteenth after the first bass drum, the platter starts to turn, and takes {UP_BARS} bars to come up to speed, the {UP_BARS} bars it takes to stop. The record's sixteenth clicks come by at 2 times the square root of 1, 2, 3 ... beats: {len(up)} clicks, each sooner after the last, each the same click played at the speed the platter has: longer, lower and quieter the slower it is: the first at a quarter speed, two octaves down and four times as long. The sixteenth is the cue's first stroke, on bar {CUE_BARS[0] + 1}. Generated by")
         assert "From v24" in doc["about"]
+    if beat_row() is not None:
+        bt_b0 = beat_row() * BEATS; bt_off = round(beat_off(), 4); bt_far = max(abs(beat_apart(bt_b0 + i / 16)) for i in range(ROW * BEATS * 16 + 1))
+        PATCHES["gt-beat"] = {"about": "Give or Take's beating tone (chirper-zero, 27 Nov, v25): one plain held tone whose pitch follows its track's lane (auto.spd, semitones): on deck A's track the lane is flat, on deck B's it is the record's speed. Two of them a wave apart are one; half a wave apart, nothing.",
+                              "play": {"vel_sens": 0.5, "gate": 1}, "synth": {"layers": ["sine phase=0"], "pitch": {"value": 0, "mod": [{"src": "auto.spd", "amount": 1}]}, "amp": {"a": "40ms", "d": "0s", "s": 1, "r": "120ms"}}}
+        bt_note = [{"at": bt_b0, "len": ROW * BEATS, "pitch": BEAT_NOTE, "vel": BEAT_VEL}]      # ONE note a deck for the whole row: a new note would start its wave again and the two would forget how far apart they are
+        doc["tracks"].append({"name": "beat-a", "patch": "gt-beat", "gain": BEAT_GAIN, "pan": BEAT_PAN, "auto": {"spd": {"points": [["0b", bt_off], [f"{TOTAL:g}b", bt_off]], "curve": 0}}, "notes": bt_note})
+        doc["tracks"].append({"name": "beat-b", "patch": "gt-beat", "gain": BEAT_GAIN, "pan": BEAT_PAN, "auto": {"spd": {"points": [[p[0], round(p[1] + bt_off, 4)] for p in lane], "curve": 0}}, "notes": [dict(n) for n in bt_note]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v25 the two records beat (bars {beat_row() + 1} to {beat_row() + ROW}): the same held tone is on both decks, {BEAT_WAVES} waves to the beat ({beat_hz():.2f} Hz), deck A's steady and deck B's turning with its record. Where the decks are a whole number of waves apart the two add; half a wave off they cancel: a throb for every 64th of a beat ({60000 / BPM / BEAT_WAVES:.2f} ms) the hand pushes deck B ahead: {bt_far:.0f} throbs out to a quarter of a beat and {bt_far:.0f} back, quickest when the record is moving fastest against the grid and still when it is furthest away. {len(beat_nulls())} silences in the row. Generated by")
+        assert "From v25" in doc["about"]
     return doc
 
 
@@ -1423,6 +1484,12 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if beat_row() is not None:
+            bt_n = beat_nulls(); bt_sec = 60 / BPM
+            print(f"the two records beat, bars {beat_row() + 1}-{beat_row() + ROW} ({int(beat_row() * BEATS * bt_sec) // 60}:{beat_row() * BEATS * bt_sec % 60:04.1f}): a tone of {BEAT_WAVES} waves to the beat ({beat_hz():.2f} Hz: {BEAT_NOTE} {beat_off() * 100:+.0f} cents) on both decks, {BEAT_GAIN} each, pan {BEAT_PAN:g} ; a throb is {60000 / BPM / BEAT_WAVES:.2f} ms of drift ; {len(bt_n)} silences")
+            for bt_bar in range(beat_row(), beat_row() + ROW):
+                bt_in = [x for x in bt_n if bt_bar * BEATS <= x[0] < (bt_bar + 1) * BEATS]
+                print(f"   bar {bt_bar + 1}: the decks {beat_apart(bt_bar * BEATS):+.2f} waves apart at its start ({1000 * d(bt_bar * BEATS) * bt_sec:+.1f} ms), deck B {speed_st(bt_bar * BEATS + 2):+.2f} semitones at its middle ({beat_hz() * (speed(bt_bar * BEATS + 2) - 1):+.2f} throbs a second) ; {len(bt_in)} silences, on sixteenths " + " ".join(f"{(x[0] - bt_bar * BEATS) / STEP:.2f}" for x in bt_in))
         if up_span() is not None:
             up_on, up_w = up_span()
             print(f"the record is started (the stop's mirror): the motor goes on at beat {up_on:g} and the platter takes {up_w:g} beats ({up_w * 60 / BPM:.2f} s) ; {len(up_ticks())} clicks in the left ear before the cue's first stroke (beat {up_on + up_w:g}) ; click: beat, speed, semitones, ms long, vel: " + " ; ".join(f"{k}: {at:.3f} {sp:.3f} {st:+.1f} {ln * 60 / BPM * 1000:.0f} {vel:.2f}" for k, at, sp, st, ln, vel in up_ticks()))
