@@ -299,6 +299,18 @@ fast and a twelfth lower. Every time, note, level and side is worked out from wh
 as the things that went by before it; the signs come out the other way). A stroke is as loud as it is near
 and as its ring is squeezed (my reasoning from one stroke's energy, not a textbook's formula). No boom is
 sounded: only its bells.
+
+v20 (27 Nov): THE HANGAR'S OTHER TWO WALLS (C11T3_FOUR=0 takes them out: v19). Every room in this song has
+had two walls, left and right, and a wall is a number of sixteenths there and back. In its last two rows
+the hangar gets the wall in front and the wall behind, as far apart as the other two (12 sixteenths there
+and back; you stand half way, 6 and 6). An echo that has met both pairs of walls has come back from a
+CORNER, and by Pythagoras: across a and deep d, it is sqrt(a * a + d * d) sixteenths late, which is
+almost never a whole number. With the click in the middle (6 + 6) the corners answer 6 * sqrt(2) = 8.49,
+6 * sqrt(5) = 13.42, 12 * sqrt(2) = 16.97 and 6 * sqrt(10) = 18.97 sixteenths late: the first half way
+between two sixteenths, the next nowhere, and the last two within 4 ms of a sixteenth, because 17/12 is
+nearly sqrt(2) and 19/6 nearly sqrt(10). When the click steps to 7 + 5 every one of them moves, and one
+corner echo lands ON a sixteenth: 5 across and 12 deep is 13. Each echo comes from where its corner is
+(across / late, of the way to that side) and every wall it met takes 3 dB, as the room's walls do.
 """
 import json
 import math
@@ -533,6 +545,16 @@ TRIM_OUT = (152, 160)                                  # ... and goes out again:
 BALL = os.environ.get("C11T3_BALL", "1") != "0" and TRIM                        # v14: Zeno's ball
 NEXTROOM = os.environ.get("C11T3_NEXT", "1") != "0" and os.environ.get("C11T3_FLY", "1") != "0" and os.environ.get("C11T3_BIRD", "1") != "0" and BALL and SQUARE     # v17: the room next door (heard through its wall as you cross the square)
 SONIC = os.environ.get("C11T3_SONIC", "1") != "0" and os.environ.get("C11T3_WHISTLE", "1") != "0" and NEXTROOM and PIPES_ON    # v19: faster than sound
+FOUR = os.environ.get("C11T3_FOUR", "1") != "0" and SONIC  # v20: the hangar's other two walls (the echoes from its corners)
+FOUR_IN = "the hangar"                                 # the section
+FOUR_WALK = ((6, 6), (7, 5))                           # the rows of it, by where the click stands (left + right, sixteenths there and back): its last two
+FOUR_DEEP = (6, 6)                                     # sixteenths to the wall in front and back, to the wall behind and back: as deep as it is wide, and you half way
+FOUR_WALLS = 4                                         # an echo that has met more walls than this is left out (it would be 13 dB under the click's first)
+FOUR_FIRST, FOUR_EACH = -4.0, -3.0                     # dB against the click: the first wall an echo meets, each wall after (what the room's two walls take)
+FOUR_PAN = 0.85                                        # an echo from straight left or right is this far over (where the side walls' echoes are)
+FOUR_VEL = 0.75                                        # the velocity of an echo at 0 dB (the loudest written, two first echoes together, is +2 dB: 0.944)
+FOUR_PANS = 9                                          # tracks, evenly from -0.8 to 0.8: an echo is on the nearest
+FOUR_GAIN = os.environ.get("C11T3_FOUR_GAIN", "-20dB") # the tracks' fader. Set in the whole song's master, which holds the click and every echo of it near -18 dBFS: at -2, -8 and -14dB the first corner echo came out as loud as the click itself (-17.6 to -18.1); at -20dB what sounds at its instant is 3.4 dB under the side walls' first echo (the echo by itself about 5 under): a wall's worth and a little more
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
 SONIC_MACH = 2.0                                       # its speed, in speeds of sound: at 2 its past is heard at the tempo it happened at
 SONIC_AWAY = 2                                         # sixteenths of sound away at its nearest (81.7 m: as far as the pipes are long)
@@ -860,6 +882,51 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def four_rows():
+    """[(first bar, left, right)]: the rows in which the hangar has four walls."""
+    sec = next((x for x in SECS if x[0] == FOUR_IN), None)
+    if not FOUR or sec is None:
+        return []
+    return [(sec[1] + ROW * i, a, b) for i, (a, b) in enumerate(WALK["hangar"]) if (a, b) in FOUR_WALK]
+
+
+def four_images(a, b):
+    """Every echo of one click that has met the wall in front or behind, the click standing a sixteenths (there and back) from the left wall and b from the right: [(sixteenths late, of the way over (-1 left, 1 right), walls met, how many arrive together (the front one and the back one), across, deep)], soonest first."""
+    f, k = FOUR_DEEP; out = {}
+    for n in range(-FOUR_WALLS, FOUR_WALLS + 1):
+        for dx, wx in ((n * (a + b), 2 * abs(n)), (n * (a + b) - a, abs(2 * n - 1))):       # across: past both walls n times ; or to the left wall first
+            for m in range(-FOUR_WALLS, FOUR_WALLS + 1):
+                for dy, wy in ((m * (f + k), 2 * abs(m)), (m * (f + k) - k, abs(2 * m - 1))):   # deep: the same, front and behind
+                    if wy == 0 or wx + wy > FOUR_WALLS:
+                        continue
+                    key = (dx, abs(dy), wx + wy)
+                    out[key] = out.get(key, 0) + 1
+    return sorted((math.hypot(dx, dy), dx / math.hypot(dx, dy), w, cnt, dx, dy) for (dx, dy, w), cnt in out.items())
+
+
+def four_notes():
+    """{track number: [note]}: every corner echo of every click in those rows, on the track nearest where it comes from. Nothing is written past the hangar's last bar line."""
+    out = {i: [] for i in range(FOUR_PANS)}; rows = four_rows()
+    if not rows:
+        return out
+    end = (rows[-1][0] + ROW) * BEATS
+    for b0, a, b in rows:
+        for bar in range(b0, b0 + ROW):
+            t0 = bar * BEATS + CLICK_STEP * STEP
+            for late, over, walls, cnt, dx, dy in four_images(a, b):
+                at = t0 + late * STEP
+                if at >= end:
+                    continue
+                level = FOUR_FIRST + FOUR_EACH * (walls - 1) + 20 * math.log10(cnt)
+                i = min(range(FOUR_PANS), key=lambda j: abs(four_pan(j) - FOUR_PAN * over))
+                out[i].append({"at": round(at, 5), "len": 0.2, "pitch": "A5", "vel": round(FOUR_VEL * 10 ** (level / 20), 4)})
+    return {i: sorted(v, key=lambda x: x["at"]) for i, v in out.items()}
+
+
+def four_pan(j):
+    return round(-0.8 + 1.6 * j / (FOUR_PANS - 1), 3)
 
 
 def sonic_strokes():
@@ -1349,6 +1416,18 @@ def song():
                                   "auto": {"dop": {"points": so_lanes[0], "curve": 0}, "side": {"points": so_lanes[1], "curve": 0}}})
         doc["about"] = doc["about"].replace(" Generated by", f" From v19 a fourth thing goes by in the hangar, at {SONIC_MACH:g} times the speed of sound, striking the pipes' scale upwards: it is not heard coming; when it has passed, its coming is heard backwards from the left (the scale running down, each bell swelling to its stroke) and its going a third as fast and a twelfth lower from the right. Generated by")
         assert "From v19" in doc["about"]
+    if FOUR and four_rows():
+        PATCHES["sr-corner"] = {"about": "Standing Room's click come back from a corner (chirper-zero, 27 Nov, v20): the click (the machine's rim and a breath of white noise, above 500 Hz) as a wall leaves it: no lift at the top, its own note (880 Hz) 5 dB down as the click's repair has it, and as loud as its velocity (an echo's level is written in the velocity).",
+                                "play": {"vel_sens": 0.5},
+                                "synth": {"layers": [{"type": "machine", "machine": {"part": "rim", "decay": "45ms"}}, "white level=-3dB"], "filters": ["hp cutoff=500", {"kind": "peak", "cutoff": 880, "q": 3, "gain": "-5dB"}], "amp": {"a": "0.1ms", "d": "40ms", "s": 0, "r": "20ms", "curve": 4}}}
+        fo_notes = four_notes()
+        for fo_i in range(FOUR_PANS):
+            if fo_notes[fo_i]:
+                doc["tracks"].append({"name": f"corner-{fo_i + 1}", "patch": "sr-corner", "gain": FOUR_GAIN, "pan": four_pan(fo_i),
+                                      "fx": [{"type": "eq", "bands": ["hp cutoff=250", "lp cutoff=9000"]}], "notes": fo_notes[fo_i]})     # the walls' own filter
+        fo_rows = four_rows()
+        doc["about"] = doc["about"].replace(" Generated by", f" From v20 the hangar has its other two walls in its last two rows (bars {fo_rows[0][0] + 1} to {fo_rows[-1][0] + ROW}), in front and behind and as far apart as the side ones: an echo that has met both pairs comes back from a corner, the square root of (across squared plus deep squared) sixteenths late, which is almost never on a sixteenth: 8.49, 13.42, 16.97 and 18.97 with the click in the middle, and when it steps to 7 + 5 one corner lands on the grid, because 5 and 12 make 13. Generated by")
+        assert "From v20" in doc["about"]
     return doc
 
 
@@ -1405,6 +1484,14 @@ def echoes(a, b, n=16):
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
         sec = 60 / BPM * BEATS
+        if FOUR and four_rows():
+            fo_six = STEP * 60 / BPM * 1000
+            print(f"the hangar's other two walls: in front and behind, {FOUR_DEEP[0]} + {FOUR_DEEP[1]} sixteenths there and back ({(FOUR_DEEP[0] + FOUR_DEEP[1]) / 2 * fo_six / 1000 * SOUND:.0f} m deep, as it is wide) ; every wall takes {-FOUR_EACH:g} dB (the first {-FOUR_FIRST:g}) ; echoes that met more than {FOUR_WALLS} walls are left out ; {sum(len(v) for v in four_notes().values())} echoes on {sum(1 for v in four_notes().values() if v)} tracks ({FOUR_GAIN})")
+            for fo_b0, fo_a, fo_b in four_rows():
+                print(f"   bars {fo_b0 + 1}-{fo_b0 + ROW} ({int(fo_b0 * sec) // 60}:{fo_b0 * sec % 60:04.1f}), the click {fo_a} + {fo_b}: sixteenths late (the step of the bar it lands on; ms from the nearest sixteenth), across and deep, walls met, how many together, where:")
+                for fo_late, fo_over, fo_w, fo_cnt, fo_dx, fo_dy in four_images(fo_a, fo_b):
+                    fo_st = CLICK_STEP + fo_late; fo_off = (fo_st - round(fo_st)) * fo_six
+                    print(f"      {fo_late:6.3f} (step {fo_st % 16:6.3f}{' of the next bar' if fo_st >= 16 else ''}; {fo_off:+6.1f} ms) ; {fo_dx:+3d} across, {fo_dy:2d} deep ; {fo_w} walls ; {fo_cnt} together ; {'middle' if fo_dx == 0 else ('left ' if fo_dx < 0 else 'right ') + format(abs(fo_over), '.2f')} ; {FOUR_FIRST + FOUR_EACH * (fo_w - 1) + 20 * math.log10(fo_cnt):+.1f} dB")
         if SONIC:
             so_first, so_made = sonic_first(); so_d = SONIC_AWAY * STEP * 60 / BPM * SOUND; so_six = STEP * 60 / BPM
             print(f"faster than sound: on the line of bar " + ", ".join(f"{b + 1} ({int(b * BEATS * 60 / BPM) // 60}:{b * BEATS * 60 / BPM % 60:04.1f})" for b in SONIC_AT) + f" something goes by at {SONIC_MACH:g} times the speed of sound ({SONIC_MACH * SOUND:.0f} m/s), {so_d:.1f} m off at its nearest, left to right, striking every {SONIC_EVERY * 60000 / BPM:.0f} ms ({SONIC_GAIN}) ; nothing of it is heard until {so_first * 1000:.0f} ms after it has passed (the sound it made {-so_made * 1000:.0f} ms before) ; far off, its coming is heard {1 / (SONIC_MACH - 1):g} times as fast, backwards ; its going 1/{SONIC_MACH + 1:g} as fast")
