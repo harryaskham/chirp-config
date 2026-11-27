@@ -71,6 +71,26 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v19 (27 Nov): THE CLOCK STRIKES ONE. Three switches (`--without-hammer`, `-one`, `-sympathy`; all off is v18 byte
+for byte).
+  HAMMER   v18's bell was six partials that begin together in half a millisecond: a tone with no stroke (its
+           own note said it might be a test tone). A clock's bell is struck: the hammer is a grain of noise
+           HAMMER['ms'] ms long on the front of every chime note (new patch wd-chime-struck; wd-chime stands).
+           Its level is an envelope on a noise layer, and what is written is not what comes out: benched, the
+           grain's 6 ms above 3 kHz read -69 dBFS at 68 (written as 12 dB under the bell: it was 34 under),
+           and 8.3 dB more for every 10: HAMMER['amount'] is the benched number, about 12 dB under the bell's
+           own first 6 ms.
+  ONE      v18 said the song's last stroke was the hour's one o'clock, on paper only. Now the clock strikes
+           it: after the four changes (372 to 390 s) it waits 6.4 s and strikes its hour bell once, on the
+           song's last stroke: B flat 2, an octave under the bell its quarters end on (Westminster's hour
+           bell is the tonic under the quarters), struck harder and let ring ONE['ring'] (new patch wd-hour:
+           the same bell, longer). The four ticks after the last stroke are heard under its ring: the clock
+           has struck and is still going when the record ends. The first build had it at the chime's level:
+           in the finished song its note stood 15 dB under the last stroke: ONE['db'] dB more.
+  SYMPATHY Ring True's strings nobody plays are let go beside the last click (v6). Two of them are the hour
+           bell's own notes: the B flat 2 string is its prime and the F2 string has its fifth and twelfth. They
+           hear the bell (ONE['strings']) and ring with it, to its left and right.
+
 v18 (27 Nov): THE CLOCK CHIMES THE SONG'S QUARTERS, AND AT THE END THE HOUR. Two switches (`--without-quarters`,
 `-hour`; both off is v17 byte for byte). The record's clock (chirper-zero's, in Give or Take) chimes the Westminster
 quarters of every minute and never the hour; Hearing Things quotes its half. This song is the record's last, and its
@@ -382,7 +402,9 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True, 'quarters': True, 'hour': True}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True, 'quarters': True, 'hour': True, 'hammer': True, 'one': True, 'sympathy': True}
+HAMMER = {'patch': 'wd-chime-struck', 'amount': 96, 'ms': 3}   # v19: the struck bell's name; the hammer's grain of noise: its envelope's amount over -80 dB (benched: see the docstring), and how long
+ONE = {'patch': 'wd-hour', 'bell': 'Bb2', 'db': 6, 'vel': 0.9, 'ring': '5s', 'strings': '-40dB'}   # v19: the hour bell's name and note; dB on its one stroke (the chime's fader is CHIME['gain']); the stroke; its ring; what Ring True's strings take of it (SYMPATHY)
 CHIME = {'patch': 'wd-chime', 'gain': '-19dB', 'hall': '-12dB', 'bells': {3: 'D4', 2: 'C4', 1: 'Bb3', 5: 'F3'},   # v18: the clock's chime: its fader and what the hall is sent; its four bells by degree of B flat (Give or Take's, two octaves down)
          'changes': ((3, 2, 1, 5), (1, 3, 2, 5), (1, 2, 3, 1), (3, 1, 2, 5), (5, 2, 3, 1)), 'order': {1: (0,), 2: (1, 2), 3: (3, 4, 0), 4: (1, 2, 3, 4)},   # the Westminster quarters (chirper-zero's QUART_CHANGES); the changes rung at each quarter and at the hour
          'apart': 1, 'change': 5, 'vel': 0.7, 'ring': '2.4s', 'trim': {4: -8},   # seconds from note to note and from change to change; the stroke; the bell's ring; dB by quarter (1 to 4), read in the finished song
@@ -628,10 +650,15 @@ def chimes():
             for q in (1, 2, 3, 4) if ON['hour' if q == 4 else 'quarters'] for i, c in enumerate(CHIME['order'][q]) for j, deg in enumerate(CHIME['changes'][c])]
 
 
-def chime_patch():
-    """v18: the clock's bell."""
-    return {'about': "Wind Down: the chime of the clock on the wall (v18). A bell with no third: six partials (hum, prime, fifth, octave, twelfth, double octave), so every partial of every bell is a note of the song's scale; the higher ones die sooner. Four of them ring Give or Take's quarters (chirper-zero's tune) two octaves under that clock's bars: the pitch they would have at the quarter speed this song stops at.",
-            'synth': {'layers': [{'type': 'additive', 'partials': CHIME['partials'], 'tilt': 0, 'damp': 0.5}], 'amp': {'a': '0.5ms', 'd': CHIME['ring'], 's': 0, 'r': CHIME['ring']}}, 'play': {'event_stable': True, 'vel_sens': 0.4}}
+def chime_patch(ring=None, about=None):
+    """v18: the clock's bell. v19: with a hammer on its front (HAMMER); `ring` and `about` make the hour bell of it (ONE)."""
+    text = "Wind Down: the chime of the clock on the wall (v18). A bell with no third: six partials (hum, prime, fifth, octave, twelfth, double octave), so every partial of every bell is a note of the song's scale; the higher ones die sooner. Four of them ring Give or Take's quarters (chirper-zero's tune) two octaves under that clock's bars: the pitch they would have at the quarter speed this song stops at."
+    synth = {'layers': [{'type': 'additive', 'partials': CHIME['partials'], 'tilt': 0, 'damp': 0.5}], 'amp': {'a': '0.5ms', 'd': ring or CHIME['ring'], 's': 0, 'r': ring or CHIME['ring']}}
+    if ON['hammer']:
+        synth = {'layers': synth['layers'] + [{'type': 'noise', 'color': 'white', 'level': {'value': '-80dB', 'mod': [{'src': 'env.hammer', 'amount': HAMMER['amount']}]}}],
+                 'env': {'hammer': {'a': '0.1ms', 'd': f"{HAMMER['ms']}ms", 's': 0, 'r': f"{HAMMER['ms']}ms"}}, 'amp': synth['amp']}
+        text += f" v19: it is struck: a hammer, {HAMMER['ms']} ms of noise on its front."
+    return {'about': about or text, 'synth': synth, 'play': {'event_stable': True, 'vel_sens': 0.4}}
 
 
 def left(bar):
@@ -926,9 +953,18 @@ def song():
                 'play': {'vel_sens': 0.7}, 'synth': {'layers': ['white'], 'filters': [{'kind': 'bp', 'cutoff': hz, 'q': 5}, 'hp cutoff=1200'], 'amp': {'a': '0.1ms', 'd': '9ms', 's': 0, 'r': '5ms', 'curve': 3}}}}
             doc['tracks'].append({'name': f'clock-{nm}', 'patch': f'wd-clock-{nm}', 'gain': WALL['gain'], 'pan': WALL['pan'], 'notes': notes})
     if ON['quarters'] or ON['hour']:                            # v18: the clock on the wall chimes the song's quarters, and the hour
-        doc['patches'] = {**doc['patches'], CHIME['patch']: chime_patch()}
-        doc['tracks'].append({'name': 'chime', 'patch': CHIME['patch'], 'gain': CHIME['gain'], 'pan': WALL['pan'], 'sends': {'hall': CHIME['hall']},
+        bell = HAMMER['patch'] if ON['hammer'] else CHIME['patch']   # v19 HAMMER: another sound, another name
+        doc['patches'] = {**doc['patches'], bell: chime_patch()}
+        doc['tracks'].append({'name': 'chime', 'patch': bell, 'gain': CHIME['gain'], 'pan': WALL['pan'], 'sends': {'hall': CHIME['hall']},
                               'notes': [{'at': round(beat_at(sec), 5), 'len': 1.0, 'pitch': CHIME['bells'][deg], 'vel': CHIME['vel'], **({'gain': f"{CHIME['trim'][q]:g}dB"} if q in CHIME['trim'] else {})} for q, sec, deg in chimes()]})
+    if ON['one'] and ON['hour']:                                # v19 ONE: the clock strikes one, on the song's last stroke
+        doc['patches'] = {**doc['patches'], ONE['patch']: chime_patch(ONE['ring'], f"Wind Down: the hour bell of the clock on the wall (v19). The chime's bell (six partials, no third{', struck by a hammer' if ON['hammer'] else ''}) an octave under the note its quarters end on, let ring {ONE['ring']}. It is struck once, on the song's last stroke: one o'clock.")}
+        doc['tracks'].append({'name': 'hour', 'patch': ONE['patch'], 'gain': CHIME['gain'], 'pan': WALL['pan'], 'sends': {'hall': CHIME['hall']},
+                              'notes': [{'at': BARS * 4, 'len': 1.0, 'pitch': ONE['bell'], 'vel': ONE['vel'], 'gain': f"{ONE['db']:g}dB"}]})
+        if ON['sympathy'] and ON['strings']:                    # v19 SYMPATHY: Ring True's strings hear the hour bell
+            for name, bus in doc['buses'].items():
+                if name.startswith('str-'):
+                    bus['returns'] = bus['returns'] + [{'from': 'hour', 'gain': ONE['strings'], 'time': next(r['time'] for r in bus['returns'] if r['from'] == 'tick')}]
     return doc
 
 
@@ -962,7 +998,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v17, the last four v16, the last six v15, the last eight v14, the last ten v13, the last twelve v12, the last fourteen v11, the last seventeen v10, the last twenty v9, the last twenty-three v8, the last twenty-five v7, the last twenty-eight v6, the last thirty-one v5, the last thirty-four v4, the last thirty-seven v3, the last forty-three v2, all forty-nine v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v18, the last five v17, the last seven v16, the last nine v15, the last eleven v14, the last thirteen v13, the last fifteen v12, the last seventeen v11, the last twenty v10, the last twenty-three v9, the last twenty-six v8, the last twenty-eight v7, the last thirty-one v6, the last thirty-four v5, the last thirty-seven v4, the last forty v3, the last forty-six v2, all fifty-two v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -994,6 +1030,9 @@ if __name__ == '__main__':
                        ([((ALL + GOES['change']) // 2, 'on the fifth the bass is whole: its fundamental under every note (D1 is 36.7 Hz), to the one of the bar it comes home')] if ON['stand'] and ON['real'] and ON['fifth'] else []) +
                        ([(q * RUNS_DOWN // 4, f"the clock chimes the {('quarter', 'half', 'three quarters')[q - 1]}: {('one change', 'two changes', 'three changes')[q - 1]}, a note a second from {min(x for k, x, _ in chimes() if k == q)} s (" + ' | '.join(' '.join(CHIME['bells'][d] for d in CHIME['changes'][c]) for c in CHIME['order'][q]) + f"), {round((beat_at(min(x for k, x, _ in chimes() if k == q)) % 1) * 60000 / BPM)} ms after a beat and 32 ms later with each note") for q in (1, 2, 3)] if ON['quarters'] else []) +
                        ([(RUNS_DOWN, f"the clock chimes the hour, the only time on the record: four changes, a note a second from {min(x for k, x, _ in chimes() if k == 4)} s to {max(x for k, x, _ in chimes() if k == 4)} s (" + ' | '.join(' '.join(CHIME['bells'][d] for d in CHIME['changes'][c]) for c in CHIME['order'][4]) + f"); the last stroke, {clock(BARS) - max(x for k, x, _ in chimes() if k == 4):.1f} s on, is its one o'clock")] if ON['hour'] else []) +
+                       ([(BARS, f"the clock strikes one, on the last stroke: its hour bell ({ONE['bell']}), an octave under the bell its quarters end on, let ring {ONE['ring']}; the {WALL['after']} ticks after it are under its ring")] if ON['one'] and ON['hour'] else []) +
+                       ([(BARS, "Ring True's strings hear the hour bell: the B flat 2 string is its note and the F2 string has its fifth: they ring with it")] if ON['sympathy'] and ON['one'] and ON['hour'] and ON['strings'] else []) +
+                       ([(RUNS_DOWN // 4, f"the clock's bells are struck: a hammer, {HAMMER['ms']} ms of noise on the front of every chime note")] if ON['hammer'] and (ON['quarters'] or ON['hour']) else []) +
                        ([(RUNS_DOWN, f"the clock on the wall: a tick at every whole second from {int(clock(RUNS_DOWN)) + 1} s to {int(clock(BARS)) + WALL['after']} s, {WALL['after']} of them after the last stroke")] if ON['wall'] and ON['stop'] else []) +
                        ([(b, 'the drum gives the one to whoever has just left') for b in range(BARS) if ON['left'] and any(tr != 'kick' for tr, _ in left(b))] if ON['cede'] else []) +
                        ([(GOES['cell'] - 1, "the hand lets go of the stick: the cell's last stroke bounces")] if ON['drop'] else []) +
