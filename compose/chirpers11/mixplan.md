@@ -94,6 +94,12 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Wind Down v22 (22:30): bars 1 to 8 as v21's (-30.1 -30.3 -30.1 -30.1 dBFS by two: the lead-in was not touched;
+  Out of Step's last row under them is 0.14 dB down at its v28). THE ALBUM'S END IS LOUDER AFTER THE LAST STROKE:
+  by second from 396.39 s -10.4 -21.0 -32.6 -41.3 -44.8 -47.3 -45.3 -47.4 -35.9 (v21 -10.4 -21.0 -32.7 -42.2
+  -47.1 -52.8 -48.1 -53.3 -36.1): the run-out's hiss 1 to 6 dB up; the lift still at 405.19 s; a master fade-out
+  must not begin before 405.5 s, as before. Highest sample -1.30. Inside: caught bars 16, 32, 48, 112 have the
+  next bar's first 1.8 s in them, 30 dB down (a record's pre-echo): they are not bare any more.
 - Ring True v22 (21:59): both ends as v21's: bars 1 to 8 by two -17.7 -17.7 -17.8 -17.7 dBFS; bar 184 -11.1; the
   tail by second -18.3 -33.3 -47.6 -60.9; highest sample -1.46. (Standing Room's last row under these bars is
   0.35 dB up at its v28: -43.76: still 26 dB under.) Inside: at the peak the pipe and the plate play each
