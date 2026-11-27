@@ -32,6 +32,14 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v16 (27 Nov), THE HALL HAS A FLOOR. One more switch (`--without-floor`; off is v15 byte for byte).
+  FLOOR  v15 sent each thing to the hall in the bar its hand goes on, and three of the seven got nothing from
+         it: the string and the skin, whose notes are under the hall's 300 Hz high-pass (0.4 dB each), and the
+         big drum, which has no hall at all. There is a second room now, under the first: `floor`, a hall of
+         1.6 s that keeps what the other throws away (90 Hz to 1.5 kHz). In the bar its hand goes on (bar 173
+         the big drum, 174 the string, 176 the skin) each of the three is heard in it as well, and nowhere
+         else: so all seven hands are heard going on by a room, the high things above and the low ones below.
+
 v15 (27 Nov), THE HALL HEARS THE HAND GO ON. One more switch (`--without-heard`; off is v14 byte for byte).
   HEARD  v14 brought each thing forward for the bar its hand goes on, by level, and the master took two
          of the lifts back (the plate's and the pipe's: a lift on a small stroke just after a loud one is
@@ -309,7 +317,8 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True}
+FLOOR = {'who': ('weight', 'string', 'skin'), 'reverb': 'reverb kind=hall decay=1.6s mix=1 predelay=20ms', 'hp': 90, 'lp': 1500, 'db': {'weight': -8, 'string': 0, 'skin': 2}}   # v16: the things the low room hears in the bar their hand goes on; the room; what it keeps, Hz; dB beside each one's dry fader into it. Bench, raw: at 0, 6 and 7 the rooms alone stood 3.8, 9.0 and 9.0 dB OVER the dry things from 90 to 300 Hz over their bars and the big drum's bar came up 3.6 dB whole: a boom
 HEARD = {'who': ('metal', 'plate', 'string', 'air', 'skin'), 'not': ('plate',), 'db': {'string': -6}}   # v15: the things the hall hears while their hand goes on (those with a remembered hall: KEPT's); those whose TURN lift is taken back with it; dB on a thing's strokes into the hall there (the touched string is an octave up, so more of it is over the hall's 300 Hz: at KEPT's level its hall stood 7.7 dB over the bar between strokes and filled the pipe's band the bar before the pipe's)
 ASIDE = {'for': 'skin', 'who': 'weight'}   # v14: the thing whose bar (its hand going on) another rests through; the one that rests
 TURN = {'db': {'metal': 6, 'plate': 4, 'air': 6}}   # v14: dB on a thing's strokes in the bar its hand goes on (the mirror's first half): set on the bench, see the note
@@ -671,6 +680,8 @@ def build():
                         n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + down, 2)}dB"
                     if ON['lift'] and thing in LIFT and bar == aftertaste(thing) and r == 1.0 and not alone:
                         n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + LIFT[thing], 2)}dB"
+                    if ON['floor'] and ON['room'] and thing in FLOOR['who'] and laid(thing, bar):   # v16 FLOOR: the low room hears it in the bar its hand goes on
+                        T.setdefault(thing + '-floor', []).append(dict(n))
                     T[thing + '-drop' if dropped(thing) == (bar, s % BAR) else thing].append(n)   # v8: the dropped stroke goes by a track of its own, so that only it bounces
                     if thing + '-room' in T and r >= ROOM_FROM:      # the room hears a thing as far as it is let go
                         own = float(n.get('gain', '0dB')[:-2])
@@ -734,6 +745,12 @@ def song(T, bars=BARS):
                 dry = by_name[k]
                 doc['tracks'].append({'name': k + '-kept', 'patch': dry['patch'], 'gain': f"{float(dry['gain'][:-2]) + KEPT[k] + (SOFT['kept'].get(k, 0) if ON['soft'] else 0)}dB", 'pan': dry['pan'],
                                       'notes': T[k + '-kept'], 'out': 'hall', **({'fx': dry['fx']} if 'fx' in dry else {})})
+    if ON['floor'] and ON['room'] and any(T.get(k + '-floor') for k in FLOOR['who']):   # v16 FLOOR: a second room under the first
+        doc['buses'] = {**doc['buses'], 'floor': {'fx': [FLOOR['reverb'], f"hp cutoff={FLOOR['hp']}", f"lp cutoff={FLOOR['lp']}"]}}
+        for k in FLOOR['who']:
+            if T.get(k + '-floor'):
+                dry = by_name[k]
+                doc['tracks'].append({'name': k + '-floor', 'patch': dry['patch'], 'gain': f"{float(dry['gain'][:-2]) + FLOOR['db'][k]}dB", 'pan': dry['pan'], 'notes': T[k + '-floor'], 'out': 'floor'})
     for k in [k for k in by_name if T.get(k + '-drop')]:        # v8 DROP: the same track again for the one stroke, and its bounces: echoes of it, each sooner and softer by the same share
         doc['tracks'].append({**{x: y for x, y in by_name[k].items() if x != 'notes'}, 'name': k + '-drop', 'notes': T[k + '-drop']})
         rest = (BAR - dropped(k)[1]) * 60000 / BPM / 4            # ms from the stroke to the one
@@ -781,7 +798,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the thirty-nine that are on: all off is v1; the last thirty-four off is v2; the last thirty off is v3; the last twenty-seven off is v4; the last twenty-four off is v5; the last twenty-three off is v6; the last twenty off is v7; the last eighteen off is v8; the last fifteen off is v9; the last eleven off is v10; the last seven off is v11; the last five off is v12; the last three off is v13; the last one off is v14)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the forty that are on: all off is v1; the last thirty-five off is v2; the last thirty-one off is v3; the last twenty-eight off is v4; the last twenty-five off is v5; the last twenty-four off is v6; the last twenty-one off is v7; the last nineteen off is v8; the last sixteen off is v9; the last twelve off is v10; the last eight off is v11; the last six off is v12; the last four off is v13; the last two off is v14; the last one off is v15)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -818,6 +835,8 @@ if __name__ == '__main__':
             print('    each steps forward for the bar its hand goes on: ' + ', '.join(f'the {k} {v:+d} dB' for k, v in TURN['db'].items() if k in order() and not (ON['heard'] and k in HEARD['not'])))
         if ON['heard'] and ON['laid'] and ON['call'] and ON['room'] and ON['remember']:
             print('    the hall hears each hand go on: ' + ', '.join(f'bar {b + 1} the {k}' for b in range(BARS) for k in HEARD['who'] if laid(k, b)))
+        if ON['floor'] and ON['room']:
+            print('    and the low room under it hears the low ones: ' + ', '.join(f'bar {b + 1} the {k}' for b in range(BARS) for k in FLOOR['who'] if laid(k, b)))
         if ON['aside'] and ON['laid'] and ON['call']:
             print(f"    the {ASIDE['who']} stands aside for the bar the hand goes on the {ASIDE['for']}: bar " + ' '.join(str(b + 1) for b in range(BARS) if laid(ASIDE['for'], b)))
         if ON['edge'] and ON['plate']:
