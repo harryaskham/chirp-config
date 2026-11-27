@@ -99,6 +99,24 @@ every 7. Those meetings, a click with the drum, were the only ones in the song t
          knock is now the head of each. It stops four bars before the end (the low end of a seam is the next
          song's). Its notes are 98 to 370 Hz, where this song stood 7 to 11 dB under the album's envelope.
 
+v22 (27 Nov): THE THREE ARE ONE CLICK. Two switches (`--without-fuse`, `-unmet`; both off is v21 byte for byte).
+  FUSE   the song's name is a number nobody hears: 105, the sixteenths after which the three clicks are where
+         they began. What is heard is three even cycles, because each has its own sound and its own place
+         (a tick on the left, a tock on the right, a knock in the middle). On page 2, for two supercycles
+         (sixteenths 525 to 735: 1:02.5 to 1:27.5), every stroke of ANY of the three is struck by ALL three:
+         one click, made of the three, wherever any of them falls. Nothing is added to the rhythm and nothing
+         is moved: the same 57 instants in every 105. But the ear can no longer say whose stroke is whose,
+         and what it hears is the one uneven rhythm that the three make together, 12.5 s long, twice. At the
+         next meeting each takes its own strokes back and the three even cycles are there again: the same
+         instants, heard another way. Each of the three sounds is 3 dB down while it plays for all.
+         (Page 1 brings them in one at a time, page 2 makes them one, page 3 leaves them in pairs.)
+  UNMET  a ping is what two clicks make when they meet, and a chord what three make. While there is one click
+         nothing meets: the pings rest for the two supercycles (24 of them) and so does the chord at the head
+         of the second; the chord where the three become one, and the one where they part, are kept. The first
+         build had FUSE alone: the pings went on naming who met whom, which gives the three away, and the
+         scorer found a new section there that differed from its neighbours in nothing it measures (99.327
+         and 99.300 for 99.439 and 99.376). So the section is what it says: one click, the drum and the bass.
+
 v21 (27 Nov): THE DRUM HAS THE PART OF THE CLICK THAT RESTS. Four switches (`--without-stand`, `-named`, `-hand`,
 `-ebb`; all off is v20 byte for byte).
 v20 let each pair be heard alone and put the drum at half time under it: a page of thirty-seven seconds in which
@@ -430,7 +448,8 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
       'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
-      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True, 'wall': True, 'leave': True, 'breath': False, 'struck': True, 'ground': True, 'recap': True, 'pause': True, 'bars': False, 'last': True, 'two': True, 'halve': False, 'pairs': True, 'pedal': True, 'halftime': True, 'stand': True, 'named': True, 'hand': True, 'ebb': True}
+      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True, 'wall': True, 'leave': True, 'breath': False, 'struck': True, 'ground': True, 'recap': True, 'pause': True, 'bars': False, 'last': True, 'two': True, 'halve': False, 'pairs': True, 'pedal': True, 'halftime': True, 'stand': True, 'named': True, 'hand': True, 'ebb': True, 'fuse': True, 'unmet': True}
+FUSE = {'page': 1, 'supers': (1, 3), 'db': -3}   # v22: the first half's page (from 0) on which the three are one click; from which of its supercycles to which (not included); dB on each of the three sounds while it plays for all
 STAND = {'octaves': 1, 'vel': (.95, .88)}   # v21: how far under the click's knock the drum is while it stands in for it; its stroke where it lands on the old beat, and elsewhere
 EBB = {'keep': (1, 2, 0)}                # v21: of the hat's off beats, one in so many is kept in the page's first, second and third supercycle (0: none)
 HAND = {'over': (-6, -12), 'back': (-12, -6), 'vel': .74}   # v21: dB on the resting click's strokes after the head (with the drum), and on its strokes before the next head; their touch (one touch: the dB are the ladder; the click's own touch goes .58 .74 .92 with the beat and would undo it)
@@ -754,9 +773,10 @@ def build():
                 if c in here and v in MEMORY:
                     mem[v] = MEMORY[v][tuple(here)]
         loud = {c: rundown(c, s) for c in here}               # v3: 0 dB everywhere but in the last stretch
+        fused = bool(ON['fuse'] and here and FUSE['page'] * PAGE + FUSE['supers'][0] * SUPER <= s < FUSE['page'] * PAGE + FUSE['supers'][1] * SUPER)   # v22 FUSE: every stroke of any of the three is struck by all three
         for c, v in zip(CYCLES, VOICES):
-            if c in here and loud[c] is not None:
-                add(v, s, 1, mem[v], touch(s), **({'gain': f'{loud[c]}dB'} if loud[c] else {}))
+            if fused or (c in here and loud[c] is not None):
+                add(v, s, 1, mem[v], touch(s), **({'gain': f"{FUSE['db']:g}dB"} if fused else {'gain': f'{loud[c]}dB'} if loud[c] else {}))
         stood = bool(ON['stand'] and paired(s))               # v21 STAND: the drum has the part of the click that rests
         if stood:
             rv = PAIRS['rests'][s % PAGE // SUPER]; rc = CYCLES[VOICES.index(rv)]; rk = s % SUPER // rc
@@ -766,9 +786,10 @@ def build():
                     add(rv, s, 1, mem[rv], HAND['vel'], gain=f"{HAND['over'][rk - 1] if rk <= len(HAND['over']) else HAND['back'][rk - (SUPER // rc - len(HAND['back']))]}dB")
         met = tuple(c for c in CYCLES if s % c == 0)
         roots.append(ROOT[met] if len(met) >= 2 else roots[-1])
-        if len(here) == 2 and None not in loud.values():     # a meeting is as loud as the quieter of the two
+        unmet = fused and ON['unmet']                         # v22 UNMET: while the three are one click nothing meets: no ping, and no chord but the one at which they become one
+        if len(here) == 2 and None not in loud.values() and not unmet:     # a meeting is as loud as the quieter of the two
             add('ping', s, 4, PING[tuple(here)], .8, **({'gain': f'{min(loud.values())}dB'} if min(loud.values()) else {}))
-        if len(here) == 3:
+        if len(here) == 3 and not (unmet and s != FUSE['page'] * PAGE + FUSE['supers'][0] * SUPER):
             add('chord', s, 2, ','.join(CHORD), .85 if s % BEAT == 0 else .7)
         if s % BEAT == 0 and n != last and not broken(s):
             if stood or (ON['halftime'] and paired(s) and s // BEAT % 2):   # v20 HALFTIME: while a pair is alone the drum plays every second beat (v21 STAND: or the resting click's part, above)
@@ -782,6 +803,11 @@ def build():
              [('the drum is on every beat again', PAIRS['page'] * PAGE + len(PAIRS['rests']) * SUPER)] * (ON['pairs'] and (ON['halftime'] or ON['stand'])) + \
              [(f"the drum has the part of the click that rests: every {CYCLES[VOICES.index(v)]} sixteenths" + (f" on {KNOCK[CYCLES[VOICES.index(v)]][:-1]}{int(KNOCK[CYCLES[VOICES.index(v)]][-1]) - STAND['octaves']}" if ON['named'] else '') + f" ({SUPER // CYCLES[VOICES.index(v)]} strokes, {BPM * BEAT / CYCLES[VOICES.index(v)]:g} to the minute); " + (('the hat keeps the four', 'the hat keeps every second off beat', 'the hat rests: nothing says four')[(0 if EBB['keep'][i] == 1 else 1 if EBB['keep'][i] else 2)] if ON['ebb'] else 'the hat keeps the four') + (f"; the {v} hands its part over ({len(HAND['over'])} strokes with the drum, {' '.join(str(x) for x in HAND['over'])} dB) and takes it back ({len(HAND['back'])} strokes, {' '.join(str(x) for x in HAND['back'])} dB)" if ON['hand'] else ''), PAIRS['page'] * PAGE + i * SUPER) for i, v in enumerate(PAIRS['rests'])] * (ON['pairs'] and ON['stand']) + \
              [(f"the bass is a pedal while a pair is alone: {ROOT[ALL]} at the head, then the pair's root at each of its meetings, held almost to the next: " + '; '.join(f"{ROOT[tuple(c for c, w in zip(CYCLES, VOICES) if w != v)]} every {lcm(*(c for c, w in zip(CYCLES, VOICES) if w != v))}" for v in PAIRS['rests']), PAIRS['page'] * PAGE)] * (ON['pairs'] and ON['pedal'])
+    if ON['fuse']:
+        f0, f1 = (FUSE['page'] * PAGE + x * SUPER for x in FUSE['supers'])
+        marks += [(f"the three are one click: every stroke of any of them is struck by all three ({len({x for x in range(SUPER) if any(x % c == 0 for c in CYCLES)})} instants in every {SUPER} sixteenths, {(f1 - f0) // SUPER} times through): the one uneven rhythm the three make together; each sound {FUSE['db']:g} dB", f0),
+                  ('each click has its own strokes again: three even cycles, at the same instants' + (', and where two meet there is a ping again' if ON['unmet'] else ''), f1)] + \
+                 [('while there is one click nothing meets: the pings rest, and the chord at the head of each supercycle but this one', f0)] * ON['unmet']
     marks += [('first half: three, five and seven sixteenths', 0)] + [(f'page {p + 1} (the three meet on beat {p * PAGE // BEAT % 4 + 1})', p * PAGE) for p in range(1, pages)]
     marks += [('the clock begins to run down, ' + ('only the drum left of the four' if ON['bare'] else 'the four still playing'), (last - 1) * SUPER)] * (ON['slow'] and ON['rundown']) + [('the four stops', last * SUPER)]
     # ---- the second half: one size up. Cycles of 3, 5 and 7 beats, each filled with the next one's number.
@@ -1107,7 +1133,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f"--{'without' if ON[k] else 'with'}-{k}", action='store_true', help=f"{'leave out' if ON[k] else 'put in'} {k} (of those that are on: the last four off is v20, the last seven v19, the last nine v18, the last eleven v17, the last twelve v16, the last thirteen v15, the last fifteen v14, the last sixteen v13, the last eighteen v12, the last twenty v11, the last twenty-two v10, the last twenty-five v9, the last twenty-eight v8, the last thirty v7, the last thirty-three v6, the last thirty-four v5, the last thirty-seven v4, the last forty-two v3, the last fifty v2, all fifty-six v1)")
+        ap.add_argument(f"--{'without' if ON[k] else 'with'}-{k}", action='store_true', help=f"{'leave out' if ON[k] else 'put in'} {k} (of those that are on: the last two off is v21, the last six v20, the last nine v19, the last eleven v18, the last thirteen v17, the last fourteen v16, the last fifteen v15, the last seventeen v14, the last eighteen v13, the last twenty v12, the last twenty-two v11, the last twenty-four v10, the last twenty-seven v9, the last thirty v8, the last thirty-two v7, the last thirty-five v6, the last thirty-six v5, the last thirty-nine v4, the last forty-four v3, the last fifty-two v2, all fifty-eight v1)")
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}') if ON[k] else getattr(a, f'with_{k}')
