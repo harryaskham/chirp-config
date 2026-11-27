@@ -358,6 +358,15 @@ and at 440 Hz and greatest at 110. A tone that reaches the bottom has faded to n
 one has come in from nothing at the top. Every tone falls the whole time, 48 semitones in the
 row by name; the curve does not move; and the sound at the end of the row is the sound at its
 beginning. In the second row of "held" (bars 113 to 120), which had no drum and no bass.
+
+v27 (27 Nov): A SWELL IS HEARD LATE (C11T5_PCEN=0 takes it out: v26). A sound's moment is
+not its start (the perceptual centre). In "the wrong one again" (bars 129 to 136) the click is
+alone again and is taken for the beat; the bass has no fundamental; there is no drum. Now a low
+note on the bass's own note begins on every TRUE beat, where the drum falls in other rows, and
+lasts two sixteenths, up to the click. For four bars it swells and stops on the click: it is
+heard where it arrives, and the click is the beat. For four bars the same notes at the same
+instants are struck and die away: they are heard where they begin, and the click is the off
+beat. No note has moved: one shape is the other played backwards, and the beat turns round.
 """
 import json
 import math
@@ -682,6 +691,38 @@ def para_tones(p):
     return out
 
 
+def pcen_row():
+    """The first bar (from 0) of the row with the swell, or None."""
+    sec = next((x for x in SECS if x[0] == PCEN_IN[0]), None)
+    return sec[1] + ROW * PCEN_IN[1] if PCEN and sec is not None and PCEN_IN[1] * ROW < sec[2] else None
+
+
+def pcen_notes():
+    """(swelling, struck), each [(beat, note)]: a note before every note of the bass (BASS: on the click), PCEN_LEN beats before it and on its note; the first PCEN_BARS[0] bars of the row swell, the next PCEN_BARS[1] are struck. song() checks them against the bass's track."""
+    out = ([], [])
+    for j in range(sum(PCEN_BARS)):
+        bar = pcen_row() + j
+        for s16, p, _, _ in BASS(bar):
+            out[0 if j < PCEN_BARS[0] else 1].append((round(bar * BEATS + s16 * STEP - PCEN_LEN, 5), p))
+    return out
+
+
+def pcen_lane(notes, swell):
+    """One track's loudness lane, [(beats, dB)]: over each note a straight line in dB, PCEN_FALL dB long: up to nought for a swell, down from nought for a struck note."""
+    lo, hi = (-PCEN_FALL, 0.0) if swell else (0.0, -PCEN_FALL)
+    pts = [[0.0, lo]]
+    for t, _ in notes:
+        pts += [[t, lo], [t + PCEN_LEN, hi]]
+    return pts
+
+
+def pcen_middle(swell):
+    """ms from a note's start to the middle of its energy (half before, half after... its centre of gravity) for the written line."""
+    T = PCEN_LEN * 60000 / BPM; c = PCEN_FALL * math.log(10) / (10 * T)
+    m = 1 / c - T * math.exp(-c * T) / (1 - math.exp(-c * T))
+    return T - m if swell else m
+
+
 def gliss_row():
     """The first bar of the row with the bass that falls for ever, or None."""
     sec = next((x for x in SECS if x[0] == GLISS_IN[0]), None)
@@ -947,6 +988,13 @@ GLISS_GAP = 0.25                                       # beats before the bottom
 GLISS_FLOOR = -90.0                                    # dB: "silent"
 GLISS_PAN = 0.0
 GLISS_GAIN = os.environ.get("C11T5_GLISS_GAIN", "-36dB")     # each tone's fader at the curve's top; read in the whole song's master at -36dB and -30dB and set BEFORE either's score was read: at -36 the strongest tone is -24.2 dBFS (the master moves it between -26.4 and -21.5 with the row's clicks), the whole bass 7.5 dB under the row's other music and 12.6 dB over it at 35 to 125 Hz, where there was nothing; the row is 0.7 dB up. At -30 the row is 2.2 dB up and no longer the quiet one between its neighbours. The quiet one
+PCEN = os.environ.get("C11T5_PCEN", "1") != "0" and GLISS   # v27: A SWELL IS HEARD LATE (the perceptual centre: Morton, Marcus and Frankish, 1976): a sound's moment is not its start. A low note that begins on the true beat and swells for two sixteenths is heard where it ARRIVES, on the click; the same note at the same instant struck and dying away is heard where it begins. Four bars of each: no note moves and the beat turns round
+PCEN_IN = ("the wrong one again", 0)                   # the section and the row of it (from 0): the click alone is the beat again, the bass has no fundamental and there is no drum
+PCEN_BARS = (4, 4)                                     # bars it swells, then bars it is struck
+PCEN_LEN = 0.5                                         # beats a note lasts: from the beat (where the drum falls in other rows) to the click (two sixteenths: 240 ms)
+PCEN_FALL = 40.0                                       # dB the level travels over the note, a straight line in dB: up to its top for a swell, down from it for a struck note: one is the other backwards
+PCEN_PARTS = ((1, 0.0), (2, -9.0))                     # the note and its octave (times, dB): on the bass's own note (A1, C2: the fundamental its patch does not have) the octave is what a small loudspeaker gives
+PCEN_GAIN = os.environ.get("C11T5_PCEN_GAIN", "-26dB")  # both tracks. Read in the whole song's master at -38dB and -32dB: at -32 a swell's top was -25.7 dBFS and a struck note's -28.1 at 40 to 95 Hz, some 12 dB under a stroke of the bass drum in the rows that have one. It is this row's drum: 6 dB over the louder reading
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1443,6 +1491,17 @@ def song():
                                   "notes": [{"at": gl_at + gl_t0, "len": round(gl_t1 - gl_t0 - GLISS_GAP, 5), "pitch": GLISS_LOW, "vel": 0.8} for gl_t0, gl_t1, _, _ in gl_legs]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v26 there is a bass in the second row of 'held' (bars {gliss_row() + 1} to {gliss_row() + ROW}), where there was no drum and no bass: {GLISS_OCTAVES} plain tones an octave apart, all sliding down together, an octave every {GLISS_PER} bars, under one fixed curve of loudness from {gl_low:g} to {gl_low * 2 ** GLISS_OCTAVES:g} Hz, loudest at {gl_low * 2 ** (GLISS_OCTAVES / 2):g} Hz and silent at both ends. Each tone goes out unheard at the bottom as a new one comes in unheard at the top. It is heard to fall the whole row: {12 * ROW // GLISS_PER} semitones by its tones; and at the end it is where it began (Shepard, 1964; Risset, 1969). Generated by")
         assert "From v26" in doc["about"]
+    if pcen_row() is not None:
+        pc_sw, pc_st = pcen_notes()
+        pc_bass = {round(n["at"], 4): n["pitch"] for n in next(t for t in doc["tracks"] if t["name"] == "bass")["notes"]}
+        assert pc_sw and pc_st and all(pc_bass.get(round(t + PCEN_LEN, 4)) == p for t, p in pc_sw + pc_st)      # every one ends where a note of the bass begins, on that note
+        PATCHES["ht-swell"] = {"about": f"Hearing Things' low note with a shape (chirper-zero, 27 Nov, v27): a plain tone and its octave, {PCEN_LEN * 60000 / BPM:g} ms long, its loudness drawn by its track's lane (auto.shape, dB, a straight line {PCEN_FALL:g} dB long): on the track `swell` it rises to its top and stops, on the track `struck` it begins at its top and dies away: one is the other played backwards. Nothing over {max(hz(p) for _, p in pc_sw + pc_st) * max(r for r, _ in PCEN_PARTS):.0f} Hz.",
+                               "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": [f"sine phase=0 ratio={r:g} level={d:g}dB" for r, d in PCEN_PARTS], "amp": {"a": "2ms", "d": "0s", "s": 1, "r": "8ms"}}}
+        for pc_name, pc_ns, pc_up in (("swell", pc_sw, True), ("struck", pc_st, False)):
+            doc["tracks"].append({"name": pc_name, "patch": "ht-swell", "gain": PCEN_GAIN, "pan": 0.0, "auto": {"shape": {"points": [[f"{round(t, 5)}b", v] for t, v in pcen_lane(pc_ns, pc_up)], "curve": 0}},
+                                  "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.shape", "amount": 1}]}}], "notes": [{"at": t, "len": PCEN_LEN, "pitch": p, "vel": 0.8} for t, p in pc_ns]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v27 a swell is heard late (bars {pcen_row() + 1} to {pcen_row() + sum(PCEN_BARS)}, 'the wrong one again', where there is no drum and the bass has no fundamental): a low note on the bass's own note begins on every true beat and lasts two sixteenths, to the click. For {PCEN_BARS[0]} bars it swells and stops on the click: it is heard where it arrives, with the click, and the click is the beat. For {PCEN_BARS[1]} bars the same notes at the same instants are struck and die away: they are heard where they begin, and the click is the off beat. No note has moved; a sound's moment is not its start (the perceptual centre). Generated by")
+        assert "From v27" in doc["about"]
     return doc
 
 
@@ -1460,6 +1519,10 @@ def dump(doc):
 if __name__ == "__main__":
     if os.environ.get("C11T5_SHOW"):
         sec = 60 / BPM * BEATS
+        if pcen_row() is not None:
+            pc_b = pcen_row(); pc_sw, pc_st = pcen_notes()
+            pc_names = sorted({p for _, p in pc_sw + pc_st}, key=hz)
+            print(f"a swell is heard late (the perceptual centre; {PCEN_GAIN}), bars {pc_b + 1}-{pc_b + sum(PCEN_BARS)} ({int(pc_b * sec) // 60}:{pc_b * sec % 60:04.1f}): a plain low note and its octave ({PCEN_PARTS[1][1]:g} dB) on every beat, on the bass's note (" + ", ".join(f"{p} {hz(p):.1f} Hz" for p in pc_names) + f"), {PCEN_LEN / STEP:g} sixteenths long ({PCEN_LEN * 60000 / BPM:g} ms): from the beat to the click ; bars {pc_b + 1}-{pc_b + PCEN_BARS[0]}: {len(pc_sw)} notes that swell {PCEN_FALL:g} dB (a straight line in dB) and stop on the click: the middle of a note's energy is {pcen_middle(True):.0f} ms after its start ; bars {pc_b + PCEN_BARS[0] + 1}-{pc_b + sum(PCEN_BARS)}: {len(pc_st)} notes, the same at the same instants, struck and dying {PCEN_FALL:g} dB: {pcen_middle(False):.0f} ms after its start")
         if gliss_row() is not None:
             gl_b, gl_low = gliss_row(), hz(GLISS_LOW)
             print(f"the bass that falls for ever ({GLISS_GAIN} a tone at the curve's top), bars {gl_b + 1}-{gl_b + ROW} ({int(gl_b * sec) // 60}:{gl_b * sec % 60:04.1f}): {GLISS_OCTAVES} plain tones an octave apart, each falling an octave every {GLISS_PER} bars ({12 / (GLISS_PER * sec):.2f} semitones a second) under one curve: {gl_low:g} to {gl_low * 2 ** GLISS_OCTAVES:g} Hz, loudest at {gl_low * 2 ** (GLISS_OCTAVES / 2):g} Hz, silent at both ends ; {12 * ROW // GLISS_PER} semitones down by its tones, and it ends where it began ; in and out over {GLISS_FADE[0]:g} and {GLISS_FADE[1]:g} beats")
