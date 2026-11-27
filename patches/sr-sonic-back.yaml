@@ -1,0 +1,35 @@
+{
+ "about": "Standing Room's bell on the thing that goes by faster than sound, heard BACKWARDS (chirper-zero, 27 Nov, v19): the bell of the thing that goes past (a sine with its octave and twelfth), swelling for 120 ms to its stroke and stopping there: what it struck before it passed. Its pitch is given by where it was (auto.dop, semitones). It is in no room. BANKED by tools/patchbank.py (27 Nov 2026) from Standing Room v19 (track sonic-back): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`dop`): give the track that plays it `auto: {dop: \u2026}`, as the song does.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "120ms",
+   "d": "0ms",
+   "r": "2ms"
+  },
+  "layers": [
+   {},
+   {
+    "level": "-9dB",
+    "ratio": 2.0
+   },
+   {
+    "level": "-15dB",
+    "ratio": 3.0
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 1.0,
+     "src": "auto.dop"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

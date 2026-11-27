@@ -1,0 +1,21 @@
+{
+ "about": "Give or Take's pips (chirper-zero, 27 Nov, v19): the time signal's tone: one plain sine at 1000 Hz (written on B5, 1.012385 times it), on at once and off at once (2 ms each way), as long as its note. In no key and in no room. BANKED by tools/patchbank.py (27 Nov 2026) from Give or Take v19 (track pips): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "2ms",
+   "d": "0ms",
+   "r": "2ms"
+  },
+  "layers": [
+   {
+    "phase": 0.0,
+    "ratio": 1.012385
+   }
+  ]
+ }
+}
