@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Wind Down v15 (08:31): its start is v14's (bars 1 to 8 by two -29.9 -30.1 -29.9 -30.0 dBFS) and its end within
+  rounding (from 396 s by second -9 -20 -32 -44 -49 -71 -84 -95). Inside: the wall clock also ticks in the seven
+  caught bars (bars 16, 32 ... 112), on THIS song's own seconds (not the album's: its arithmetic is 31 beats to
+  15 seconds), about -16 dBFS at its highest on the right; the drum's last stroke (6:11.6) leaves a low tail of a second.
 - Ring True v15 (08:08): both ends are v14's to 0.1 dB: bars 1 to 8 by two -17.9 -17.9 -18.0 -18.0 dBFS (100 to 200 Hz
   -21.5 -21.5 -21.6 -21.6); bar 184 -11.1; the tail by second -19.1 -34.2 -48.5 -61.8. Inside: bars 171 to 176 each
   have a hall round one instrument.
