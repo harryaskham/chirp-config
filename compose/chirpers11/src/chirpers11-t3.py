@@ -362,6 +362,18 @@ The whisper is made half a sixteenth after the bar line, so every arrival falls 
 song's own strokes (on them, the master swallowed it: read).
 It is the same 29 ms of hiss every time, sample for sample, falling 3 dB for every doubling of
 the way and 1.5 dB a lap.
+
+v25 (27 Nov): THE BASS IS HEARD ROUND THE CORNER (C11T3_BEND=0 takes it out: v24). The bass
+comes in at bar 33, half way down the corridor. It was there all along: 3 m down a side passage,
+round a corner that is 24 m off when the corridor begins. Sound bends round a corner into the
+shadow, and low sound bends best: Maekawa's rule (1968) says the shadow takes
+10 log (3 + 20 N) dB, where N counts the half waves by which the way round the corner is longer
+than the straight way through the wall. So the bass is heard before it is met, its first
+partial 14 dB down and every octave above about 3 dB more, and (by the corridor's own law) 9.5
+dB more for the longer way; walking up to the corner the way round gets no longer than the
+way through, and in the last metre the shadow lifts to 5 dB for every partial alike. At bar
+33 the corner is turned. The six tones are the bass's own first six partials as measured
+alone, each with its own shadow written on its fader's lane.
 """
 import json
 import math
@@ -659,6 +671,15 @@ GAL_LEN = 0.06                                         # beats a whisper lasts (
 GAL_VEL = 0.9
 GAL_PAN = 0.8                                          # each way round, out to its side
 GAL_GAIN = os.environ.get("C11T3_GAL_GAIN", "-25dB")   # set in the whole song's master between two readings, BEFORE their scores were read: at -22dB 40 of the 56 arrivals stand 6 dB or more over everything else in their band and ear in their own 50 ms (the first -20.3 dBFS there, 39 dB over), at -28dB 31 (the first -26.3). THE MASTER STILL DOES NOT DELIVER THE FALL AS WRITTEN: against the first, the arrivals after a bass drum come 6 to 7 dB under what is written and the rest 1 to 6 under: the first arrival falls in the emptiest place in the bar
+BEND = os.environ.get("C11T3_BEND", "1") != "0" and GAL   # v25: the bass is heard ROUND THE CORNER before it is met: sound bends into a shadow, the low notes most (Maekawa, 1968: the shadow takes 10 log (3 + 20 N) dB, where N is how many half waves longer the way round is than the way through)
+BEND_BARS = (16, 32)                                   # bars from 0: the corridor's first two rows, before the bass comes in (bar 33 is the corner: you turn it and the bass is in front of you)
+BEND_SIDE = 3.0                                        # m: how far round the corner the bass is
+BEND_FROM = 24.0                                       # m: how far from the corner you are when the corridor begins (0.8 m/s: a slow walk)
+BEND_LAW = 0.5                                         # the corridor's own law (the handrail's, the pipes'): the level falls as 1 over the way to this power
+BEND_PARTS = (0.0, -14.2, -15.1, -17.6, -27.4, -24.3)  # dB: the bass's own first six partials against its first, read alone (b/bass.yaml): each is shadowed by its own amount
+BEND_TRIM = -5.5                                       # dB: a plain tone at the bass's fader reads this much over the bass's first partial (read alone)
+BEND_LIFT = -2.0                                       # dB: taken off for what this song's master adds to a quiet part in these two rows. Read in the whole song's master without it: the six tones came 0.5 to 1.7 dB over what is written against the bass as it is met, 2.4 over in the last bar and 3.4 on the last two notes (the bass itself is held down by the master where it plays with the drum; these rows are 3 dB quieter and are not)
+BEND_GAIN = os.environ.get("C11T3_BEND_GAIN", "")      # the first partial's fader; nothing: the bass's own fader, BEND_TRIM and BEND_LIFT, so that with no shadow these six tones are the bass AT THE EAR
 AIR_PAN = 0.4                                          # the other ear
 RAIL_VEL = 0.8
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
@@ -988,6 +1009,23 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def bend_way(beat):
+    """Metres from the corner at this beat (0 at the corner and after it)."""
+    b0, b1 = BEND_BARS[0] * BEATS, BEND_BARS[1] * BEATS
+    return BEND_FROM * max(0.0, min(1.0, (b1 - beat) / (b1 - b0)))
+
+
+def bend_shadow(f, way):
+    """dB the corner takes from a tone of f Hz heard `way` m short of it (Maekawa): the way round is BEND_SIDE + way, the way through the wall the hypotenuse."""
+    longer = BEND_SIDE + way - math.hypot(BEND_SIDE, way)
+    return -10 * math.log10(3 + 20 * (2 * longer * f / SOUND))
+
+
+def bend_spread(way):
+    """dB the longer way takes (the corridor's law), against standing at the corner."""
+    return -20 * BEND_LAW * math.log10((BEND_SIDE + way) / BEND_SIDE)
 
 
 def gal_row():
@@ -1680,6 +1718,24 @@ def song():
                                   "notes": [{"at": round(at, 5), "len": GAL_LEN, "pitch": GAL_NOTE, "vel": round(GAL_VEL * 10 ** (db / 20), 4)} for _, sd, _, at, _, db in ga if sd == ga_side]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v24 the hall has a whispering gallery (bars {gal_row() + 1} to {gal_row() + ROW}): a round wall {ga_lap / math.pi:.0f} m across, {ga_lap:.1f} m round: {GAL_LAP} sixteenths at the speed of sound. Every {GAL_EVERY} bars somebody a third of the way round whispers at the wall. A whisper at a round wall does not cross the room: it clings to the wall and goes round it, both ways: it reaches you from the left after a third of a lap and from the right after two thirds, and each comes round again every lap, {GAL_TIMES} times: left, right, nothing; left, right, nothing: three against the bar's four. It is the same burst of hiss every time, falling as the square root of the distance and {GAL_LOSS:g} dB a lap: {-min(db for _, _, _, _, _, db in ga):.0f} dB by the last. Generated by")
         assert "From v24" in doc["about"]
+    if BEND:
+        bd_bass = next(t for t in doc["tracks"] if t["name"] == "bass")
+        bd_cell = [n for n in bd_bass["notes"] if BEND_BARS[1] * BEATS <= n["at"] < (BEND_BARS[1] + 2) * BEATS]      # the bass's own first two bars: what it is playing round the corner
+        assert len(bd_cell) == 8 and not [n for n in bd_bass["notes"] if n["at"] < BEND_BARS[1] * BEATS]
+        bd_notes = [dict(n, at=n["at"] - (BEND_BARS[1] - bar) * BEATS) for bar in range(BEND_BARS[0], BEND_BARS[1], 2) for n in bd_cell]
+        bd_pump = [fx for fx in bd_bass.get("fx", []) if fx.get("type") == "pump"]
+        bd_gain = float(BEND_GAIN[:-2]) if BEND_GAIN else float(bd_bass["gain"][:-2]) + BEND_TRIM + BEND_LIFT
+        PATCHES["sr-bend"] = {"about": "Standing Room's bass round the corner (chirper-zero, 27 Nov, v25): one plain tone; six tracks of it are the bass's first six partials (the track's lane auto.h says which, in semitones over the note), each with its own shadow.",
+                              "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": ["sine phase=0"], "pitch": {"value": 0, "mod": [{"src": "auto.h", "amount": 1}]}, "amp": {"a": "5ms", "d": "0s", "s": 1, "r": "30ms"}}}
+        for bd_h, bd_part in enumerate(BEND_PARTS, start=1):
+            bd_pts = [[f"{n['at']:g}b", round(bend_shadow(hz(n["pitch"]) * bd_h, bend_way(n["at"])) + bend_spread(bend_way(n["at"])), 2)] for n in bd_notes]
+            doc["tracks"].append({"name": f"bend-{bd_h}", "patch": "sr-bend", "gain": f"{bd_gain + bd_part:.1f}dB", "pan": 0.0,
+                                  "fx": bd_pump + [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.shadow", "amount": 1}]}}],
+                                  "auto": {"h": {"points": [["0b", round(12 * math.log2(bd_h), 4)], [f"{BARS * BEATS}b", round(12 * math.log2(bd_h), 4)]], "curve": 0},
+                                           "shadow": {"points": [["0b", bd_pts[0][1]]] + bd_pts + [[f"{BARS * BEATS}b", bd_pts[-1][1]]], "curve": 0}},
+                                  "notes": [{"at": n["at"], "len": n["len"], "pitch": n["pitch"], "vel": n["vel"]} for n in bd_notes]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v25 the bass is heard round a corner before it is met (bars {BEND_BARS[0] + 1} to {BEND_BARS[1]}): it is {BEND_SIDE:g} m down a side passage and the corridor begins {BEND_FROM:g} m short of the corner. Sound bends into a shadow, low notes most (Maekawa): each of the bass's first six partials loses 10 log (3 + 20 N) dB, N the half waves by which the way round is longer than the way through: {-bend_shadow(hz('D2'), BEND_FROM):.1f} dB of its first partial and {-bend_shadow(hz('D2') * 4, BEND_FROM):.1f} of its fourth at the start, {-bend_shadow(hz('D2'), 0):.1f} dB of every one at the corner itself; and the longer way takes {-bend_spread(BEND_FROM):.1f} dB more at the start. At bar {BEND_BARS[1] + 1} the corner is turned. Generated by")
+        assert "From v25" in doc["about"]
     return doc
 
 
@@ -1736,6 +1792,11 @@ def echoes(a, b, n=16):
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
         sec = 60 / BPM * BEATS
+        if BEND:
+            print(f"the bass round the corner, bars {BEND_BARS[0] + 1}-{BEND_BARS[1]} ({int(BEND_BARS[0] * sec) // 60}:{BEND_BARS[0] * sec % 60:04.1f}): {BEND_SIDE:g} m down a side passage ; you start {BEND_FROM:g} m short of the corner ({BEND_FROM / ((BEND_BARS[1] - BEND_BARS[0]) * sec):.2f} m/s) ; the shadow 10 log (3 + 20 N) dB ; the way's law {BEND_LAW:g} ; the bass's partials {' '.join(f'{p:g}' for p in BEND_PARTS)} dB")
+            for bd_bar in list(range(BEND_BARS[0], BEND_BARS[1], 4)) + [BEND_BARS[1] - 2, BEND_BARS[1] - 1, BEND_BARS[1] - 0.25, BEND_BARS[1]]:
+                bd_w = bend_way(bd_bar * BEATS)
+                print(f"   bar {bd_bar + 1:g}: {bd_w:5.2f} m short ; the way round {BEND_SIDE + bd_w - math.hypot(BEND_SIDE, bd_w):.2f} m longer ; the shadow takes " + " ".join(f"{-bend_shadow(hz('D2') * h, bd_w):.1f}" for h in (1, 2, 3, 4, 6)) + f" dB of partials 1 2 3 4 6 ; the way {-bend_spread(bd_w):.1f} dB ; the first partial {bend_shadow(hz('D2'), bd_w) + bend_spread(bd_w):+.1f} dB against the bass met")
         if gal_row() is not None:
             ga = gal_arrivals(); ga_lap = GAL_LAP * STEP * 60 / BPM * SOUND
             print(f"the whispering gallery, bars {gal_row() + 1}-{gal_row() + ROW} ({int(gal_row() * sec) // 60}:{gal_row() * sec % 60:04.1f}): {ga_lap / math.pi:.1f} m across, {ga_lap:.1f} m round ({GAL_LAP} sixteenths) ; a whisper every {GAL_EVERY} bars on sixteenth {GAL_ON}, {GAL_TIMES} times round each way ; {GAL_BAND[0]:g} to {GAL_BAND[1]:g} Hz, {GAL_GAIN}, pan {GAL_PAN} ; the first whisper is heard on sixteenths (l left, r right; dB): " + " ".join(f"{(at - gal_row() * BEATS) / STEP:g}{'l' if sd < 0 else 'r'}({db:.1f})" for w, sd, _, at, _, db in ga if w == 0))
