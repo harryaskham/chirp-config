@@ -94,6 +94,9 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Ring True v15 (08:08): both ends are v14's to 0.1 dB: bars 1 to 8 by two -17.9 -17.9 -18.0 -18.0 dBFS (100 to 200 Hz
+  -21.5 -21.5 -21.6 -21.6); bar 184 -11.1; the tail by second -19.1 -34.2 -48.5 -61.8. Inside: bars 171 to 176 each
+  have a hall round one instrument.
 - Least Common v15 (07:39): both ends are v14's exactly: bars 1 to 4 -17.5 dBFS; the last four bars -17.4 -17.3 -17.3
   -17.0; 2 s after home -20.1. Inside, the album's clock ticks in seven stops (46-49, 96-99, 146-149, 188-199, 243-249,
   293-299, 343-349 s of the song), about -23 dBFS at its highest, on the right. IT IS PHASED TO SEAM 1: its seconds
