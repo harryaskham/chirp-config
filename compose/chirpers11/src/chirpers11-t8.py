@@ -71,6 +71,25 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v17 (27 Nov): THE DRUM GOES TO THE FIFTH TOO, AND HOME IS WHOLE. Two switches (`--without-tuned`, `-resolve`; both
+off is v16 byte for byte). Read first: v16 took the bass down to the fifth for sixteen bars (129 to 144) and gave it
+its fundamental there, and its own note said what was weak: the return home (bar 145) is a cadence on paper: the
+floor (the sine at 36.7 Hz) is simply taken away on the one, the bass goes UP a fourth as three things leave, and the
+scorer's curve shows nothing. A cadence wants its arrival voiced where its tension was.
+  TUNED    the drum goes to the fifth as well, the other way: UP a fifth, to D2 (73.4 Hz), for the same sixteen
+           bars: the bass's D1 under it, the bass's own lowest sound (D2) on it. A tuned drum is an arrival of
+           depth, not a bass line (Least Common v17, measured): on D2 it does not go down to 50 Hz; on the one of
+           bar 145 it falls a fifth onto G1 and all its depth is back on that stroke. This song's drum has moved
+           before (v11: the beater held against it, B flat 1 then C2, as it stops). BENCH (the drum alone,
+           raw): this drum is mostly its sweep down to the note: from 66 to 82 Hz the drum on G1 has 3.5 dB
+           MORE than the drum on D2 (so the chest, v9's bell at 71 Hz, served the old drum better), and tuned
+           up it is 0.7 dB smaller with its highest sample 1.7 dB lower. So for those sixteen bars the drum is
+           smaller and higher, the master delivers everything round it half a dB louder, and at home the big
+           drum is back: the fifth is lighter, home is heavy.
+  RESOLVE  home is whole for its first bar: the bass's fundamental stays under it for bar 145 (G1 G1 G1 B flat 1:
+           49 Hz), and is taken away on the one of bar 146. The voice that made the fifth a turn now says where
+           it was going: D1 to G1, a fourth up, in the same sine.
+
 v16 (27 Nov): THE BASS GOES DOWN TO THE FIFTH. Two switches (`--without-fifth`, `-stand`; both off is v15 byte
 for byte).
   FIFTH   Read first: from 'all gathered' (bar 113) to where the cell goes (bar 169) the scorer's novelty curve
@@ -341,7 +360,9 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True}
+TUNED = {'semis': 7}                      # v17: how far the drum's note moves while the bass is on the fifth (a fifth up: D2)
+RESOLVE = {'bars': 1, 'db': 0}            # v17: how many bars of home the bass's fundamental stays under; dB on those notes
 FIFTH = {'semis': -5}                     # v16: how far the bass's line moves for the second half of 'all gathered' (a fourth down: the fifth of the key, under the drum)
 LINGER = {'db': {'saw': 6, 'kick': 6}}  # v15: the things whose goodbye (LEFT's strokes) also goes to the hall, and dB on those strokes there beside the dry ones
 WALL = {'gain': '-20dB', 'pan': 0.5, 'hz': (3600, 3000), 'parts': ((0.014, 0.35), (0.008, 0.5), (0.0, 1.0)), 'after': 4}   # v14: the clock's fader and side (Give or Take's: -20 dB, 0.5); its two pallets, Hz; a tick's three sounds (seconds before the second, velocity); whole seconds it ticks on after the last stroke
@@ -616,7 +637,7 @@ def build():
                     continue
                 if ON['cede'] and ON['left'] and beat == 0 and any(tr != 'kick' for tr, _ in left(bar)):   # v14 CEDE: the one is the leaver's
                     continue
-                T['kick'].append({'at': b + beat, 'len': 0.5, 'pitch': CHOKE['notes'][bar - (RUNS_DOWN - len(CHOKE['notes']))] if ON['choke'] and bar >= RUNS_DOWN - len(CHOKE['notes']) else 'G1', 'vel': .95 if beat == 0 else .88})
+                T['kick'].append({'at': b + beat, 'len': 0.5, 'pitch': CHOKE['notes'][bar - (RUNS_DOWN - len(CHOKE['notes']))] if ON['choke'] and bar >= RUNS_DOWN - len(CHOKE['notes']) else moved('G1', TUNED['semis']) if ON['tuned'] and on_the_fifth(bar) else 'G1', 'vel': .95 if beat == 0 else .88})
         if 'lead' in T and caught(bar) and bar > COMES['ghost']:   # v11 LEAD: the bass comes back before the drum
             T['lead'].append({'at': b + 4 - LEAD['beats'], 'len': LEAD['beats'], 'pitch': LEAD['pitch'], 'vel': LEAD['vel']})
             if ON['whole'] and bar in WHOLE['bars']:            # v12 WHOLE: the bass's own voice with it: whole for a beat
@@ -640,6 +661,8 @@ def build():
                 T['ghost'].append({'at': b + s / 4, 'len': 0.45, 'pitch': moved(GHOST[bar % 4][i], FIFTH['semis']) if on_the_fifth(bar) else GHOST[bar % 4][i], 'vel': .85})
                 if ON['stand'] and ON['real'] and on_the_fifth(bar):     # v16 STAND: on the fifth the bass is whole
                     T['under'].append(dict(T['ghost'][-1]))
+                if ON['resolve'] and ON['stand'] and ON['real'] and ON['fifth'] and GOES['change'] <= bar < GOES['change'] + RESOLVE['bars']:   # v17 RESOLVE: and for its first bar home
+                    T['under'].append({**T['ghost'][-1], **({'gain': f"{RESOLVE['db']}dB"} if RESOLVE['db'] else {})})
                 if ON['real'] and bar >= GOES['ghost'] - REAL['bars']:
                     T['under'].append({'at': b + s / 4, 'len': 0.45, 'pitch': GHOST[bar % 4][i], 'vel': .85})
         if ON['comp'] and COMP_BARS[0] <= bar < COMP_BARS[1]:
@@ -897,7 +920,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v15, the last four v14, the last six v13, the last eight v12, the last ten v11, the last thirteen v10, the last sixteen v9, the last nineteen v8, the last twenty-one v7, the last twenty-four v6, the last twenty-seven v5, the last thirty v4, the last thirty-three v3, the last thirty-nine v2, all forty-five v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v16, the last four v15, the last six v14, the last eight v13, the last ten v12, the last twelve v11, the last fifteen v10, the last eighteen v9, the last twenty-one v8, the last twenty-three v7, the last twenty-six v6, the last twenty-nine v5, the last thirty-two v4, the last thirty-five v3, the last forty-one v2, all forty-seven v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -924,6 +947,8 @@ if __name__ == '__main__':
                        ([(CATCHES[0], 'the other clock is heard in each caught bar, falling behind the beat it began on (the click is on the half beats): ms after the beat, by catch: ' + '; '.join(' '.join(f'{(s * BPM % 60) * 1000 / BPM:.0f}' for s in caught_seconds() if 240 * b <= s * BPM < 240 * (b + 1)) for b in CATCHES))] if ON['clocks'] and ON['wall'] and ON['stop'] and ON['catch'] else []) +
                        ([(b, 'the hall keeps the goodbye: ' + ', '.join(sorted({tr for tr, _ in left(b) if tr in LINGER['db']}))) for b in range(BARS) if any(tr in LINGER['db'] for tr, _ in left(b))] if ON['linger'] and ON['left'] else []) +
                        ([((ALL + GOES['change']) // 2, 'the bass goes down to the fifth, under the drum: ' + ' | '.join(' '.join(moved(x, FIFTH['semis']) for x in row) for row in GHOST)), (GOES['change'], 'the bass is home on G')] if ON['fifth'] else []) +
+                       ([((ALL + GOES['change']) // 2, f"the drum goes to the fifth too, the other way: it is tuned up to {moved('G1', TUNED['semis'])} while the bass is down there"), (GOES['change'], 'the drum falls a fifth onto its own note, G1, on the one')] if ON['tuned'] and ON['fifth'] else []) +
+                       ([(GOES['change'], 'home is whole for its first bar: the bass keeps its fundamental under it (' + ' '.join(GHOST[GOES['change'] % 4]) + '), and it is taken away on the next one')] if ON['resolve'] and ON['stand'] and ON['real'] and ON['fifth'] else []) +
                        ([((ALL + GOES['change']) // 2, 'on the fifth the bass is whole: its fundamental under every note (D1 is 36.7 Hz), to the one of the bar it comes home')] if ON['stand'] and ON['real'] and ON['fifth'] else []) +
                        ([(RUNS_DOWN, f"the clock on the wall: a tick at every whole second from {int(clock(RUNS_DOWN)) + 1} s to {int(clock(BARS)) + WALL['after']} s, {WALL['after']} of them after the last stroke")] if ON['wall'] and ON['stop'] else []) +
                        ([(b, 'the drum gives the one to whoever has just left') for b in range(BARS) if ON['left'] and any(tr != 'kick' for tr, _ in left(b))] if ON['cede'] else []) +
