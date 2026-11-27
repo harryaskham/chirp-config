@@ -410,6 +410,13 @@ start. The hangar's air rings with both, and while a tone is held the two sides 
 as loud as each other: the held tone says little of where it is; the start does. So the
 first should be heard on the left, where it began, and the second not: though after their
 first 50 ms the two are the same.
+
+v30 (27 Nov): THE WALLS CLOSE IN (C11T3_CLOSE=0 takes it out: v29). A knock between two
+walls comes back once for every time across and back. Between walls 18.6 m apart that
+is nine echoes a second: you can count them. Halve the width and they come twice as
+fast: a rattle, a buzz; at the corridor's own 2.33 m they are its note, D2; at arm's
+length, D4. Bar by bar the walls close in and come back out to the corridor's own
+(its last row). Rhythm and pitch are one thing: the width of the room says which.
 """
 import json
 import math
@@ -751,6 +758,18 @@ BEGAN_TUNE = ("A4", "C5", "F4", "E4")                  # the tones, each twice (
 BEGAN_PAN = 1.0                                        # how far to each side: all the way: the start on the left, the rest on the right (on one speaker the two are one plain tone). WHY NOT LEFT AND RIGHT BY TURNS: the first build did that, and read in the whole song's master this hall answered every one of these tones 7 to 13 dB more on the LEFT, whichever side it was fed from: a tone that went on from the right was level (1 to 4 dB to the right), one that went on from the left stood 8 to 13 dB to the left, and A4 from the left was cancelled by its own air (11 dB under the others)
 BEGAN_GAIN = os.environ.get("C11T3_BEGAN_GAIN", "-38dB")   # both tracks: meant: the straight sound -28 dBFS in the master (the old music at these notes is -41 to -46 dBFS in the middle, a sixth of an octave round each; its tops on the start's sixteenth -37)
 BEGAN_AIR = os.environ.get("C11T3_BEGAN_AIR", "12dB")      # what of them goes to the hangar's air: so that the air is about as loud as the straight sound while the tone is held: where you would stand 27 m from each (in a room of 1200500 cubic metres that rings 5.5 s the room is as loud as the straight sound at 0.057 * sqrt(V / T) = 26.6 m). Read in the whole song's master at -6dB and +6dB (the first build: sides by turns, pan 0.8, no hold; seed 0) and at +12dB (sides by turns, pan 1, with the hold), BEFORE any score: the air on its louder side came out about 19, 7 and 1 dB under the straight sound. THIS BUILD at +12dB (seed 0; the song less the same with nothing to the air): the straight sound -28.6 dBFS on the right, the air on the left -0.8 dB against it (-1.8 to +0.9), on the right 11.5 dB under in the middle (F4's is as loud on the right)
+CLOSE = os.environ.get("C11T3_CLOSE", "1") != "0" and BEGAN   # v30: THE WALLS CLOSE IN: a knock between two walls comes back again and again, once for every time across and back. Far walls: echoes you can count. Halve the width and they come twice as fast; halve it again and again and they are a rattle, a buzz, and then a NOTE: the room's own, an octave up for every halving. The corridor's 2.33 m is D2; arm's length is D4. Rhythm and pitch are one thing, and the width of the room says which
+CLOSE_IN = ("the corridor", 3)                         # the section and its row (from 0): bars 41 to 48, the corridor's last row: the walk ends between its walls
+CLOSE_RATE = 48000                                     # samples a second: every echo is written a whole number of samples after the one before
+CLOSE_NEAR = 163                                       # samples across and back between the nearest walls: 0.582 m apart: 294.5 Hz (D4, 5 cents high)
+CLOSE_STEPS = (5, 4, 3, 2, 1, 0, 1, 2)                 # bar by bar, how many times the nearest width is doubled: 18.6 m, 9.3, 4.7, 2.33 (the corridor itself: its flutter is D2), 1.16, 0.58, and out again to the corridor's own
+CLOSE_AT = (0.125, 2.125)                              # the beats of each bar a knock is on: an eighth of a beat (60 ms) after the first and third strokes of the drum: the only two beats of the bar, two beats apart, that are 26 ms or more from every stroke of every part in all eight bars (searched on v29's notes). The first build's knocks (beats 0.25, 2.25) fell with the click's echo on sixteenth 9 and came out 7.6 dB under; the second's (0.25, 3.25) fell twice with the tock, which comes round every 14 sixteenths (14 and 13 dB under), and twice more came out 6 and 7 dB under. A train that would not be over when the row ends is left out (bar 49 is the foot of the stairs): with these beats, none
+CLOSE_FALL = 75.0                                      # dB a second every train falls, whatever the width: the walls are the same walls
+CLOSE_END = 36.0                                       # dB fallen at which a train is let go (0.48 s)
+CLOSE_SHARE = 3.0                                      # dB taken from every echo for each halving of the width: twice the echoes a second, half the energy each: every train carries the same energy (a rule of this piece, not of a room: in a room nearer walls are louder)
+CLOSE_NOTE = "D3"                                      # what an echo is: one soft thud, about two waves of D3 with its octave as loud (with D3 alone the nearest walls' train, 294 to the second, was 10 dB under the others on the bench: a train only keeps what is in step with it)
+CLOSE_LEN = 0.05                                       # beats an echo is written (24 ms; its own fall ends it in 12)
+CLOSE_GAIN = os.environ.get("C11T3_CLOSE_GAIN", "-16dB")   # the track. Set from readings in the whole song's master, before any score was opened: with the knocks on beats 0.125 and 2.125 at -22dB (both seeds) a train's first 450 ms was -35.4 to -37.9 dBFS (2.5 dB between the quietest and the loudest of the 16) and stood 17.5 dB under the old music at 100 to 600 Hz in the middle: too far under: 6 dB up. An eighth of a beat after the drum THE MASTER LIFTS A KNOCK 13.1 dB (bench at the same fader -45.3). The first build (D3 alone; knocks on beats 0.25 and 2.25), read in the whole song's master at -20dB and -26dB (seed 0) BEFORE any score: a train's first 100 ms -27.9 dBFS for -47.3 on the bench at the same fader: THE MASTER LIFTS A KNOCK ON SIXTEENTH 1 19.4 dB; the trains on sixteenth 1 stood 11 to 19 dB under the old music at 100 to 600 Hz
 AIR_PAN = 0.4                                          # the other ear
 RAIL_VEL = 0.8
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
@@ -1080,6 +1099,28 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def close_row():
+    """The first bar (from 0) of the row in which the walls close in, or None."""
+    sec = next((x for x in SECS if x[0] == CLOSE_IN[0]), None)
+    return sec[1] + ROW * CLOSE_IN[1] if CLOSE and sec is not None else None
+
+
+def close_trains():
+    """[(bar of the row from 0, doublings, samples across and back, beat of the knock, [(beat, dB), ...])]: a knock and its echoes between two walls, twice a bar."""
+    out = []
+    for b in range(ROW):
+        step = CLOSE_STEPS[b]; per = CLOSE_NEAR * 2 ** step
+        for at in CLOSE_AT:
+            s0 = (close_row() + b) * BEATS + at; es = []; k = 0
+            if s0 + CLOSE_END / CLOSE_FALL * BPM / 60 > (close_row() + ROW) * BEATS:
+                continue
+            while CLOSE_FALL * k * per / CLOSE_RATE <= CLOSE_END:
+                t = k * per / CLOSE_RATE
+                es.append((round(s0 + t * BPM / 60, 7), -CLOSE_FALL * t - CLOSE_SHARE * (max(CLOSE_STEPS) - step))); k += 1
+            out.append((b, step, per, s0, es))
+    return out
 
 
 def began_row():
@@ -1929,6 +1970,13 @@ def song():
                               "notes": [{"at": t, "len": BEGAN_LEN, "pitch": p, "vel": 0.8} for t, p, st in bg]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v29 a tone stays where it began (bars {began_row() + 1} to {began_row() + BEGAN_IN[2] * ROW}, the hangar's last {BEGAN_IN[2]} rows): every {BEGAN_EVERY} bars a plain tone, a bar long, each of {' '.join(BEGAN_TUNE)} twice. The first time it starts sharply on the left, is all there for {1000 * BEGAN_HOLD:g} ms, and in the next {1000 * BEGAN_HAND:g} ms is handed to the right, where all the rest of it sounds; the two together are one unbroken tone. The second time it is the same without its start. The hangar's air rings with both. In a room that rings a plain tone is heard where it began (Franssen): the first on the left, though after {1000 * (BEGAN_HOLD + BEGAN_HAND):g} ms the two are the same. Generated by")
         assert "From v29" in doc["about"]
+    if close_row() is not None:
+        cl = close_trains()
+        PATCHES["sr-close"] = {"about": "Standing Room's echo between two walls (chirper-zero, 27 Nov, v30): one soft low thud, a plain tone and its octave, gone in 12 ms, with nothing over 600 Hz; how hard it is struck is how loud it is. A train of them is a rattle or a note, by how close they come.",
+                               "play": {"vel_sens": 1}, "synth": {"layers": ["sine phase=0", "sine phase=0 ratio=2"], "filters": ["lp cutoff=600"], "amp": {"a": "0.2ms", "d": "12ms", "s": 0, "r": "5ms"}}}
+        doc["tracks"].append({"name": "close", "patch": "sr-close", "gain": CLOSE_GAIN, "pan": 0.0, "notes": [{"at": t, "len": CLOSE_LEN, "pitch": CLOSE_NOTE, "vel": round(10 ** (d / 40), 5)} for _, _, _, _, es in cl for t, d in es]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v30 the walls close in (bars {close_row() + 1} to {close_row() + ROW}, the corridor's last row): a knock twice a bar comes back between two walls, once for every time across and back; bar by bar the walls are {', '.join(f'{SOUND * CLOSE_NEAR * 2 ** st / CLOSE_RATE / 2:.2f}' for st in CLOSE_STEPS)} m apart: the echoes come {', '.join(f'{CLOSE_RATE / (CLOSE_NEAR * 2 ** st):.1f}' for st in CLOSE_STEPS)} times a second: far walls are echoes to count, near walls a note ({sum(len(es) for _, _, _, _, es in cl)} thuds in {len(cl)} trains). Generated by")
+        assert "From v30" in doc["about"]
     return doc
 
 
@@ -1984,6 +2032,11 @@ def echoes(a, b, n=16):
 
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
+        if close_row() is not None:
+            cl = close_trains(); cl_sec = BEATS * 60 / BPM
+            print(f"the walls close in ({CLOSE_GAIN}), bars {close_row() + 1}-{close_row() + ROW} ({int(close_row() * cl_sec) // 60}:{close_row() * cl_sec % 60:04.1f}): a knock on beats {' and '.join(f'{x:g}' for x in CLOSE_AT)} of every bar and its echoes between two walls ; every train falls {CLOSE_FALL:g} dB a second and is let go {CLOSE_END:g} dB down ; {CLOSE_SHARE:g} dB off every echo for each halving of the width ; {sum(len(es) for _, _, _, _, es in cl)} thuds in {len(cl)} trains")
+            for cl_b, cl_st, cl_per, _, cl_es in cl[::len(CLOSE_AT)]:
+                print(f"   bar {close_row() + cl_b + 1}: walls {SOUND * cl_per / CLOSE_RATE / 2:6.2f} m apart: across and back in {cl_per} samples ({1000 * cl_per / CLOSE_RATE:.2f} ms): {CLOSE_RATE / cl_per:6.2f} echoes a second ; {len(cl_es)} thuds a train, the first {cl_es[0][1]:+.1f} dB, the last {cl_es[-1][1]:+.1f}")
         if began_row() is not None:
             bg_sec = BEATS * 60 / BPM
             print(f"where it began ({BEGAN_GAIN}, {BEGAN_AIR} of it to the air), bars {began_row() + 1}-{began_row() + BEGAN_IN[2] * ROW} ({int(began_row() * bg_sec) // 60}:{began_row() * bg_sec % 60:04.1f}): every {BEGAN_EVERY} bars from beat {BEGAN_AT:g} a plain tone (each twice: with its start, then without), {BEGAN_LEN:g} beats ({BEGAN_LEN * 60 / BPM:.2f} s) and {1000 * BEGAN_FADE:g} ms going out ; its start is whole on the left for {1000 * BEGAN_HOLD:g} ms, then falls to nothing in {1000 * BEGAN_HAND:g} ms while the right rises to the whole tone ; pan {BEGAN_PAN:g}")
