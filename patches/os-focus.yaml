@@ -1,0 +1,92 @@
+{
+ "about": "Out of Step's drum that nobody strikes (chirper-zero, 27 Nov, v17): 15 plain held tones at the multiples 21 to 35 of the beat's own frequency (2.1 Hz), each a hair flat and out of phase at the start by the square of its place, so that the hum they make draws together into one thump a beat over 8 bars. Written on G1, which does not sound. BANKED by tools/patchbank.py (27 Nov 2026) from Out of Step v17 (track focus): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "40ms",
+   "d": "0s",
+   "r": "30ms"
+  },
+  "layers": [
+   {
+    "level": "-28.39dB",
+    "phase": 0.75,
+    "ratio": 0.8976667
+   },
+   {
+    "level": "-16.69dB",
+    "phase": 0.285714,
+    "ratio": 0.94114616
+   },
+   {
+    "level": "-10.21dB",
+    "phase": 0.892857,
+    "ratio": 0.98452996
+   },
+   {
+    "level": "-6.02dB",
+    "phase": 0.571429,
+    "ratio": 1.02781809
+   },
+   {
+    "level": "-3.21dB",
+    "phase": 0.321429,
+    "ratio": 1.07101056
+   },
+   {
+    "level": "-1.38dB",
+    "phase": 0.142857,
+    "ratio": 1.11410736
+   },
+   {
+    "level": "-0.34dB",
+    "phase": 0.035714,
+    "ratio": 1.1571085
+   },
+   {
+    "level": "0.00dB",
+    "phase": 0.0,
+    "ratio": 1.20001397
+   },
+   {
+    "level": "-0.34dB",
+    "phase": 0.035714,
+    "ratio": 1.24282378
+   },
+   {
+    "level": "-1.38dB",
+    "phase": 0.142857,
+    "ratio": 1.28553793
+   },
+   {
+    "level": "-3.21dB",
+    "phase": 0.321429,
+    "ratio": 1.32815641
+   },
+   {
+    "level": "-6.02dB",
+    "phase": 0.571429,
+    "ratio": 1.37067922
+   },
+   {
+    "level": "-10.21dB",
+    "phase": 0.892857,
+    "ratio": 1.41310638
+   },
+   {
+    "level": "-16.69dB",
+    "phase": 0.285714,
+    "ratio": 1.45543786
+   },
+   {
+    "level": "-28.39dB",
+    "phase": 0.75,
+    "ratio": 1.49767369
+   }
+  ]
+ }
+}

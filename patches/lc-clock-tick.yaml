@@ -1,0 +1,30 @@
+{
+ "about": "Least Common: the clock on the wall, the tick (v15). Give or Take's (chirper-zero's gt-clock-tick, v16), under this song's name: a 9 ms grain of noise through a narrow band at 3600 Hz, one pallet of an escapement. Three of them make a tick (unlock, impulse, drop). BANKED by tools/patchbank.py (27 Nov 2026) from Least Common v15 (track clock-tick): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "9ms",
+   "r": "5ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 3600,
+    "kind": "bp",
+    "q": 5
+   },
+   {
+    "cutoff": 1200,
+    "kind": "hp"
+   }
+  ],
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}

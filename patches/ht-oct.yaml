@@ -1,0 +1,20 @@
+{
+ "about": "Hearing Things' tone for the octave illusion (chirper-zero, 27 Nov, v18): one plain sine, held for the whole of its note and handed to the next over 6 ms, as Deutsch's were: nothing in it but its pitch. BANKED by tools/patchbank.py (27 Nov 2026) from Hearing Things v18 (tracks oct-l, oct-r): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "6ms",
+   "d": "0s",
+   "r": "6ms"
+  },
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ]
+ }
+}
