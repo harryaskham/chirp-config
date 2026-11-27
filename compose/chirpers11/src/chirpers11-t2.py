@@ -99,6 +99,19 @@ every 7. Those meetings, a click with the drum, were the only ones in the song t
          knock is now the head of each. It stops four bars before the end (the low end of a seam is the next
          song's). Its notes are 98 to 370 Hz, where this song stood 7 to 11 dB under the album's envelope.
 
+v14 (27 Nov), THE LAST STROKE BEFORE A TURN IS THE NEWCOMER'S. One switch (`--without-tell`; off is v13 byte
+for byte). The bass has said it is coming since v12 (its first note held to the turn). The four's other parts
+came in on the turn with no word. Now each part that comes in on the next page plays, in the break before it,
+the one last stroke it would have played before the turn had it been there, 3 dB under:
+  into page 3   the hat: the last off-beat (two sixteenths before the turn)
+  into page 4   the clap: the last two-or-four (two beats before)
+  into page 6   the clap again (the second half's first page has none)
+  into page 7   the hat (two sixteenths before) and the clap that counts with the three (two beats before, on
+                the side its count would have had)
+  into page 8   the hat that rings for the five: let ring two sixteenths and stopped on the turn
+Six strokes in 402 s. Wind Down's rule (v12: the catch says who is coming), agreed with chirper-zero for the
+onsets it adds (about 0.015 a second against Standing Room's 6.58).
+
 v13 (27 Nov): THE FIVE'S HAT RINGS. Two switches (`--without-ring`, `-once`; both off is v12 byte for byte):
   RING   since v9 the hat counts with the five on page 8: the first hat after each of its knocks is 'let ring'
          (lc-open: the machine's hat with a decay of 450 ms, held half a beat). Small Change v12 found what
@@ -243,7 +256,8 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
       'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
-      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True}
+      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True}
+TELL = {'db': -3, 'hat': (2, 3, 6, 7), 'clap': (3, 5, 6, 7), 'ring': 2}   # v14: dB on a pickup; the pages (from 0) the hat and the clap play on (as build() has them); sixteenths the rung pickup is held (to the turn)
 RING = {'patch': 'lc-rung', 'decay': '1200ms', 'release': '100ms', 'len': 3}   # v13: the hat that rings for the five: its patch; the time it takes to fall 60 dB; how fast it is stopped; sixteenths it is held (it was 2)
 LED = (1, 5)                            # v12: the pages (from 0) on which the bass comes in: the turn into each is led as well
 WALK = 7                                # v12: the page (from 0) whose turn the bass walks into, holding every meeting's note
@@ -453,6 +467,21 @@ def touch(pos):
     return .92 if pos % BEAT == 0 else .74 if pos % BEAT == 2 else .58
 
 
+def told(t):
+    """v14: (track, sixteenth, length) of the one last stroke each of the four's parts that comes in on the page after turn t would have played before t. On the grid of the page it is leaving."""
+    page, out = t // PAGE, []
+    if page in TELL['hat'] and page - 1 not in TELL['hat']:
+        out.append(('hat', max(x for x in range(t - BAR, t) if x % BAR in (2, 6, 10, 14)), 1))
+    if page in TELL['clap'] and page - 1 not in TELL['clap']:
+        out.append(('clap', max(x for x in range(t - BAR, t) if x % BAR in (4, 12)), 1))
+    if ON['count'] and page == COUNT['page']:
+        x = max(x for x in range(t - COUNT['cycle'] * BEAT, t) if (x - HALF) % (COUNT['cycle'] * BEAT) == COUNT['beat'] * BEAT)
+        out.append(('clap-' + 'lr'[(x - HALF) // (COUNT['cycle'] * BEAT) % 2] if ON['sway'] else 'clap', x, 1))
+    if ON['open'] and ON['ring'] and page == OPEN['page']:
+        out.append(('open', max(x for x in range(t - BAR, t) if x % BAR in (2, 6, 10, 14)), TELL['ring']))
+    return sorted(out, key=lambda o: o[1])
+
+
 def build():
     T = {n: [] for n in ('kick', 'three', 'five', 'seven', 'ping', 'chord', 'tone', 'bass', 'hat', 'clap')}
     marks = []
@@ -621,6 +650,15 @@ def build():
             for off in (4, 12):
                 if not broken(s0 + off) and not bare(s0 + off):
                     add('clap', s0 + off, 1, 'C4', .7)
+    if ON['tell']:                                             # v14 TELL: the last stroke before a turn is the newcomer's
+        names = {'hat': 'hat', 'clap': 'clap', 'clap-l': 'clap that counts', 'clap-r': 'clap that counts', 'open': 'hat that rings'}
+        for t in TURNS * ON['break'] + TURNS2 * ON['rest']:
+            for tr, x, ln in told(t):
+                add(tr, x, ln, 'A#4' if tr in ('hat', 'open') else 'C4', .7, gain=f"{TELL['db']}dB")
+                marks.append((f"the {names[tr]} says it is coming: the last stroke it would have played before the turn", x))
+        for tr in ('hat', 'clap'):
+            T[tr].sort(key=lambda n: n['at'])
+        marks.sort(key=lambda m: m[1])
     if ON['leap']:                                             # v10 LEAP: the bass note after each of the seven's knocks, an octave up
         for s7 in range(HALF + (LEAP['page'] - pages) * PAGE, HALF + (LEAP['page'] - pages + 1) * PAGE, LEAP['cycle'] * BEAT):
             after = [n for n in T['bass'] if s7 < n['at'] * 4 <= s7 + LEAP['within']]
@@ -744,7 +782,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v12, the last four v11, the last six v10, the last nine v9, the last twelve v8, the last fourteen v7, the last seventeen v6, the last eighteen v5, the last twenty-one v4, the last twenty-six v3, the last thirty-four v2, all forty v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last one off is v13, the last three v12, the last five v11, the last seven v10, the last ten v9, the last thirteen v8, the last fifteen v7, the last eighteen v6, the last nineteen v5, the last twenty-two v4, the last twenty-seven v3, the last thirty-five v2, all forty-one v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}')
