@@ -94,6 +94,11 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Wind Down v21 (20:37): bars 1 to 8 by two as v20's (-30.1 -30.3 -30.1 -30.1 dBFS): a record's surface is under
+  them now (in over bars 1 to 4 with no stroke, about -58.6 dBFS, nothing over 10 kHz: zero's three conditions),
+  gone under the drum by bar 13. The end by second from the last stroke (396.39 s): -10.4 -21.0 -32.7 -42.2 -47.1
+  -52.8 -48.1 -53.3 -36.1 (v20 ... -47.5 -54.1 -48.5 -54.8 -36.1: the locked groove's hiss is 0.4 to 1.5 dB up
+  and lower in band); lift at 405.19 s; a master fade-out must still not begin before 405.5 s. Highest -1.30.
 - Ring True v21 (20:05): both ends within 0.3 dB of v20's: bars 1 to 8 by two -17.7 -17.7 -17.8 -17.7 dBFS (v20
   -17.8 four times); bar 184 -11.1; the tail by second -18.3 -33.2 -47.6 -60.9 (-18.5 -33.5 -47.8 -61.1: the
   metal's patch no longer wanders from stroke to stroke, so its hall's copy adds in step); highest sample -1.46.
