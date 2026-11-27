@@ -32,6 +32,19 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v13 (27 Nov), HANDS ON, HANDS OFF. Two more switches (`--without-laid`, `-edge`; both off is v12 byte for byte):
+  LAID   v12 let each hand come off on one stroke, a bar each, before the last bar. The last section began with
+         every hand already down and nothing to say when. Now the hands are heard going ON first, the same
+         way round a mirror: in the bars before the call each thing's taps have its hand's sound for one bar,
+         in the reverse order (the wood's second mode, the metal's, the drum's head a step tight, the string's
+         octave, the pipe an octave down, the skin a step up), and then they come off in the order they went
+         on. The bar line between is the mirror: the skin is laid on last and let go first.
+  EDGE   the plate was the one thing with no hand. A plate held at its edge is a smaller plate: its strokes
+         are an octave up under the hand (the same plate, F8 for F7): in its two stopped bars (137, 138), in
+         the bar that shows the hands, and in the mirror, where it takes its place between the weight and the
+         metal (it was stopped with the string and the weight). With it the mirror is seven bars a side
+         (170 to 176 on, 177 to 183 off); without it six (172 to 177, 178 to 183).
+
 v12 (27 Nov), THE HANDS COME OFF ONE AT A TIME. Two more switches (`--without-equal`, `-call`; both off is v11
 byte for byte):
   EQUAL  v11's hand on the wood was one figure on the stroke with two amounts in dB, and a crossfade that is
@@ -263,7 +276,8 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True}
+EDGE = {'switch': 'edge', 'semis': 12, 'db': 0, 'after': 'weight', 'call': 6}   # v13: the plate's hand (as HAND's); the thing it follows in the call; dB on its one stroke there
 EQUAL = {'patch': 'rt-grip'}            # v12: the wood's patch with each layer's level on the stroke (expr.note, expr.mode), written as an equal-power pair
 CALL = {'order': ('skin', 'air', 'string', 'weight', 'metal', 'wood'), 'ring': 0.6, 'db': {'air': 3, 'string': 6, 'metal': 9}}   # v12: the things whose hands come off, a bar each, before the last bar; how far that one stroke is let go; dB on it.
 # Bench (hand3.sh, hand3read.py: each thing alone on that stroke, raw): with nothing added the six read -33.6 (skin) -36.3 (air) -39.9 (string) -30.8 (weight) -46.4 (metal) -35.8 (wood) dBFS over their beat, where the mix reads -28:
@@ -378,16 +392,34 @@ def hz(pitch):
     return 440 * 2 ** ((names.index(pitch[:-1]) + 12 * (int(pitch[-1]) + 1) - 69) / 12)
 
 
+def hand_of(thing):
+    """v13: the thing's hand (HAND's entry; the plate's is EDGE), or None."""
+    return EDGE if thing == 'plate' and ON['plate'] else HAND.get(thing)
+
+
+def order():
+    """v13: the things whose hands come off, in order: CALL's, with the plate after the weight when it has a hand."""
+    o = list(CALL['order'])
+    return o[:o.index(EDGE['after']) + 1] + ['plate'] + o[o.index(EDGE['after']) + 1:] if ON['edge'] and ON['plate'] else o
+
+
+def laid(thing, bar):
+    """v13: is this the bar in which the thing's hand is heard going on (all its taps have the hand's sound)? The call's bars in a mirror at the bar line before it."""
+    if not (ON['laid'] and ON['call']) or thing not in order() or (thing != 'wood' and not ON[hand_of(thing)['switch']]) or (thing == 'wood' and not ON['grip']):
+        return False
+    return bar == BARS - LAST - len(order()) - 1 - order().index(thing)
+
+
 def stopping(thing):
     """v10: the bars in which a hand stops the thing: from a point where it rings to a point QUICK bars on, in the same section, where it does not."""
-    pts = SHAPE.get(thing, [])
+    pts = PLATE['shape'] if thing == 'plate' and ON['edge'] else SHAPE.get(thing, [])
     return [TOP[b[0]] + j for a, b in zip(pts, pts[1:]) if len(b) > 2 and b[1] == 0 and a[1] > 0 and a[0] == b[0] for j in range(b[2])]
 
 
 def hand_on(thing, bar):
     """v10: what the hand does to the thing's strokes in this bar, or None."""
-    h = HAND.get(thing)
-    return h if h and ON[h['switch']] and (bar in stopping(thing) or (shown(bar) and thing != 'weight')) else None
+    h = hand_of(thing) if ON['edge'] else HAND.get(thing)
+    return h if h and ON[h['switch']] and (bar in stopping(thing) or (shown(bar) and thing != 'weight') or laid(thing, bar)) else None
 
 
 def shown(bar):
@@ -406,9 +438,9 @@ def grip(bar):
 
 def called(thing, bar):
     """v12: is this the bar in which the thing's hand comes off (its last stroke rings with the hand's sound in it)?"""
-    if not ON['call'] or thing not in CALL['order'] or (thing != 'wood' and not ON[HAND[thing]['switch']]) or (thing == 'wood' and not ON['grip']):
+    if not ON['call'] or thing not in order() or (thing != 'wood' and not ON[hand_of(thing)['switch']]) or (thing == 'wood' and not ON['grip']):
         return False
-    return bar == BARS - LAST - len(CALL['order']) + CALL['order'].index(thing)
+    return bar == BARS - LAST - len(order()) + order().index(thing)
 
 
 def blown():
@@ -580,8 +612,8 @@ def build():
                     if off:
                         r = CALL['ring']
                     n = stroke(thing, bar * 4 + (s % BAR) / 4, pitch, vel, r)
-                    if hand_on(thing, bar) or (off and thing in HAND):   # v10: the hand changes what the stroke finds
-                        h = hand_on(thing, bar) or HAND[thing]
+                    if hand_on(thing, bar) or (off and hand_of(thing)):   # v10: the hand changes what the stroke finds
+                        h = hand_on(thing, bar) or hand_of(thing)
                         n['pitch'] = step(pitch, h['steps'][stopping(thing).index(bar) if bar in stopping(thing) else 0]) if 'steps' in h else f"{hz(pitch) * h['ratio']:.1f}hz" if 'ratio' in h else up(pitch, h['semis'])
                         if h['db']:
                             n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + h['db'], 2)}dB"
@@ -589,10 +621,10 @@ def build():
                             n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + FADE[thing], 2)}dB"
                         if shown(bar) and thing in SHOW:
                             n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + SHOW[thing], 2)}dB"
-                        if off and thing in CALL['db']:
-                            n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + CALL['db'][thing], 2)}dB"
-                    if thing == 'wood' and (grip(bar) or off):   # v11: the hand on the bar's middle
-                        x = 1 if off else grip(bar)
+                        if off and (thing in CALL['db'] or thing == 'plate'):
+                            n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + (EDGE['call'] if thing == 'plate' else CALL['db'][thing]), 2)}dB"
+                    if thing == 'wood' and (grip(bar) or off or laid(thing, bar)):   # v11: the hand on the bar's middle
+                        x = 1 if off or laid(thing, bar) else grip(bar)
                         n['expr'] = {**n['expr'], **({'note': round(10 * log10(1 - (1 - 10 ** (GRIP['note'] / 10)) * x), 2), 'mode': round(-float(GRIP['from'][:-2]) + 10 * log10(x), 2)} if ON['equal'] else {'hand': x})}
                     if alone and ALONE:
                         down = ANSWER_DB if thing not in alone else ALONE_OF.get(thing, ALONE) if ON['even'] else ALONE
@@ -709,7 +741,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the thirty-four that are on: all off is v1; the last twenty-nine off is v2; the last twenty-five off is v3; the last twenty-two off is v4; the last nineteen off is v5; the last eighteen off is v6; the last fifteen off is v7; the last thirteen off is v8; the last ten off is v9; the last six off is v10; the last two off is v11)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the thirty-six that are on: all off is v1; the last thirty-one off is v2; the last twenty-seven off is v3; the last twenty-four off is v4; the last twenty-one off is v5; the last twenty off is v6; the last seventeen off is v7; the last fifteen off is v8; the last twelve off is v9; the last eight off is v10; the last four off is v11; the last two off is v12)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -739,7 +771,11 @@ if __name__ == '__main__':
         if ON['equal'] and ON['grip']:
             print("    the wood's hand is an equal-power pair: its note and its second mode each have their level on the stroke")
         if ON['call']:
-            print('    the hands come off one at a time, the last stroke of a bar each: ' + ', '.join(f"bar {BARS - LAST - len(CALL['order']) + j + 1} the {k} ({[n['pitch'] for n in build()[k] if n['at'] // 4 == BARS - LAST - len(CALL['order']) + j][-1]})" for j, k in enumerate(CALL['order']) if called(k, BARS - LAST - len(CALL['order']) + j)))
+            print('    the hands come off one at a time, the last stroke of a bar each: ' + ', '.join(f"bar {BARS - LAST - len(order()) + j + 1} the {k} ({[n['pitch'] for n in build()[k] if n['at'] // 4 == BARS - LAST - len(order()) + j][-1]})" for j, k in enumerate(order()) if called(k, BARS - LAST - len(order()) + j)))
+        if ON['laid'] and ON['call']:
+            print('    and are heard going on first, a bar each, the other way round: ' + ', '.join(f"bar {BARS - LAST - len(order()) - j} the {k} ({[n['pitch'] for n in build()[k] if n['at'] // 4 == BARS - LAST - len(order()) - 1 - j][-1]})" for j, k in enumerate(order()) if laid(k, BARS - LAST - len(order()) - 1 - j)))
+        if ON['edge'] and ON['plate']:
+            print(f"    the plate has a hand: held at its edge its strokes are an octave up (bars {' '.join(str(b + 1) for b in stopping('plate'))}, the bar that shows the hands, and the mirror)")
         if ON['fade'] and ON['cap']:
             print(f"    the shut pipe's last stroke (bar {stopping('air')[-1] + 1}): {FADE['air']} dB")
         print(f'{BARS} bars, {BARS * sec:.1f} s; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in build().items()))
