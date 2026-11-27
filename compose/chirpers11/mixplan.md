@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v18 (14:59): both its ends are v17's to 0.1 dB (bars 1 to 16 by four -22.5 -23.5 -23.6 -20.7 dBFS;
+  the last sixteen -24.3 -23.6 -23.2 -19.7; highest sample -1.30). Inside: a spun coin's rattle (clicks from 3 to
+  5.5 kHz, quickening, stopping dead) through bars 93 to 96 and 173 to 176; the second stops on the one of bar 177,
+  sixteen bars before the song's end and eight before Out of Step begins.
 - Wind Down v18 (14:32): both its ends are v17's (bars 1 to 8 by two -30.1 -30.3 -30.1 -30.2 dBFS; from 396 s by
   second -9 -21 -33 -44 -50 -71 -84 -96; highest sample -1.30). Inside: the clock on the wall chimes Give or Take's
   quarters (two octaves down, its own bell) at bars 49, 97 and 145, and the hour over the run-down (372 to 390 s);
