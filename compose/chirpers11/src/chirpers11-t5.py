@@ -385,6 +385,13 @@ whole chord. In the whole chord the tone that was left out stands out as a note 
 though it is no louder than the rest. The tones left out are the tune that is in neither ear
 (bars 121 to 128), two octaves up: so a tune is heard in a chord that never changes: the
 third way the song plays it without playing it.
+
+v30 (27 Nov): THE HURRY THAT IS NOT THERE (C11T5_HURRY=0 takes it out: v29). A stair of
+low notes, three to every two beats of the drum and exactly even in time, climbs for two
+bars and comes down for two, twice (the middle row of "not there"). A line that rises is
+judged to be speeding up, and one that falls to be slowing down, though its notes are
+evenly spaced (Boltz 2011). Nothing in the time changes: only the pitch. The drum beside
+it is a ruler: the ear can check.
 """
 import json
 import math
@@ -706,6 +713,22 @@ def para_tones(p):
         level = -20 * math.log10(math.e) * math.log2(f / PARA_MID) ** 2 / (2 * PARA_WIDE ** 2)
         if level >= PARA_FLOOR:
             out.append((PARA_APART ** k, f, level))
+    return out
+
+
+def hurry_row():
+    """The first bar (from 0) of the row with the even stair, or None."""
+    sec = next((x for x in SECS if x[0] == HURRY_IN[0]), None)
+    return sec[1] + ROW * HURRY_IN[1] if HURRY and sec is not None and HURRY_IN[1] * ROW < sec[2] else None
+
+
+def hurry_notes():
+    """[(beat, note, 'up' or 'down', place in the beat 0..2)]: one note every HURRY_STEP beats from HURRY_AT of the row, climbing and descending by turns."""
+    n = round(ROW * BEATS / HURRY_STEP); out = []
+    assert abs(n * HURRY_STEP - ROW * BEATS) < 1e-9 and n % (2 * HURRY_RUN) == 0 and len(HURRY_LADDER) == HURRY_RUN + 1
+    for k in range(n):
+        up = (k // HURRY_RUN) % 2 == 0; j = k % HURRY_RUN
+        out.append((round(hurry_row() * BEATS + HURRY_AT + k * HURRY_STEP, 5), HURRY_LADDER[j] if up else HURRY_LADDER[HURRY_RUN - j], "up" if up else "down", k % 3))
     return out
 
 
@@ -1073,6 +1096,15 @@ HOLE_BEATS = 2                                         # beats to a note of the 
 HOLE_PRE = (0.0, 1.0)                                  # the chord with the hole: where in the note's beats it starts, and how long (beats): 480 ms, long enough for the ear to get used to it
 HOLE_FULL = (1.25, 0.5)                                # the whole chord: a sixteenth after the second beat (the drum falls in the gap between the two), half a beat long
 HOLE_GAIN = os.environ.get("C11T5_HOLE_GAIN", "-54dB")   # both tracks. Meant before any reading: each tone about -44 dBFS in the master (the row's own music between its strokes is at -47 to -60 dBFS in a sixth of an octave round each). The bench (the row alone at -20 dB): each tone -26.0 dBFS. Read in the whole song's master at -50dB and -56dB (seed 0), BEFORE any score: each tone -39.9 and -45.9 dBFS in the whole chords (this master lifts them 16 dB), the whole chord -32.8 and -38.8, the old music at 1250 to 3700 Hz in the same windows -32.0: -54dB is the level meant
+HURRY = os.environ.get("C11T5_HURRY", "1") != "0" and HOLE   # v30: THE HURRY THAT IS NOT THERE: a stair of notes exactly even in time, three to every two beats of the drum, climbs for two bars and comes down for two. A line that rises is judged to be speeding up and a line that falls to be slowing down, though its notes are evenly spaced (Boltz 2011, "Illusory tempo changes due to musical characteristics"). Nothing in the time changes: only the pitch
+HURRY_IN = ("not there", 1)                            # the section and its row (from 0): bars 89 to 96: the row of "not there" that had nothing of its own; the section is about what is heard and is not in the sound
+HURRY_LADDER = ("E2", "G2", "A2", "C3", "D3", "E3", "G3", "A3", "C4", "D4", "E4", "G4", "A4")   # the stair: the song's five notes from 82 to 440 Hz: low, where the song has room (83 to 250 Hz are under the middle) and away from 468 to 1922 Hz, which are full
+HURRY_RUN = 12                                         # notes to a climb and to a descent: two bars each. The climb is steps 1 to 12 of the ladder, the descent steps 13 to 2: no note twice running
+HURRY_STEP = 2 / 3                                     # beats from note to note: three notes to two beats: against the drum's four a bar, six
+HURRY_AT = 0.125                                       # the beat of the row its first note is on: so that no note falls with a stroke of the drum, the bass, the tick or the Risset hat: every note is BETWEEN strokes (0.125, 0.792 and 0.458 of a beat by turns)
+HURRY_LEN = 0.5                                        # beats a note is written
+HURRY_TRIM = (0.0, 0.0, 0.0)                           # dB for each of the three places in the beat (a track each), so that every note comes out of the master alike
+HURRY_GAIN = os.environ.get("C11T5_HURRY_GAIN", "-28dB")   # the three tracks, before their trims. The bench (the row alone at -20 dB): a note's first 100 ms -33.6 dBFS. Read in the whole song's master at -34dB and -40dB (seed 0), BEFORE any score: -32.2 and -38.2 dBFS (the master lifts it 15.4 dB: between the strokes, in a row with the drum); the three places in the beat 0.9 dB apart: no trims; nine in ten within 3.5 dB. At -34dB the notes were 16.4 dB under the old music at 60 to 1500 Hz (the drum, the bass and the sub are in that band): too far under for low notes. -28dB is meant to bring a note to -26.2 dBFS
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1596,6 +1628,14 @@ def song():
             doc["tracks"].append({"name": ho_name, "patch": "ht-hole", "gain": HOLE_GAIN, "pan": 0.0, "notes": [{"at": t, "len": ln, "pitch": p, "vel": 0.8} for t, ln, p in ho_ns]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v29 there is a tune of holes (bars {hole_row() + 1} to {hole_row() + ROW}, the last row of 'not there'): a chord of {len(HOLE_CHORD)} plain tones ({' '.join(HOLE_CHORD)}), every tone as loud as every other, sounds {len(hole_tune())} times, the same every time; before each it is heard for {HOLE_PRE[1]:g} of a beat with one tone left out. In the whole chord the tone that was left out stands out, though it is no louder than the rest: the ear has got used to the others. The tones left out are the tune that is in neither ear ({' '.join(hole_tune()[:len(HUG_TUNE)])}). Generated by")
         assert "From v29" in doc["about"]
+    if hurry_row() is not None:
+        hu = hurry_notes(); hu_g = float(HURRY_GAIN.replace("dB", ""))
+        PATCHES["ht-hurry"] = {"about": "Hearing Things' even stair (chirper-zero, 27 Nov, v30): a soft low pluck: a plain tone with a little of its second and third harmonics, struck and gone in a quarter of a second; every note as loud as every other whatever its pitch.",
+                               "play": {"vel_sens": 0}, "synth": {"layers": ["sine phase=0", "sine phase=0 ratio=2 level=-12dB", "sine phase=0 ratio=3 level=-18dB"], "filters": ["lp cutoff=7000"], "amp": {"a": "2ms", "d": "220ms", "s": 0, "r": "50ms"}}}
+        for hu_k in range(3):
+            doc["tracks"].append({"name": f"hurry-{hu_k + 1}", "patch": "ht-hurry", "gain": f"{hu_g + HURRY_TRIM[hu_k]:g}dB", "pan": 0.0, "notes": [{"at": t, "len": HURRY_LEN, "pitch": p, "vel": 0.8} for t, p, _, pl in hu if pl == hu_k]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v30 there is a hurry that is not there (bars {hurry_row() + 1} to {hurry_row() + ROW}, the middle row of 'not there'): a stair of low notes ({HURRY_LADDER[0]} to {HURRY_LADDER[-1]}), three to every two beats and exactly even in time, climbs for two bars and comes down for two, twice ({len(hu)} notes, {60000 / BPM * HURRY_STEP:.0f} ms apart, every one): a line that rises is judged to be speeding up and one that falls to be slowing down; nothing in its time changes. Generated by")
+        assert "From v30" in doc["about"]
     return doc
 
 
@@ -1613,6 +1653,10 @@ def dump(doc):
 if __name__ == "__main__":
     if os.environ.get("C11T5_SHOW"):
         sec = 60 / BPM * BEATS
+        if hurry_row() is not None:
+            hu = hurry_notes(); hu_b = hurry_row()
+            print(f"the hurry that is not there ({HURRY_GAIN}, trims {' '.join(f'{x:+g}' for x in HURRY_TRIM)} dB), bars {hu_b + 1}-{hu_b + ROW} ({int(hu_b * sec) // 60}:{hu_b * sec % 60:04.1f}): {len(hu)} notes, one every {HURRY_STEP:.4f} beat ({60000 / BPM * HURRY_STEP:.1f} ms) from beat {HURRY_AT:g}: three to two beats ; {HURRY_RUN} up ({hu[0][1]} to {hu[HURRY_RUN - 1][1]}: {hz(hu[0][1]):.0f} to {hz(hu[HURRY_RUN - 1][1]):.0f} Hz), {HURRY_RUN} down ({hu[HURRY_RUN][1]} to {hu[2 * HURRY_RUN - 1][1]}), {len(hu) // (2 * HURRY_RUN)} times ; places in the beat: {' '.join(f'{(t - hu_b * BEATS) % 1:.3f}' for t, _, _, _ in hu[:3])}")
+            print("   " + " | ".join(" ".join(p for _, p, _, _ in hu[r * HURRY_RUN:(r + 1) * HURRY_RUN]) for r in range(len(hu) // HURRY_RUN)))
         if hole_row() is not None:
             ho_pre, ho_full = hole_notes(); ho_b = hole_row()
             print(f"a tune of holes ({HOLE_GAIN}), bars {ho_b + 1}-{ho_b + ROW} ({int(ho_b * sec) // 60}:{ho_b * sec % 60:04.1f}): the chord {' '.join(HOLE_CHORD)} ({', '.join(f'{hz(p):.0f}' for p in HOLE_CHORD)} Hz) ; every {HOLE_BEATS} beats: the chord with one tone left out from beat {HOLE_PRE[0]:g} for {HOLE_PRE[1]:g} ({1000 * 60 / BPM * HOLE_PRE[1]:.0f} ms), the whole chord from beat {HOLE_FULL[0]:g} for {HOLE_FULL[1]:g} ({1000 * 60 / BPM * HOLE_FULL[1]:.0f} ms) ; {len(ho_pre)} + {len(ho_full)} notes ; left out: {' '.join(hole_tune())}")
