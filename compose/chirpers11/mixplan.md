@@ -94,6 +94,9 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Ring True v16 (10:05): both ends are v15's to 0.1 dB: bars 1 to 8 by two -17.9 -18.0 -18.0 -18.0 dBFS (100 to 200
+  Hz as v15: Standing Room's hum is as far under as it was); bar 184 -11.1; the tail by second -19.1 -34.3 -48.6
+  -61.9. Inside: a second reverb bus (`floor`, 90 Hz to 1.5 kHz) sounds in bars 173, 174 and 176 only.
 - Least Common v16 (09:40): both ends are v15's exactly (bars 1 to 4 -17.5 dBFS; the last four bars -17.4 -17.3
   -17.3 -17.0; 2 s after home -20.1). Inside: the clock is 4 dB harder in the three later stops (4:03, 4:53, 5:43);
   its phase to Give or Take's seconds is untouched. Nothing else moved.
