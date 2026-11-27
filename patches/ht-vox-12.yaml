@@ -1,0 +1,30 @@
+{
+ "about": "Hearing Things' held note, tone 12 of 18 (chirper-zero, 27 Nov, v20): one plain sine at 12 times D2 (881.0 Hz), held as long as its note, whose pitch follows the lane `vib` (semitones). The note is all 18 together; a voice is the ones that waver together. BANKED by tools/patchbank.py (27 Nov 2026) from Hearing Things v20 (track vox-12): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`vib`): give the track that plays it `auto: {vib: \u2026}`, as the song does.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "400ms",
+   "d": "0ms",
+   "r": "600ms"
+  },
+  "layers": [
+   {
+    "phase": 0.0,
+    "ratio": 12.0
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 1.0,
+     "src": "auto.vib"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

@@ -1,0 +1,30 @@
+{
+ "about": "Out of Step's second drum (chirper-zero, 27 Nov, v19): a small low drum for counting against the bass drum: three plain tones (the note, its octave -10 dB, its twelfth -18 dB), each begun at the same point of its wave, gone in a tenth of a second. Its loudness is its velocity. BANKED by tools/patchbank.py (27 Nov 2026) from Out of Step v19 (track gear): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.5ms",
+   "d": "110ms",
+   "r": "40ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "phase": 0.0
+   },
+   {
+    "level": "-10dB",
+    "phase": 0.0,
+    "ratio": 2.0
+   },
+   {
+    "level": "-18dB",
+    "phase": 0.0,
+    "ratio": 3.0
+   }
+  ]
+ }
+}

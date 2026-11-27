@@ -1,0 +1,41 @@
+{
+ "about": "Standing Room's click come back from a corner (chirper-zero, 27 Nov, v20): the click (the machine's rim and a breath of white noise, above 500 Hz) as a wall leaves it: no lift at the top, its own note (880 Hz) 5 dB down as the click's repair has it, and as loud as its velocity (an echo's level is written in the velocity). BANKED by tools/patchbank.py (27 Nov 2026) from Standing Room v20 (tracks corner-1, corner-2, corner-3, corner-4, corner-5, corner-6, corner-7, corner-8, corner-9): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "curve": 4.0,
+   "d": "40ms",
+   "r": "20ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 500,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 880,
+    "gain": "-5dB",
+    "kind": "peak",
+    "q": 3
+   }
+  ],
+  "layers": [
+   {
+    "machine": {
+     "decay": "45ms",
+     "part": "rim"
+    },
+    "type": "machine"
+   },
+   {
+    "level": "-3dB",
+    "type": "noise"
+   }
+  ]
+ }
+}

@@ -1,0 +1,48 @@
+{
+ "about": "Ring True: the metal with its motor (v17). The steel bar of rt-metal over a resonator whose disc turns once a beat: open when the bar is struck (the off-beat), shut on the beat: the ring is 12 dB down on every beat and back between. A stopped stroke is as rt-metal's. BANKED by tools/patchbank.py (27 Nov 2026) from Ring True v17 (tracks metal, metal-room, metal-kept, metal-drop): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.6
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "curve": 1.0,
+   "d": "0s",
+   "r": "2.5s"
+  },
+  "layers": [
+   {
+    "bright": 1,
+    "decay": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ring"
+      }
+     ],
+     "value": 0.012
+    },
+    "level": {
+     "mod": [
+      {
+       "amount": 6.0,
+       "src": "lfo.motor"
+      }
+     ],
+     "value": "-6dB"
+    },
+    "modes": "glock",
+    "strike": 0.6,
+    "type": "modal"
+   }
+  ],
+  "lfo": {
+   "motor": {
+    "phase": 0.25,
+    "rate": "1/4",
+    "retrig": true
+   }
+  }
+ }
+}
