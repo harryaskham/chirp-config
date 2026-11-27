@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v15 (09:11): both ends are v14's to 0.1 dB: bars 1 to 16 by four -22.4 -23.4 -23.6 -20.6 dBFS; the
+  last sixteen -24.3 -23.6 -23.1 -19.6; under 75 Hz the last sixteen bars and the tail are v14's exactly (-58.5
+  -58.0 -53.2 -59.6; nothing after bar 192), so Out of Step's low tones from its bar 9 meet what they met. Inside:
+  the bass has its octave (175 to 233 Hz) from bar 33 to bar 176; the drum rests in bar 32.
 - Wind Down v15 (08:31): its start is v14's (bars 1 to 8 by two -29.9 -30.1 -29.9 -30.0 dBFS) and its end within
   rounding (from 396 s by second -9 -20 -32 -44 -49 -71 -84 -95). Inside: the wall clock also ticks in the seven
   caught bars (bars 16, 32 ... 112), on THIS song's own seconds (not the album's: its arithmetic is 31 beats to
