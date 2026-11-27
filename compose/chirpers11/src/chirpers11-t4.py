@@ -32,6 +32,17 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v23 (27 Nov), THE PAIR SLOWS AS THE OTHERS ARE STOPPED, AND THE PIPE ENDS AS A PIPE DOES. Two switches
+(`--without-slows`, `-fall`; both off is v22 byte for byte).
+  SLOWS  v21's second metal bar came nearer in three steps (one wave a beat, an eighth, a sixteenth) and then
+         stayed a sixteenth apart for 32 bars, to the bar the hand goes on. Now it goes back the way it came
+         while the others are stopped: bars 137 to 140 one wave an eighth, bars 141 to 144 one wave a beat, and
+         on bar 145 the hand is on the metal and there is one bar. The flutter is the peak's and leaves with it.
+  FALL   v22 gave the pipe the plate's cell: seven even strokes on one note, twelve bars long: 42 F5s and no
+         other note. The plate got the pipe's fall (F7 F7 F7 D7); the pipe had none. Now the pipe ends the
+         plate's cell as a pipe ends its own: the seventh stroke falls a third (D5). A trade of rhythm in which
+         each keeps the end of its own tune; and in the telling (bars 79 and 80) too.
+
 v22 (27 Nov), ALL SIX TRADE, AND THE HALL HEARS BOTH BARS. Three switches (`--without-third`, `-foretold`,
 `-hallpair`; all off is v21 byte for byte).
   THIRD     v20 had two pairs trade cells at the peak (the wood and the metal from bar 121, the string and the
@@ -425,10 +436,11 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True, 'trade': True, 'slack': True, 'hint': True, 'twin': True, 'quicken': True, 'told': True, 'third': True, 'foretold': True, 'hallpair': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True, 'trade': True, 'slack': True, 'hint': True, 'twin': True, 'quicken': True, 'told': True, 'third': True, 'foretold': True, 'hallpair': True, 'slows': True, 'fall': True}
 TRADE = {'to': 128, 'pairs': (('wood', 'metal', 12, 120), ('string', 'skin', 0, 124))}   # v20: the bar (from 0) at which each has its own cell again; the pairs that play each other's: how many semitones the second is over the first, and the bar (from 0) they trade at
 TWIN = {'patch': 'rt-true', 'ring': 0.3, 'db': -6, 'gap': 1, 'bars': ((48, 64, 4), (96, 112, 2), (112, 144, 1))}   # v21: the metal's patch while it is a pair (the motor's, with the engine's stroke-to-stroke wander off: another sound, another name); the least ring, s, at which the second bar is struck; dB on each of the two (in step at the stroke they add to the old stroke); sixteenths to one wave of the gap between them where QUICKEN is off; the bars (from 0, to but not with) in which the metal is a pair, and the sixteenths to a wave there with QUICKEN
 THIRD = {'pair': ('air', 'plate', 24), 'at': 116, 'told': (78, 80), 'lift': 4}   # v22: (the last: dB on the plate's strokes while it plays the pipe's cell: two of its four fall on the bass drum, and the first build's peak read 2 to 3 dB poorer above 6 kHz, bars 117 to 128) v22: the third pair that trades (how many semitones the second is over the first), the bar (from 0) it trades at, and the bars (from 0, to but not with) in which it is told once before, stopped
+SLOWS = {'bars': ((136, 140, 2), (140, 144, 4))}   # v23: the bars (from 0, to but not with) in which the metal's pair goes back the way it came, and sixteenths to one wave of the gap there (they stand before TWIN's own spans)
 TOLD = {'pair': ('string', 'skin', 0), 'bars': (62, 64)}   # v21: the second pair's trade told once before, stopped: the last cell before the string is let go
 HINT = {'pair': ('wood', 'metal', 12), 'bars': (30, 32)}   # v20: the pair that trades once before, stopped; the bars (from 0, to but not with): the last cell before the wood is let go
 SLACK = {'from': 125, 'steps': (-1, -2, -3), 'db': (0.5, 0.5, 2)}   # v20: the bar (from 0) at which the weight's head goes slack; steps of the five notes on each bar from there; dB on its strokes there (bench: alone, the slack drum read 0.7, 0.4 and 1.8 dB under the tight one, bar by bar)
@@ -665,7 +677,10 @@ def cell_of(thing, bar):
     if spans:
         for a, b, semis, at, to in spans:
             if thing in (a, b) and at <= bar < to:
-                return [(s, up(pitch, semis if thing == b else -semis), vel) for s, pitch, vel in strokes_of(a if thing == b else b)]
+                cell = [(s, up(pitch, semis if thing == b else -semis), vel) for s, pitch, vel in strokes_of(a if thing == b else b)]
+                if ON['fall'] and (a, b, semis) == THIRD['pair'] and thing == a:   # v23 FALL: the pipe ends the plate's cell as it ends its own
+                    cell[-1] = (cell[-1][0], strokes_of(a)[-1][1], cell[-1][2])
+                return cell
     return strokes_of(thing)
 
 
@@ -869,7 +884,7 @@ def build():
     if ON['twin'] and ON['motor'] and T.get('metal'):             # v21 TWIN: the metal is a pair; QUICKEN: the gap between them doubles twice
         both, second = [], []
         for n in T['metal']:
-            span = next((x for x in TWIN['bars'] if x[0] <= n['at'] // 4 < x[1]), None)
+            span = next((x for x in (SLOWS['bars'] if ON['slows'] and ON['quicken'] else ()) + TWIN['bars'] if x[0] <= n['at'] // 4 < x[1]), None)   # v23 SLOWS: the pair goes back the way it came
             if span and n.get('expr', {}).get('ring', 0) >= TWIN['ring'] and not n['pitch'].endswith('hz'):
                 db = f"{round(float(n.get('gain', '0dB')[:-2]) + TWIN['db'], 2)}dB"
                 both.append({**n, 'gain': db})
@@ -1021,7 +1036,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the fifty-three that are on: all off is v1; the last forty-eight off is v2; the last forty-four off is v3; the last forty-one off is v4; the last thirty-eight off is v5; the last thirty-seven off is v6; the last thirty-four off is v7; the last thirty-two off is v8; the last twenty-nine off is v9; the last twenty-five off is v10; the last twenty-one off is v11; the last nineteen off is v12; the last seventeen off is v13; the last fifteen off is v14; the last fourteen off is v15; the last thirteen off is v16; the last twelve off is v17; the last eleven off is v18; the last nine off is v19; the last six off is v20; the last three off is v21)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the fifty-five that are on: all off is v1; the last fifty off is v2; the last forty-six off is v3; the last forty-three off is v4; the last forty off is v5; the last thirty-nine off is v6; the last thirty-six off is v7; the last thirty-four off is v8; the last thirty-one off is v9; the last twenty-seven off is v10; the last twenty-three off is v11; the last twenty-one off is v12; the last nineteen off is v13; the last seventeen off is v14; the last sixteen off is v15; the last fifteen off is v16; the last fourteen off is v17; the last thirteen off is v18; the last eleven off is v19; the last eight off is v20; the last five off is v21; the last two off is v22)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -1078,6 +1093,10 @@ if __name__ == '__main__':
             print(f"    the weight's head is {HEFT['db']} dB up under its disc: open it is over the old drum's head, shut {2 * DISC['db'] - HEFT['db']} dB under it")
         if ON['trade']:
             print(f"    the things trade cells, one pair at a time, to bar {TRADE['to']}: " + '; '.join(f"from bar {at + 1} the {x} plays the {y}'s" + (f" (an octave {'down' if semis > 0 else 'up'})" if semis else '') + f" and the {y} the {x}'s" + (f" (an octave {'up' if semis > 0 else 'down'})" if semis else '') for x, y, semis, at in TRADE['pairs']) + f"; from bar {TRADE['to'] + 1} each has its own again")
+        if ON['slows'] and ON['quicken'] and ON['twin'] and ON['motor']:
+            print('    the pair goes back the way it came while the others are stopped: ' + '; '.join(f"bars {a + 1}-{b}: {BPM * 4 / 60 / g:.2f} Hz (one wave {'a beat' if g == 4 else 'an eighth'})" for a, b, g in SLOWS['bars']) + f"; on bar {SLOWS['bars'][-1][1] + 1} the hand is on the metal and there is one bar")
+        if ON['fall'] and (ON['foretold'] or (ON['third'] and ON['trade'])):
+            print(f"    the {THIRD['pair'][0]} ends the {THIRD['pair'][1]}'s cell as it ends its own: the last of the seven strokes falls to {strokes_of(THIRD['pair'][0])[-1][1]}: " + ' '.join(pt for _, pt, _ in cell_of(THIRD['pair'][0], THIRD['told'][0] if ON['foretold'] else THIRD['at'])))
         if ON['third'] and ON['trade']:
             x, y, semis = THIRD['pair']
             print(f"    a third pair trades first: from bar {THIRD['at'] + 1} the {x} plays the {y}'s cell ({semis // 12} octaves down: " + ' '.join(up(pt, -semis) for _, pt, _ in strokes_of(y)) + f") and the {y} the {x}'s ({semis // 12} octaves up: " + ' '.join(up(pt, semis) for _, pt, _ in strokes_of(x)) + '): all six have changed hands by the peak\'s end')
