@@ -261,6 +261,18 @@ tick alone goes on as it did (it was once a turn already); and in the loop the n
 The scratch is half a sixteenth after where the needle is on the first beat of "locked": between two of
 deck B's sixteenths, where nothing else on the record is. When the motor is switched off the needle meets it once more, 44 ms late and a little low, and
 never again: the platter stops three and a half sixteenths of the record short of it.
+
+v21 (27 Nov): THE CLOCK CHIMES THE QUARTERS (C11T1_QUART=0 takes it out: v20). The clock on the wall
+ticks the seconds, strikes the minutes and gives the pips. A clock that strikes has a tune for the
+quarters: the Westminster quarters, FIVE CHANGES ON FOUR BELLS (here D C B flat F: all four are in the
+song's G minor, and the bell that strikes the minutes is the lowest of them an octave up), taken in
+order: one change at a quarter past, two at the half, three at a quarter to. The whole minute's four
+are not rung: the minute belongs to the pips and the strokes. So every fifteen seconds of the song,
+which is seven and three quarter bars and never the same place in a bar twice, the clock rings 4, 8 or
+12 notes, half a second apart: its own time, a beat and a thirtieth of the decks'. The tune is nearly
+in time with the music and never is, and falls a little further behind it with every note. How far
+through a minute the song is can now be told from how many changes are rung, as the minute can from the
+strokes. Nothing is rung in the last four bars: there the clock only ticks.
 """
 import json
 import math
@@ -564,6 +576,16 @@ SCAR_NOTE = "C6"                                       # the tick: 1047 Hz and 3
 SCAR_VEL = 0.9
 SCAR_PAN = 0.1                                         # where the record's chord and its pop are
 SCAR_GAIN = os.environ.get("C11T1_SCAR_GAIN", "-16dB") # set in the whole song's master, between two readings: here a tick is -20 to -33 dBFS in its own 8 ms (the song's own clicks are -14 to -26) and over what was in its gap by 4 to 15 dB in the middle of each section; at -20dB it was level with its gap
+QUART = os.environ.get("C11T1_QUART", "1") != "0" and SCAR     # v21: the clock chimes the quarters
+QUART_EVERY = 15                                       # seconds: a quarter of a minute
+QUART_BELLS = {3: "D6", 2: "C6", 1: "Bb5", 5: "F5"}    # four more bells, by their place in the scale of B flat (the song's G minor has all four): the bell that strikes the minutes (F6) is the lowest of them an octave up
+QUART_CHANGES = ((3, 2, 1, 5), (1, 3, 2, 5), (1, 2, 3, 1), (3, 1, 2, 5), (5, 2, 3, 1))   # the Westminster quarters: five changes on four bells
+QUART_ORDER = {1: (0,), 2: (1, 2), 3: (3, 4, 0)}       # the changes rung at the first, second and third quarter: taken in order, round and round (the whole minute's four are not rung: the minute belongs to the pips and the strokes)
+QUART_APART = 0.5                                      # seconds from note to note: the clock's own time, a beat and a thirtieth of the decks'
+QUART_CHANGE = 3.0                                     # seconds from a change's first note to the next change's first: its fourth note is three times as long
+QUART_HELD = (1.0, 2.0)                                # beats a note is held: the first three of a change, and its last
+QUART_TRIM = {(1, 3): -3.0}                            # dB by (minute, quarter): set in the whole song's master, chime by chime. Twelve of the thirteen came out within 3 dB of one another untrimmed (their notes' medians -25.0 to -28.5 dBFS at -22dB); the one at 1:45 is in "no ruler", where the kick is out, and was -22.5
+QUART_GAIN = os.environ.get("C11T1_QUART_GAIN", "-25dB")  # set in the whole song's master between two readings: at -22dB every note stood 5 to 43 dB (median 13) over the music in a band 12% wide round its own tone and the music under a chime was 0.05 to 0.12 dB down; at -28dB the median was 7 and two notes of the hundred were level with the music or under it. A tune needs every note. Written 9 dB under the strokes of the minute
 PIPS_BEFORE = 5                                        # short pips: one on each of the five seconds before the minute
 PIPS_SHORT = 0.1                                       # seconds a short pip lasts
 PIPS_LONG = 0.5                                        # the sixth, which BEGINS on the minute
@@ -940,6 +962,23 @@ def pips_notes():
     return [{"at": round(sec * BPM / 60, 5), "len": round(ln * BPM / 60, 5), "pitch": PIPS_NOTE, "vel": round(0.9 * 10 ** (PIPS_TRIM[k][i] / 20), 4)} for k, ps in pips_seconds() for i, (sec, ln) in enumerate(ps)]   # a pip's loudness is its velocity (vel_sens 0.5)
 
 
+def quart_chimes():
+    """[(seconds, minute, quarter, [(seconds, bell, is it the change's last note?)])]: a chime at every quarter of a minute but the whole ones, left out if any of it would sound in the last four bars (the seam: the ticking alone)."""
+    end = (BARS - 4) * BEATS * 60 / BPM
+    out, k = [], 1
+    while k * QUART_EVERY < end:
+        if k % 4:
+            ns = [(k * QUART_EVERY + i * QUART_CHANGE + j * QUART_APART, QUART_BELLS[d], j == len(QUART_CHANGES[c]) - 1) for i, c in enumerate(QUART_ORDER[k % 4]) for j, d in enumerate(QUART_CHANGES[c])]
+            if ns[-1][0] + 1.5 < end:
+                out.append((k * QUART_EVERY, k // 4, k % 4, ns))
+        k += 1
+    return out
+
+
+def quart_notes():
+    return [{"at": round(sec * BPM / 60, 5), "len": QUART_HELD[1 if last else 0], "pitch": bell, "vel": round(0.9 * 10 ** (QUART_TRIM.get((m, q), 0.0) / 20), 4)} for _, m, q, ns in quart_chimes() for sec, bell, last in ns]
+
+
 def chime_strikes():
     """(the minute, the seconds of its strokes): at the k-th whole minute of the song the clock strikes k times, CHIME_APART seconds apart."""
     end = BARS * BEATS * 60 / BPM
@@ -1162,6 +1201,13 @@ def song():
         doc["tracks"].append({"name": "scar", "patch": "gt-scar", "gain": SCAR_GAIN, "pan": SCAR_PAN, "auto": {"spd": {"points": lane}}, "notes": scar_notes()})      # dry, as the pop is
         doc["about"] = doc["about"].replace(" Generated by", f" From v20 there is a scratch across deck B's record, which the needle meets once a turn: a small tick every {SCAR_TURN} sixteenths of the record, so {SCAR_TURN} against sixteen when the hand is off, and through everything the record goes through: early and late with the hand, twice and eight times over in the stretch, once more going backwards in the spin back, closer at the other speed; it alone is not changed when the needle sticks (it was once a turn already); and when the motor is switched off the needle meets it once more, late, and never again. Generated by")
         assert "From v20" in doc["about"]
+    if QUART and quart_chimes():
+        if "gt-chime" not in PATCHES:
+            raise SystemExit("the quarters are rung on the clock's bell (gt-chime): C11T1_CHIME must be on")
+        qu = quart_chimes()
+        doc["tracks"].append({"name": "quarters", "patch": "gt-chime", "gain": QUART_GAIN, "pan": CLOCK_PAN, "sends": {"room": CLOCK_ROOM}, "notes": quart_notes()})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v21 the clock chimes the quarters of every minute, as a clock in a hall does: the Westminster quarters, five changes on four bells ({', '.join(QUART_BELLS[d] for d in (3, 2, 1, 5))}), taken in order: one change at a quarter past the minute, two at the half, three at a quarter to; the minute itself is left to the pips and the strokes. {len(qu)} chimes, {sum(len(c[3]) for c in qu)} notes, {QUART_APART:g} s apart: the clock's own time, which is a beat and a thirtieth of the decks', so the tune is nearly in time with them and never is; and how far through a minute the song is can be told from how many changes are rung. Generated by")
+        assert "From v21" in doc["about"]
     return doc
 
 
@@ -1178,6 +1224,12 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if QUART and quart_chimes():
+            qu = quart_chimes()
+            print(f"the clock chimes the quarters ({QUART_GAIN}): {len(qu)} chimes, {sum(len(c[3]) for c in qu)} notes on {' '.join(QUART_BELLS[d] for d in (3, 2, 1, 5))}, {QUART_APART:g} s apart ({QUART_APART * BPM / 60:.4f} beats), a change every {QUART_CHANGE:g} s")
+            for qu_t, qu_m, qu_q, qu_ns in qu:
+                qu_b = qu_t * BPM / 60
+                print(f"   {qu_m}:{qu_q * QUART_EVERY:02d} (bar {int(qu_b // BEATS) + 1} beat {qu_b % BEATS + 1:.2f}, {section_at(qu_b)[0]}): {len(qu_ns) // 4} change(s): " + " | ".join(" ".join(b for _, b, _ in qu_ns[i:i + 4]) for i in range(0, len(qu_ns), 4)) + f" ; to {qu_ns[-1][0] - qu_t:g} s after ; trim {QUART_TRIM.get((qu_m, qu_q), 0.0):+g} dB")
         if SCAR and scar_notes():
             sc = scar_notes(); sc_ms = 60000 / BPM
             print(f"a scratch across deck B's record: a tick every {SCAR_TURN} sixteenths of the record (from its sixteenth {scar_phase() + SCAR_OFF:g}: {SCAR_OFF:g} of a sixteenth after the first beat of {SCAR_ON}) ; {len(sc)} ticks, bars {int(sc[0]['at'] // BEATS) + 1}-{int(sc[-1]['at'] // BEATS) + 1} ; {SCAR_GAIN}, pan {SCAR_PAN}")
