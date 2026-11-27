@@ -1,0 +1,69 @@
+{
+ "about": "Ring True: the weight with a disc under its head (v18). rt-drum, and the head's ring is turned once a beat: open on the beat the drum is struck on, 12 dB down on the off-beat. The felt thud is not turned; a stopped stroke is as rt-drum's. BANKED by tools/patchbank.py (27 Nov 2026) from Ring True v18 (tracks weight, weight-floor, weight-drop): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "curve": 1.0,
+   "d": "0s",
+   "r": "2.5s"
+  },
+  "layers": [
+   {
+    "beater": "felt",
+    "decay": 0.35,
+    "level": {
+     "mod": [
+      {
+       "amount": -2.0,
+       "src": "expr.ring"
+      }
+     ],
+     "value": "0dB"
+    },
+    "sharp": 60.0,
+    "slap": 0.4,
+    "strike": 0.15,
+    "type": "drum"
+   },
+   {
+    "bright": 0.4,
+    "decay": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ring"
+      }
+     ],
+     "value": 0.04
+    },
+    "level": {
+     "mod": [
+      {
+       "amount": 2.0,
+       "src": "expr.ring"
+      },
+      {
+       "amount": 6.0,
+       "src": "lfo.motor"
+      }
+     ],
+     "value": "-12dB"
+    },
+    "modes": "kettle",
+    "strike": 0.2,
+    "type": "modal"
+   }
+  ],
+  "lfo": {
+   "motor": {
+    "phase": 0.25,
+    "rate": "1/4",
+    "retrig": true
+   }
+  }
+ }
+}
