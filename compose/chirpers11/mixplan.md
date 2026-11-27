@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Least Common v17 (11:36): both ends are v16's to 0.2 dB: bars 1 to 4 -17.6 dBFS (was -17.5); the last four
+  bars -17.4 -17.4 -17.3 -17.0; 2 s after home -20.3 (was -20.1). The clock and its phase are untouched. Inside:
+  the drum is tuned up on pages 6 and 7 (4:10 to 5:50: B flat 1, then D2) and is on G1 again from 5:50 to the end,
+  so the seam into Standing Room meets the drum it met.
 - Small Change v16 (11:01): the whole song reads 0.2 dB louder (the master's gain: its bass is lower in three
   sections): bars 1 to 16 by four -22.2 -23.1 -23.3 -20.4 dBFS (v15 -22.4 -23.4 -23.6 -20.6); the last sixteen
   -24.1 -23.4 -23.0 -19.2 (v15 -24.3 -23.6 -23.1 -19.6); under 75 Hz the last sixteen are v15's (no bass there, so
