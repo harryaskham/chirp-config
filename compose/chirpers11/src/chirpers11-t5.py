@@ -279,6 +279,16 @@ semitone. In the first row of "round the click" (bars 137-144) the bell is writt
 octave up at every click, seven octaves in two bars, and then back down: what is heard is a chime that
 walks down a tritone in seven even steps and up again. Nothing is bent and nothing is hidden: the notes
 are octaves, and the arithmetic is 1200 - 1284.5.
+
+v20 (27 Nov): A VOICE IN THE NOTE (C11T5_VOX=0 takes it out: v19). One low note is held through the
+first row of "held": eighteen plain tones, the multiples of D2, each at its own steady level: a single
+buzzing note, as an organ pipe is. Nothing is added to it and nothing in it gets louder. From its third
+bar some of its tones begin to WAVER TOGETHER (a third of a semitone each way, five and a half times a
+second): every third one, then every fourth, every sixth, every fourth, every third, every second, a bar
+each. Tones that waver together are heard as one thing and apart from the ones that do not (McAdams
+1984; Chowning's Phone, 1980): a second voice steps out of the note, singing the note those tones are
+the multiples of: A3, D4, A4, D4, A3, D3: a tune that is not written anywhere, sung by a note that never
+changes. When they stop wavering the voice goes back into the note.
 """
 import json
 import math
@@ -603,6 +613,32 @@ def para_tones(p):
     return out
 
 
+def vox_span():
+    """The bars (from 0) between which the held note sounds, or None."""
+    sec = next((x for x in SECS if x[0] == VOX_IN[0]), None) if VOX else None
+    return (sec[1] + VOX_IN[1], sec[1] + VOX_IN[2]) if sec else None
+
+
+def vox_plan():
+    """[(first beat, last beat, n)]: the bars in which every n-th tone of the note wavers."""
+    b0, b1 = vox_span()
+    return [((b0 + VOX_ALONE + i) * BEATS, (b0 + VOX_ALONE + i + 1) * BEATS, n) for i, n in enumerate(VOX_TUNE) if b0 + VOX_ALONE + i < b1]
+
+
+def vox_lane(k):
+    """The pitch lane of tone k, in semitones: nought, but for the bars in which k is one of the tones that waver: VOX_DEEP each way, VOX_RATE times a second, in and out over VOX_EDGE beats. Every tone that wavers in a bar is given the same lane: that is what makes them one voice."""
+    pts = [["0b", 0.0]]; step = BPM / 60 / (VOX_RATE * 16)                      # sixteen points to a waver, in beats
+    for lo, hi, n in vox_plan():
+        if k % n:
+            continue
+        m = int((hi - lo) / step)
+        for j in range(m + 1):
+            b = lo + j * step; edge = min(1.0, (b - lo) / VOX_EDGE, (hi - b) / VOX_EDGE)
+            pts.append([f"{b:.5f}b", round(VOX_DEEP * max(0.0, edge) * math.sin(2 * math.pi * VOX_RATE * (b - lo) * 60 / BPM), 4)])
+        pts.append([f"{hi:.5f}b", 0.0])
+    return pts
+
+
 def para_span():
     """The bars (from 0) between which the paradox bell plays, or None."""
     sec = next((x for x in SECS if x[0] == PARA_IN[0]), None) if PARA else None
@@ -649,6 +685,17 @@ OCT_IN = ("turned around", 0, 8)                          # the section, and the
 OCT_NOTES = ("A4", "A5")                                  # the two notes: the low one and its octave (the ends of the scale that follows)
 OCT_SOLO = 2                                              # bars the left ear's part is heard alone, then the right's; both for what is left
 OCT_GAIN = os.environ.get("C11T5_OCT_GAIN", "-34dB")      # each ear's tone, set in the whole song's master (which reads a held tone 8.7 dB over this figure here): as much sound as the scales' pips that follow. At -26 dB it was 6 dB under ALL the music of the row and took 0.6 dB off it; at -20 it was as loud as the music
+VOX = os.environ.get("C11T5_VOX", "1") != "0" and os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v20: a voice in the note (McAdams 1984)
+VOX_IN = ("held", 0, 8)                                   # the section, and the bars of it: its first row, where the bass rests and the chord is still heard with its holes
+VOX_NOTE = os.environ.get("C11T5_VOX_NOTE", "D2")         # 73.4 Hz: the fourth under the song's A, in the band where this song has least (71 Hz), in bars where nothing else is that low
+VOX_PARTS = 18                                            # how many multiples of it the note is made of (the top one 1321 Hz)
+VOX_ROLL = 0.5                                            # multiple k is 1 / k ** this of the first (3 dB an octave). At 1 (6 dB an octave) the first tone, alone in its band, stood 21 dB over everything else there while the tones that have to be heard wavering were 4 to 20 dB under the chord and the click
+VOX_ALONE = 2                                             # bars the note is heard as it is before anything in it wavers
+VOX_TUNE = (3, 4, 6, 4, 3, 2)                             # a bar each: every n-th tone wavers, and is heard as a voice on n times the note
+VOX_RATE = 5.5                                            # wavers a second
+VOX_DEEP = 0.35                                           # semitones each way (2%)
+VOX_EDGE = 0.5                                            # beats the wavering takes to come in, and to go out
+VOX_GAIN = os.environ.get("C11T5_VOX_GAIN", "-42dB")      # the first tone's fader; tone k is 20 * log10(k) * VOX_ROLL dB under it. Set in the whole song's master, which delivers this held note 19.5 dB over a render of it alone: at -34dB (and 6 dB an octave) the note was as loud as all the rest of the row together and the row 3.2 dB louder; at -46dB the tones that waver in the third bar were 15 dB under to 2 dB over the music in their own bands; here they are 11 under to 6 over and the whole note is 4 dB under the row
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1049,6 +1096,16 @@ def song():
                                   "notes": [{"at": at, "len": 0.75, "pitch": pr_p, "vel": PARA_VEL} for at, k in para_strokes() if k == pr_i]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v19, in the first row of round the click, a bell whose tones are {PARA_APART:g} times apart is written an octave higher at every click ({PARA_NOTES[0]} to {PARA_NOTES[-1]}) and back: each octave up is heard as a small semitone down (Risset's paradox). Generated by")
         assert "From v19" in doc["about"]
+    if VOX and vox_span():
+        vx_b0, vx_b1 = vox_span(); vx_gain = float(VOX_GAIN.replace("dB", ""))
+        for vx_k in range(1, VOX_PARTS + 1):
+            PATCHES[f"ht-vox-{vx_k}"] = {"about": f"Hearing Things' held note, tone {vx_k} of {VOX_PARTS} (chirper-zero, 27 Nov, v20): one plain sine at {vx_k} times {VOX_NOTE} ({hz(VOX_NOTE) * vx_k:.1f} Hz), held as long as its note, whose pitch follows the lane `vib` (semitones). The note is all {VOX_PARTS} together; a voice is the ones that waver together.",
+                                         "play": {"gate": 1, "vel_sens": 0},
+                                         "synth": {"layers": [f"sine phase=0 ratio={vx_k}"], "pitch": {"value": 0, "mod": [{"src": "auto.vib", "amount": 1}]}, "amp": {"a": "400ms", "d": "0ms", "s": 1, "r": "600ms"}}}
+            doc["tracks"].append({"name": f"vox-{vx_k}", "patch": f"ht-vox-{vx_k}", "gain": f"{vx_gain - 20 * math.log10(vx_k) * VOX_ROLL:.2f}dB", "pan": 0.0,
+                                  "notes": [{"at": vx_b0 * BEATS, "len": (vx_b1 - vx_b0) * BEATS, "pitch": VOX_NOTE, "vel": 0.8}], "auto": {"vib": {"points": vox_lane(vx_k)}}})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v20 one low note ({VOX_NOTE}: {VOX_PARTS} plain tones, its multiples) is held through the first row of held, and from its third bar some of its tones waver together, every third, fourth, sixth, fourth, third, second, a bar each: nothing is added and nothing gets louder, and the ones that waver are heard as a second voice singing the note they are the multiples of (McAdams 1984): a tune that is written nowhere. Generated by")
+        assert "From v20" in doc["about"]
     return doc
 
 
@@ -1134,6 +1191,13 @@ if __name__ == "__main__":
             print(f"two scales neither ear is given, bars {b0 + 1}-{b1} ({int(b0 * sec) // 60}:{b0 * sec % 60:04.1f}-{int(b1 * sec) // 60}:{b1 * sec % 60:04.1f}): a pip an eighth ; the left ear alone bars {b0 + 1}-{b0 + SCALE_SOLO}, the right alone {b0 + SCALE_SOLO + 1}-{b0 + 2 * SCALE_SOLO}, both {b0 + 2 * SCALE_SOLO + 1}-{b1}")
             print(f"   the left ear is given  {' '.join(L)}  (its biggest leap {leap(L)} semitones) ; the right  {' '.join(R)}  ({leap(R)})")
             print(f"   the higher of each pair  {' '.join(hi_)}  (biggest step {leap(hi_)}) ; the lower  {' '.join(lo_)}  ({leap(lo_)}) ; the higher note is in the " + " ".join("L" if hz(a) > hz(b) else "R" for a, b in zip(L, R)) + " ear")
+        if VOX and vox_span():
+            vx_b0, vx_b1 = vox_span(); vx_sec = BEATS * 60 / BPM; vx_f = hz(VOX_NOTE)
+            print(f"a voice in the note, bars {vx_b0 + 1}-{vx_b1} ({int(vx_b0 * vx_sec) // 60}:{vx_b0 * vx_sec % 60:04.1f}-{int(vx_b1 * vx_sec) // 60}:{vx_b1 * vx_sec % 60:04.1f}): {VOX_NOTE} held, {VOX_PARTS} plain tones ({vx_f:.1f} to {vx_f * VOX_PARTS:.0f} Hz), tone k at {VOX_GAIN} less {20 * VOX_ROLL:g} log k ; alone for {VOX_ALONE} bars ; then a bar each, the tones that waver ({VOX_DEEP} semitones each way, {VOX_RATE:g} a second, {VOX_RATE * vx_sec:.2f} wavers a bar, in and out over {VOX_EDGE} beats):")
+            for vx_lo, vx_hi, vx_n in vox_plan():
+                vx_set = [k for k in range(1, VOX_PARTS + 1) if k % vx_n == 0]
+                print(f"   bar {vx_lo // BEATS + 1} ({int(vx_lo * 60 / BPM) // 60}:{vx_lo * 60 / BPM % 60:04.1f}): every {vx_n} ({' '.join(str(k) for k in vx_set)}): {' '.join(f'{vx_f * k:.0f}' for k in vx_set)} Hz ; the voice is on {vx_f * vx_n:.1f} Hz ; {len(vx_set)} waver, {VOX_PARTS - len(vx_set)} stand")
+            print(f"   tones that never waver: {' '.join(str(k) for k in range(1, VOX_PARTS + 1) if all(k % n for n in VOX_TUNE))}")
         if PARA and para_span():
             pr_b0, pr_b1 = para_span(); pr_sec = BEATS * 60 / BPM; pr_all = [para_tones(p) for p in PARA_NOTES]
             print(f"an octave up is a semitone down, bars {pr_b0 + 1}-{pr_b1} ({int(pr_b0 * pr_sec) // 60}:{pr_b0 * pr_sec % 60:04.1f}-{int(pr_b1 * pr_sec) // 60}:{pr_b1 * pr_sec % 60:04.1f}): a bell with its tones {PARA_APART:g} times apart ({1200 * math.log2(PARA_APART):.1f} cents) under one curve (loudest at {PARA_MID:g} Hz, {PARA_WIDE:g} octaves wide), {PARA_GAIN} ; written " + " ".join(PARA_NOTES) + f" and back, a bell at every click ({len(para_strokes())} strokes)")
