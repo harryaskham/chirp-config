@@ -32,6 +32,18 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v17 (27 Nov), THE METAL HAS A MOTOR. One more switch (`--without-motor`; off is v16 byte for byte).
+  MOTOR  the steel bar is a vibraphone's now: under it a disc turns in its resonator, once a beat, shut ON the beat
+         and open on the off-beat, where the metal is struck. So a stroke is as loud as it was, its ring is MOTOR
+         ['db'] * 2 dB down half a beat later (on the beat, under the weight), back up on the next off-beat, and
+         down again: the ring keeps the four by itself, and gets out of the big drum's way. A stopped stroke is as
+         it was (in its 12 ms the disc has turned a fortieth of the way: 0.1 dB); only what RINGS is turned, which
+         is this song's rule: nothing is added, the ring says more as it is let go. In the section with no weight
+         (bars 97 to 112) the four is still heard, in the metal. The patch is rt-motor: rt-metal with a level that
+         a sine a beat long moves (it starts again with each stroke, at its top). Two rounds on the bench (v16's
+         notes) looked for this in a doublet (a twin bar a beat apart in Hz): the engine gives every modal voice
+         its own few cents, so a pair warbles at 0 to 2.8 Hz, never the same twice; a motor is exact.
+
 v16 (27 Nov), THE HALL HAS A FLOOR. One more switch (`--without-floor`; off is v15 byte for byte).
   FLOOR  v15 sent each thing to the hall in the bar its hand goes on, and three of the seven got nothing from
          it: the string and the skin, whose notes are under the hall's 300 Hz high-pass (0.4 dB each), and the
@@ -317,7 +329,8 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True}
+MOTOR = {'patch': 'rt-motor', 'db': 6, 'rate': '1/4', 'phase': 0.25}   # v17: the metal's patch with its motor; half the dip, dB (the ring is twice this down on the beat); a turn of the disc; where in its turn a stroke begins (0.25: open). Bench, one stroke let go, alone: 12 dB down 240 and 720 ms after the stroke, level with the old ring at 0 and 480 ms, the same highest sample; at 9 (18 dB dips) the ring between strokes is 9 dB less on average
 FLOOR = {'who': ('weight', 'string', 'skin'), 'reverb': 'reverb kind=hall decay=1.6s mix=1 predelay=20ms', 'hp': 90, 'lp': 1500, 'db': {'weight': -8, 'string': 0, 'skin': 2}}   # v16: the things the low room hears in the bar their hand goes on; the room; what it keeps, Hz; dB beside each one's dry fader into it. Bench, raw: at 0, 6 and 7 the rooms alone stood 3.8, 9.0 and 9.0 dB OVER the dry things from 90 to 300 Hz over their bars and the big drum's bar came up 3.6 dB whole: a boom
 HEARD = {'who': ('metal', 'plate', 'string', 'air', 'skin'), 'not': ('plate',), 'db': {'string': -6}}   # v15: the things the hall hears while their hand goes on (those with a remembered hall: KEPT's); those whose TURN lift is taken back with it; dB on a thing's strokes into the hall there (the touched string is an octave up, so more of it is over the hall's 300 Hz: at KEPT's level its hall stood 7.7 dB over the bar between strokes and filled the pipe's band the bar before the pipe's)
 ASIDE = {'for': 'skin', 'who': 'weight'}   # v14: the thing whose bar (its hand going on) another rests through; the one that rests
@@ -516,7 +529,16 @@ def remembered(thing, bar):
     return ON['remember'] and len(last) > 2 and last[1] == 0 and TOP[last[0]] + last[2] <= bar < TOP[last[0] + 1]
 
 
+def motor_patch(bar):
+    """v17 MOTOR: the metal's patch (bar) with a disc turning under it: its one layer's level is MOTOR['db'] under, moved MOTOR['db'] up and down by a sine MOTOR['rate'] long that starts again with every stroke at its top."""
+    layer = {**bar['synth']['layers'][0], 'level': {'value': f"-{MOTOR['db']}dB", 'mod': [{'src': 'lfo.motor', 'amount': MOTOR['db']}]}}
+    return {**bar, 'about': "Ring True: the metal with its motor (v17). The steel bar of rt-metal over a resonator whose disc turns once a beat: open when the bar is struck (the off-beat), shut on the beat: the ring is " + f"{2 * MOTOR['db']}" + " dB down on every beat and back between. A stopped stroke is as rt-metal's.",
+            'synth': {**bar['synth'], 'layers': [layer] + bar['synth']['layers'][1:], 'lfo': {'motor': {'wave': 'sine', 'rate': MOTOR['rate'], 'phase': MOTOR['phase'], 'retrig': True}}}}
+
+
 def patch_of(thing):
+    if thing == 'metal' and ON['motor']:
+        return MOTOR['patch']
     if thing == 'air' and ON['flue']:
         return 'rt-sigh' if ON['long'] else 'rt-flue'            # v9: with its second breath it is another sound, under another name
     if thing == 'wood' and ON['grip']:
@@ -729,6 +751,8 @@ def song(T, bars=BARS):
         by_name['weight']['gain'] = BOOM['gain']
     if ON['flue']:
         doc['patches'] = {**doc['patches'], patch_of('air'): flue_patch()}
+    if ON['motor']:                                              # v17 MOTOR: the metal's patch with its disc
+        doc['patches'] = {**doc['patches'], MOTOR['patch']: motor_patch(doc['patches'][PATCH['metal']])}
     if ON['plate'] and 'plate' in T:
         doc['patches'] = {**doc['patches'], 'rt-plate': NEW['rt-plate']}
         doc['tracks'].append(track('plate', PLATE['gain'], pan=PLATE['pan'], sends={'room': '-16dB'}))
@@ -798,7 +822,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the forty that are on: all off is v1; the last thirty-five off is v2; the last thirty-one off is v3; the last twenty-eight off is v4; the last twenty-five off is v5; the last twenty-four off is v6; the last twenty-one off is v7; the last nineteen off is v8; the last sixteen off is v9; the last twelve off is v10; the last eight off is v11; the last six off is v12; the last four off is v13; the last two off is v14; the last one off is v15)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the forty-one that are on: all off is v1; the last thirty-six off is v2; the last thirty-two off is v3; the last twenty-nine off is v4; the last twenty-six off is v5; the last twenty-five off is v6; the last twenty-two off is v7; the last twenty off is v8; the last seventeen off is v9; the last thirteen off is v10; the last nine off is v11; the last seven off is v12; the last five off is v13; the last three off is v14; the last two off is v15; the last one off is v16)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -843,6 +867,8 @@ if __name__ == '__main__':
             print(f"    the plate has a hand: held at its edge its strokes are an octave up (bars {' '.join(str(b + 1) for b in stopping('plate'))}, the bar that shows the hands, and the mirror)")
         if ON['fade'] and ON['cap']:
             print(f"    the shut pipe's last stroke (bar {stopping('air')[-1] + 1}): {FADE['air']} dB")
+        if ON['motor']:
+            print(f"    the metal has a motor: a disc under the bar turns once a beat, open on the off-beat it is struck on and shut on the beat: its ring is {2 * MOTOR['db']} dB down on every beat and back between; a stopped stroke is as it was")
         print(f'{BARS} bars, {BARS * sec:.1f} s; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in build().items()))
     else:
         a.out.write_text(dump(bench() if a.bench else song(build())))
