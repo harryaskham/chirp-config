@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v20 (19:00): its start is v19's (bars 1 to 16 by four -22.5 -23.5 -23.6 -20.7 dBFS); the last
+  sixteen by four -24.5 -23.8 -23.2 -19.7 (v19 -24.3 -23.7 -23.2 -19.7: two bars of clinks, 177 and 181, before
+  Out of Step comes); bars 185 to 192, under Out of Step, -21.09 for -21.10; highest sample -1.30. Inside: the
+  break (bars 81 to 92) has a line of metal clinks; the bars whole within 0.3 dB.
 - Wind Down v20 (18:32): THE RECORD'S END HAS MOVED: the song is 2.05 s longer (406.19 s for 404.14). Its start is
   v19's (bars 1 to 8 by two -30.1 -30.3 -30.1 -30.1 dBFS). From the last stroke (396.39 s) by second: -10.4 -21.0
   -32.7 -42.2 -47.5 -54.1 -48.5 -54.8 -36.1, then digital silence: after the bell and the wall clock (to 400 s)
