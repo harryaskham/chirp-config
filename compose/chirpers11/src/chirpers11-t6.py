@@ -23,7 +23,7 @@ first seed, the change then peaks between 14 ms before and 23 ms after its sixte
 """
 import argparse
 import json
-from math import log10
+from math import log10, log2
 from pathlib import Path
 
 BPM = 122
@@ -58,7 +58,17 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True, 'spun': True, 'lands': True, 'metal': True, 'damped': True, 'flick': True, 'tally': True, 'reckon': True, 'linger': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True, 'spun': True, 'lands': True, 'metal': True, 'damped': True, 'flick': True, 'tally': True, 'reckon': True, 'linger': True, 'rounded': True}
+# ---- v22 (27 Nov): THE CHANGE IS ROUNDED TO THE COIN. One switch (`--without-rounded`; off is v21 byte for byte).
+# A till that has no small coins rounds what it owes. The purse of the two sections off the beat (coins of 5 and
+# 3, bars 129 to 160) is such a till: after each coin its change is rounded to a grid of 2^bits amounts (the
+# engine's bit crusher, last in each of the purse's two loops, so the change is rounded again at EVERY payment):
+# a debt under half the smallest amount is nothing, and the purse stops owing instead of fading. In off the
+# beat (bars 129 to 144) only the AMOUNT is rounded. In off the beat, up (bars 145 to 160) the TIME is rounded
+# too: the crusher holds each sample longer and longer (its rate falls from 12 kHz to 3 kHz over the sixteen
+# bars), and there the other purse (coins of 3 and 5: seeds in bars 147, 151, 155, 159) is still paid in full:
+# the two answer each other, one exact, one rounded worse each time. At home nothing is rounded.
+ROUNDED = {'buses': ('d5', 'd3'), 'bits': 5, 'rate': 12000, 'octaves': -2, 'time': 'off the beat, up', 'free': 96000}   # v22: the purse's two loops; the grid (bench, the purse alone: what rounding changes stood 21.5, 13.6 and 10.1 dB under the purse at 8, 6 and 5 bits, and at 5 as much as the purse's own from 1 to 4 kHz; its loudest change is 5 amounts each way at 6 bits, so 4 bits would leave one payment); the last: a rate over the engine's own (48 kHz), at which nothing is held; the crusher's rate where the time is rounded, Hz, and how many octaves it falls over that section (a lane on a rate is in octaves, as on a cutoff); the section in which the time is rounded (before it the rate is the engine's own: nothing held)
 # ---- v21 (27 Nov): THE FIRST CHANGE IS COUNTED TOO, AND THE LAST SEED'S PURSE STAYS OPEN. Two switches
 # (`--without-reckon`, `-linger`; both off is v20 byte for byte).
 #   RECKON  v20's coin counted the change in the break and in the last section. The first section (one seed, bars
@@ -825,6 +835,13 @@ def song():
     for key, pan in (('reckon-l', -RECKON['pan']), ('reckon-m', 0), ('reckon-r', RECKON['pan'])):   # v21 RECKON: the worn coin: the same patch through low-passes on its tracks
         if T.get(key):
             doc['tracks'].append({'name': key, 'patch': METAL['patch'], 'gain': RECKON['gain'], 'pan': pan, 'notes': sorted(T[key], key=lambda n: n['at']), 'fx': [f"lp cutoff={RECKON['lp']}"] * RECKON['walls']})
+    if ON['rounded']:                                            # v22 ROUNDED: the purse's change rounded to a grid at every payment; in the second section its time too
+        at = SEC * 4 * [x[0] for x in SECTIONS].index(ROUNDED['time'])   # the beat at which the time is rounded too
+        free = round(log2(ROUNDED['free'] / ROUNDED['rate']) / ROUNDED['octaves'], 4)   # the lane's value at which the crusher holds nothing (the engine's own rate)
+        for k in ROUNDED['buses']:
+            if k in doc['buses']:
+                doc['buses'][k] = {**doc['buses'][k], 'fx': list(doc['buses'][k].get('fx', [])) + [f"crush bits={ROUNDED['bits']} rate={ROUNDED['rate']}+auto.held*{ROUNDED['octaves']}"],
+                                   'auto': {**doc['buses'][k].get('auto', {}), 'held': {'points': [['0b', free], [f'{at - 0.01}b', free], [f'{at}b', 0], [f'{at + SEC * 4}b', 1]], 'curve': 0}}}
     return doc
 
 
@@ -844,7 +861,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v20, the last three v19, the last six v18, the last eight v17, the last twelve v16, the last fourteen v15, the last sixteen v14, the last seventeen v13, the last nineteen v12, the last twenty-one v11, the last twenty-three v10, the last twenty-six v9, the last twenty-nine v8, the last thirty-one v7, the last thirty-three v6, the last thirty-seven v5, the last thirty-eight v4, the last forty-one v3, the last forty-five v2, all forty-eight v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last one off is v21, the last three v20, the last four v19, the last seven v18, the last nine v17, the last thirteen v16, the last fifteen v15, the last seventeen v14, the last eighteen v13, the last twenty v12, the last twenty-two v11, the last twenty-four v10, the last twenty-seven v9, the last thirty v8, the last thirty-two v7, the last thirty-four v6, the last thirty-eight v5, the last thirty-nine v4, the last forty-two v3, the last forty-six v2, all forty-nine v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -921,6 +938,9 @@ if __name__ == '__main__':
             j = next(x for x, sct in enumerate(SECTIONS) if sct[0] == RECKON['where'])
             pp, qq = PAIRS[SECTIONS[j][1][0]]
             print(f"    the first change is counted too, with a worn coin (nothing over 10 kHz): in {RECKON['where']}, after its seeds in bars {' '.join(str(j * SEC + k * SECTIONS[j][2] + 1) for k, _ in RECKON['seeds'])} a clink on every amount the purse can pay, in sixteenths: {' '.join(str(n) for n in range(1, frobenius(pp, qq) + 1) if any((n - a * pp) % qq == 0 for a in range(n // pp + 1)))}, and from {frobenius(pp, qq) + 1} every one, to {', then to '.join(str(u) for _, u in RECKON['seeds'])}")
+        if ON['rounded']:
+            sec_r = [x[0] for x in SECTIONS].index(ROUNDED['time'])
+            print(f"    the change is rounded to the coin in the purse of 5 and 3 (bars {(sec_r - 1) * SEC + 1}-{(sec_r + 1) * SEC}): to {2 ** ROUNDED['bits']} amounts at every payment; and from bar {sec_r * SEC + 1} its time too: each sample held longer, the rate falling from {ROUNDED['rate'] / 1000:g} kHz to {ROUNDED['rate'] * 2 ** ROUNDED['octaves'] / 1000:g} kHz by bar {(sec_r + 1) * SEC}; the purse of 3 and 5 beside it is paid in full")
         if ON['linger'] and ON['long']:
             print(f"    the last section's first seed (bar {(len(SECTIONS) - 1) * SEC + 1}) goes into the long purse, as the song's first four do: its change rings on through the three bars after it")
         if ON['tally'] and ON['metal'] and ON['hat']:
