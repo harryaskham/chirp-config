@@ -99,6 +99,23 @@ every 7. Those meetings, a click with the drum, were the only ones in the song t
          knock is now the head of each. It stops four bars before the end (the low end of a seam is the next
          song's). Its notes are 98 to 370 Hz, where this song stood 7 to 11 dB under the album's envelope.
 
+v23 (27 Nov): NOTHING COUNTS THE ONE CLICK. Three switches (`--without-uncounted`, `-gather`, `-dominant`; all
+off is v22 byte for byte).
+  UNCOUNTED  v22 made the three one click for two supercycles of page 2, but the bass drum went on counting four
+             under it, and an uneven rhythm heard against an even one is still heard as cycles. The second time
+             through (sixteenths 630 to 735: 12.5 s) the drum and the bass rest: the 57 instants of the one
+             click are all there is, with nothing to count them against. It is the song's first break that is
+             not a page turn, and when each click has its own strokes again the drum and the bass come back
+             with them.
+  DOMINANT   every stop of the four in this song is led out by the bass: the turn's note, D2, held to the turn
+             (15 sixteenths). This stop is the long one, and the bass holds that note under all of it, at the
+             leads' level: the fifth of the key for 12.5 s, and the one on which the drum comes back is G. A held
+             note counts nothing. (The first build had the break bare: the scorer's low band, which it averages
+             in dB, read 1.1 dB poorer for 12.5 s of nothing: 0.10 off the total.)
+  GATHER     each click walks out to its side and back once a supercycle (the three left, the five right). While
+             nothing counts them they stand where they met, in the middle: one click, in one place. They walk
+             apart again as they come apart.
+
 v22 (27 Nov): THE THREE ARE ONE CLICK. Two switches (`--without-fuse`, `-unmet`; both off is v21 byte for byte).
   FUSE   the song's name is a number nobody hears: 105, the sixteenths after which the three clicks are where
          they began. What is heard is three even cycles, because each has its own sound and its own place
@@ -448,7 +465,9 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
       'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
-      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True, 'wall': True, 'leave': True, 'breath': False, 'struck': True, 'ground': True, 'recap': True, 'pause': True, 'bars': False, 'last': True, 'two': True, 'halve': False, 'pairs': True, 'pedal': True, 'halftime': True, 'stand': True, 'named': True, 'hand': True, 'ebb': True, 'fuse': True, 'unmet': True}
+      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True, 'wall': True, 'leave': True, 'breath': False, 'struck': True, 'ground': True, 'recap': True, 'pause': True, 'bars': False, 'last': True, 'two': True, 'halve': False, 'pairs': True, 'pedal': True, 'halftime': True, 'stand': True, 'named': True, 'hand': True, 'ebb': True, 'fuse': True, 'unmet': True, 'uncounted': True, 'gather': True, 'dominant': True}
+DOMINANT = {'pitch': 'D2', 'db': -13, 'vel': 0.8, 'early': 2}   # v23: the note the bass holds while nothing counts the one click (the turn's note, as before every page turn), its dB and touch (the leads': v11's), and the sixteenths before the drum comes back at which it is let go
+UNCOUNTED = {'supers': (2, 3), 'who': ('kick', 'bass'), 'db': 0}   # v23: the supercycles of FUSE's page (from which to which, not included) in which nothing counts the one click; who rests; dB on the fused strokes there
 FUSE = {'page': 1, 'supers': (1, 3), 'db': -3}   # v22: the first half's page (from 0) on which the three are one click; from which of its supercycles to which (not included); dB on each of the three sounds while it plays for all
 STAND = {'octaves': 1, 'vel': (.95, .88)}   # v21: how far under the click's knock the drum is while it stands in for it; its stroke where it lands on the old beat, and elsewhere
 EBB = {'keep': (1, 2, 0)}                # v21: of the hat's off beats, one in so many is kept in the page's first, second and third supercycle (0: none)
@@ -584,12 +603,17 @@ def bare(s):
     return ON['bare'] and ON['slow'] and running_down(s)
 
 
-def walk(far, stand=False):
+def uncounted(s):
+    """v23 UNCOUNTED: is sixteenth s in the supercycles in which nothing counts the one click?"""
+    return bool(ON['uncounted'] and ON['fuse'] and FUSE['page'] * PAGE + UNCOUNTED['supers'][0] * SUPER <= s < FUSE['page'] * PAGE + UNCOUNTED['supers'][1] * SUPER)
+
+
+def walk(far, stand=False, gather=False):
     """A lane that is 0 where the three meet and `far` half way to the next meeting, straight lines between. With
     `stand` (v5 BARE, the clicks' level) it stays at 0 through the run-down."""
     pts = []
     for s, n, _ in stretches():
-        pts += [[beats(s), 0], [beats(s + n / 2), 0 if stand and ON['bare'] and running_down(s) else far]]
+        pts += [[beats(s), 0], [beats(s + n / 2), 0 if (stand and ON['bare'] and running_down(s)) or (gather and ON['gather'] and uncounted(s)) else far]]   # v23 GATHER: where nothing counts them the clicks stand where they met
     return {'points': pts + [[beats(TOTAL), 0]], 'curve': 0}
 
 
@@ -776,7 +800,7 @@ def build():
         fused = bool(ON['fuse'] and here and FUSE['page'] * PAGE + FUSE['supers'][0] * SUPER <= s < FUSE['page'] * PAGE + FUSE['supers'][1] * SUPER)   # v22 FUSE: every stroke of any of the three is struck by all three
         for c, v in zip(CYCLES, VOICES):
             if fused or (c in here and loud[c] is not None):
-                add(v, s, 1, mem[v], touch(s), **({'gain': f"{FUSE['db']:g}dB"} if fused else {'gain': f'{loud[c]}dB'} if loud[c] else {}))
+                add(v, s, 1, mem[v], touch(s), **({'gain': f"{FUSE['db'] + (UNCOUNTED['db'] if uncounted(s) else 0):g}dB"} if fused else {'gain': f'{loud[c]}dB'} if loud[c] else {}))
         stood = bool(ON['stand'] and paired(s))               # v21 STAND: the drum has the part of the click that rests
         if stood:
             rv = PAIRS['rests'][s % PAGE // SUPER]; rc = CYCLES[VOICES.index(rv)]; rk = s % SUPER // rc
@@ -1003,6 +1027,17 @@ def build():
             if tr in T:
                 T[tr] = [{**n, 'len': round(lo / BEAT - n['at'], 4)} if n['at'] < lo / BEAT < n['at'] + n['len'] else n for n in T[tr] if not lo / BEAT <= n['at'] < hi / BEAT]
         marks = sorted(marks + [(f"the walk stops after its first step: the low band is bare for {(hi - lo) / BEAT:g} beats, to the last meeting of the three and the five, where the bass leads the turn as it led the others", lo)], key=lambda m: m[1])
+    if ON['uncounted'] and ON['fuse']:                         # v23 UNCOUNTED: the drum and the bass rest while the one click goes round once more
+        lo, hi = (FUSE['page'] * PAGE + x * SUPER for x in UNCOUNTED['supers'])
+        for tr in UNCOUNTED['who']:
+            if tr in T:
+                T[tr] = [{**n, 'len': round(lo / BEAT - n['at'], 4)} if n['at'] < lo / BEAT < n['at'] + n['len'] else n for n in T[tr] if not lo / BEAT <= n['at'] < hi / BEAT]
+        if ON['dominant'] and 'bass' in T and 'bass' in UNCOUNTED['who']:   # v23 DOMINANT: the turn's note, held under all of it
+            T['bass'] = sorted(T['bass'] + [{'at': round(lo / BEAT, 4), 'len': round((hi - lo - DOMINANT['early']) / BEAT, 4), 'pitch': DOMINANT['pitch'], 'vel': DOMINANT['vel'], 'gain': f"{DOMINANT['db']}dB"}], key=lambda n: n['at'])
+            marks = marks + [(f"the bass holds the turn's note under it, {DOMINANT['pitch']}, the fifth, for {hi - lo - DOMINANT['early']} sixteenths: every stop of the four is led out by that note, and this is the long one", lo)]
+        marks = sorted(marks + [(f"nothing counts the one click: the drum and the bass's cell rest for this time through ({hi - lo} sixteenths, {(hi - lo) * 15 / BPM:.1f} s): the uneven rhythm" + ('' if ON['dominant'] else ' alone'), lo),
+                                ('the drum and the bass come back with them', hi)]
+                             + [('the three stand in one place, the middle, while nothing counts them, and walk apart again as they come apart', lo)] * (ON['gather'] and ON['place']), key=lambda m: m[1])
     return T, marks
 
 
@@ -1053,7 +1088,7 @@ def song():
         t = by_name[v]
         if ON['place'] and side[v]:
             t['pan'] = {'value': 0, 'mod': [{'src': 'auto.place', 'amount': 1}]}
-            t.setdefault('auto', {})['place'] = walk(side[v] * WIDE)
+            t.setdefault('auto', {})['place'] = walk(side[v] * WIDE, gather=True)
         if ON['near']:
             t['gain'] = {'value': f"{float(t['gain'][:-2]) + LIFT:g}dB", 'mod': [{'src': 'auto.near', 'amount': 1}]}
             t.setdefault('auto', {})['near'] = walk(-NEAR, stand=True)
@@ -1133,7 +1168,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f"--{'without' if ON[k] else 'with'}-{k}", action='store_true', help=f"{'leave out' if ON[k] else 'put in'} {k} (of those that are on: the last two off is v21, the last six v20, the last nine v19, the last eleven v18, the last thirteen v17, the last fourteen v16, the last fifteen v15, the last seventeen v14, the last eighteen v13, the last twenty v12, the last twenty-two v11, the last twenty-four v10, the last twenty-seven v9, the last thirty v8, the last thirty-two v7, the last thirty-five v6, the last thirty-six v5, the last thirty-nine v4, the last forty-four v3, the last fifty-two v2, all fifty-eight v1)")
+        ap.add_argument(f"--{'without' if ON[k] else 'with'}-{k}", action='store_true', help=f"{'leave out' if ON[k] else 'put in'} {k} (of those that are on: the last three off is v22, the last five v21, the last nine v20, the last twelve v19, the last fourteen v18, the last sixteen v17, the last seventeen v16, the last eighteen v15, the last twenty v14, the last twenty-one v13, the last twenty-three v12, the last twenty-five v11, the last twenty-seven v10, the last thirty v9, the last thirty-three v8, the last thirty-five v7, the last thirty-eight v6, the last thirty-nine v5, the last forty-two v4, the last forty-seven v3, the last fifty-five v2, all sixty-one v1)")
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}') if ON[k] else getattr(a, f'with_{k}')
