@@ -94,6 +94,8 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Ring True v13 (03:58): both ends are v12's: bars 1 to 8 by two -17.9 dBFS, bar 184 -11.1, the tail by second
+  -19.0 -34.1 -48.5 -61.7. What changed is inside (bars 96, 137, 138, and one thing a bar in bars 170 to 183).
 - Least Common v13 (03:28): both ends are v12's to 0.1 dB: bars 1 to 4 -17.4 dBFS, the last four bars -17.3 -17.3
   -17.2 -16.9, the two seconds after home -20.1. What changed is inside (three hats on page 4, sixteen on page 8).
 - Ring True into Hearing Things (seam 4), 03:20: Hearing Things v15 has pips (A4 C5 E5) from its bar 3, 9.3 dB under
