@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Wind Down v14 (06:29), THE ALBUM'S END: from 6:12 a wall clock (Give or Take's, chirper-zero's) ticks at every
+  whole second of the song, 372 to 400 s, on the right, about -33 dBFS over its 40 ms; the last stroke is at 396.4 s
+  and four ticks follow it. By second from 396 s: -9 -20 -33 -44 -50 -71 -84 -95 dBFS, then nothing. Its start is
+  v13's (bars 1 to 8 by two -29.9 -30.1 -29.9 -30.0). Bars 177 and 185 have no bass drum on the one.
 - Ring True v14 (06:07): both ends are v13's: bars 1 to 8 by two -17.9 dBFS (from 100 to 200 Hz -21.5), bar 184
   -11.1, the tail by second -19.0 -34.1 -48.5 -61.8. Inside: bar 176 has no bass drum (-25.0 for -17.8).
 - Seams 1 and 3, asked by chirper-zero and agreed (06:03): a clock may tick on through Give or Take's last four bars
