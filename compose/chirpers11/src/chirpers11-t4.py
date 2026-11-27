@@ -32,6 +32,20 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v15 (27 Nov), THE HALL HEARS THE HAND GO ON. One more switch (`--without-heard`; off is v14 byte for byte).
+  HEARD  v14 brought each thing forward for the bar its hand goes on, by level, and the master took two
+         of the lifts back (the plate's and the pipe's: a lift on a small stroke just after a loud one is
+         not delivered). Level was the wrong tool: a click is its highest sample, and the master owns
+         those. What the master does not own is the time BETWEEN strokes. Since v5 a stopped thing is
+         still heard in its hall (the -kept tracks: 'the hall remembers'). Now the hall hears each hand
+         go on: in the bar a thing's hand goes on, its strokes are sent to its remembered hall as well
+         (bar 171 the metal, 172 the plate, 174 the string, 175 the pipe, 176 the skin; the wood and the
+         weight have no such hall and need none). The last section is all taps, dry: for one bar each,
+         one thing has a hall round it with the hand's own sound in it, and its tail (2.4 s) runs under
+         the next thing's bar. So the mirror is heard as five halls, one after another, each a colour,
+         before the hands come off. The plate's 4 dB of v14 is taken back with it (it did nothing but
+         make the master work).
+
 v14 (27 Nov), EACH STEPS FORWARD FOR ITS BAR. Two more switches (`--without-turn`, `-aside`; both off is v13
 byte for byte).
   TURN   v13's mirror was seven bars a side on paper and three by ear: measured in the finished song, only
@@ -295,7 +309,8 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True}
+HEARD = {'who': ('metal', 'plate', 'string', 'air', 'skin'), 'not': ('plate',), 'db': {'string': -6}}   # v15: the things the hall hears while their hand goes on (those with a remembered hall: KEPT's); those whose TURN lift is taken back with it; dB on a thing's strokes into the hall there (the touched string is an octave up, so more of it is over the hall's 300 Hz: at KEPT's level its hall stood 7.7 dB over the bar between strokes and filled the pipe's band the bar before the pipe's)
 ASIDE = {'for': 'skin', 'who': 'weight'}   # v14: the thing whose bar (its hand going on) another rests through; the one that rests
 TURN = {'db': {'metal': 6, 'plate': 4, 'air': 6}}   # v14: dB on a thing's strokes in the bar its hand goes on (the mirror's first half): set on the bench, see the note
 EDGE = {'switch': 'edge', 'semis': 12, 'db': 0, 'after': 'weight', 'call': 6}   # v13: the plate's hand (as HAND's); the thing it follows in the call; dB on its one stroke there
@@ -644,7 +659,7 @@ def build():
                             n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + FADE[thing], 2)}dB"
                         if shown(bar) and thing in SHOW:
                             n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + SHOW[thing], 2)}dB"
-                        if ON['turn'] and laid(thing, bar) and thing in TURN['db']:   # v14 TURN: it steps forward for its bar
+                        if ON['turn'] and laid(thing, bar) and thing in TURN['db'] and not (ON['heard'] and thing in HEARD['not']):   # v14 TURN: it steps forward for its bar (v15: the plate's lift was never delivered)
                             n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + TURN['db'][thing], 2)}dB"
                         if off and (thing in CALL['db'] or thing == 'plate'):
                             n['gain'] = f"{round(float(n.get('gain', '0dB')[:-2]) + (EDGE['call'] if thing == 'plate' else CALL['db'][thing]), 2)}dB"
@@ -660,8 +675,8 @@ def build():
                     if thing + '-room' in T and r >= ROOM_FROM:      # the room hears a thing as far as it is let go
                         own = float(n.get('gain', '0dB')[:-2])
                         T[thing + '-room'].append({**n, 'gain': f'{round(own + 20 * log10(r), 2)}dB'})
-                    elif thing + '-kept' in T and remembered(thing, bar):   # v5: stopped, and its hall still open
-                        T[thing + '-kept'].append(dict(n))
+                    elif thing + '-kept' in T and (remembered(thing, bar) or (ON['heard'] and thing in HEARD['who'] and laid(thing, bar))):   # v5: stopped, and its hall still open (v15 HEARD: and in the bar its hand goes on)
+                        T[thing + '-kept'].append({**n, 'gain': f"{round(float(n.get('gain', '0dB')[:-2]) + HEARD['db'][thing], 2)}dB"} if ON['heard'] and laid(thing, bar) and thing in HEARD['db'] and not remembered(thing, bar) else dict(n))
                     if thing == 'air' and blown() == (bar, s % BAR):        # v9 BLOW: the breath is not taken off: up the pipe's harmonics to the one
                         for j, h in enumerate(BLOW['harmonics'], 1):
                             m = {**n, 'at': n['at'] + j / 4, 'pitch': up(pitch, round(12 * log2(h))), 'gain': f"{round(float(n.get('gain', '0dB')[:-2]) + BLOW['db'] * j, 2)}dB"}
@@ -766,7 +781,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the thirty-eight that are on: all off is v1; the last thirty-three off is v2; the last twenty-nine off is v3; the last twenty-six off is v4; the last twenty-three off is v5; the last twenty-two off is v6; the last nineteen off is v7; the last seventeen off is v8; the last fourteen off is v9; the last ten off is v10; the last six off is v11; the last four off is v12; the last two off is v13)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the thirty-nine that are on: all off is v1; the last thirty-four off is v2; the last thirty off is v3; the last twenty-seven off is v4; the last twenty-four off is v5; the last twenty-three off is v6; the last twenty off is v7; the last eighteen off is v8; the last fifteen off is v9; the last eleven off is v10; the last seven off is v11; the last five off is v12; the last three off is v13; the last one off is v14)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -800,7 +815,9 @@ if __name__ == '__main__':
         if ON['laid'] and ON['call']:
             print('    and are heard going on first, a bar each, the other way round: ' + ', '.join(f"bar {BARS - LAST - len(order()) - j} the {k} ({[n['pitch'] for n in build()[k] if n['at'] // 4 == BARS - LAST - len(order()) - 1 - j][-1]})" for j, k in enumerate(order()) if laid(k, BARS - LAST - len(order()) - 1 - j)))
         if ON['turn'] and ON['laid'] and ON['call']:
-            print('    each steps forward for the bar its hand goes on: ' + ', '.join(f'the {k} {v:+d} dB' for k, v in TURN['db'].items() if k in order()))
+            print('    each steps forward for the bar its hand goes on: ' + ', '.join(f'the {k} {v:+d} dB' for k, v in TURN['db'].items() if k in order() and not (ON['heard'] and k in HEARD['not'])))
+        if ON['heard'] and ON['laid'] and ON['call'] and ON['room'] and ON['remember']:
+            print('    the hall hears each hand go on: ' + ', '.join(f'bar {b + 1} the {k}' for b in range(BARS) for k in HEARD['who'] if laid(k, b)))
         if ON['aside'] and ON['laid'] and ON['call']:
             print(f"    the {ASIDE['who']} stands aside for the bar the hand goes on the {ASIDE['for']}: bar " + ' '.join(str(b + 1) for b in range(BARS) if laid(ASIDE['for'], b)))
         if ON['edge'] and ON['plate']:
