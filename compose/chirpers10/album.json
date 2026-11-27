@@ -401,5 +401,10 @@
         "words": "try not to raise so many cards, just be creative"
       }
     ]
+  },
+  "art": {
+    "file": "ref/albums/common-time/cover-file.png",
+    "source": "/home/harry/.local/state/chirp-eco/covers/common-time-cover-coral-1880.png",
+    "at": "2026-11-27T20:55:31Z"
   }
 }
