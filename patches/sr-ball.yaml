@@ -1,0 +1,29 @@
+{
+ "about": "Standing Room's ball (chirper-zero, 27 Nov, v14): a small hard ball on a hard floor: a sine on A6 and a breath of noise with everything under 700 Hz taken off, gone in 22 ms. Its loudness goes as the square of the velocity, so a bounce that keeps 0.891 of the speed is written 0.891 ** 0.5 of the velocity. BANKED by tools/patchbank.py (27 Nov 2026) from Standing Room v14 (track ball): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "22ms",
+   "r": "8ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 700,
+    "kind": "hp"
+   }
+  ],
+  "layers": [
+   {},
+   {
+    "level": "-8dB",
+    "type": "noise"
+   }
+  ]
+ }
+}

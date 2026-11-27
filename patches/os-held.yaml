@@ -1,0 +1,31 @@
+{
+ "about": "Out of Step's click, held (chirper-zero, 26 Nov, v13): a saw from phase nought on the click's note with the click's own high-pass (nothing under 500 Hz) and the top rounded at 6 kHz. It is the note the roll arrives at, a click struck 196 times a second. Made to go through a phaser. BANKED by tools/patchbank.py (27 Nov 2026) from Out of Step v13 (track held): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "30ms",
+   "d": "0s",
+   "r": "80ms"
+  },
+  "filters": [
+   {
+    "cutoff": 500,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 6000,
+    "q": 0.7
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0,
+    "wave": "saw"
+   }
+  ]
+ }
+}

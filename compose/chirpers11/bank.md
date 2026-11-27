@@ -65,6 +65,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `os-click` | Out of Step v1 (tracks a, b) | Out of Step's click (chirper-zero, 26 Nov): five cycles of a saw on G3 dying in 22 ms, lifted 9 dB round 9 kHz, started at the same point of its wave every time, through a low-pass that both clicks share (it opens with t… |
 | `os-comp` | Out of Step v2 (track c) | Out of Step's third click (chirper-zero, 26 Nov, v2): the complement's. Two cycles of a saw on G5 dying in 12 ms, above 3 kHz, lifted 8 dB round 10 kHz: small and bright, so that it is heard as the holes being filled and… |
 | `os-hat` | Out of Step v1 (track hat) | Out of Step's hat (chirper-zero, 26 Nov): the machine's hat, 45 ms, on the off-beats once the two clicks are home. |
+| `os-held` | Out of Step v13 (track held) | Out of Step's click, held (chirper-zero, 26 Nov, v13): a saw from phase nought on the click's note with the click's own high-pass (nothing under 500 Hz) and the top rounded at 6 kHz. It is the note the roll arrives at, a… |
 | `os-kick` | Out of Step v1 (track kick) | Out of Step's bass drum (chirper-zero, 26 Nov): the engine's machine kick, short and dry, on G1. |
 | `os-tune` | Out of Step v3 (track tune) | Out of Step's pip (chirper-zero, 26 Nov, v3): a small glass tone (a sine with its twelfth, 140 ms), which plays only the sixteenths on which the two clicks strike together, a note for each stroke of the pattern. |
 | `rt-drum` | Ring True v3 (track weight) | Ring True: the weight whose thud gives way to its note (v3). rt-boom's two layers, a felt thud and a kettledrum head on the same note; the stroke's ring (expr.ring, seconds) sets the head's ring time and also takes the t… |
@@ -78,6 +79,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `sc-kick` | Small Change v1 (track kick) | Small Change: the drum. The machine's bass drum on G, short. |
 | `sc-open` | Small Change v8 (track open) | Small Change: the hat let ring, where what one purse can pay is what another owes (v8). The machine's hat, 140 ms, above 5 kHz. |
 | `sc-seed` | Small Change v1 (tracks seed-a, seed-b, seed-c) | Small Change: the seed. One vibraphone bar with no motor, short, with two milliseconds of noise on its front (a click that the coins carry too): the only struck note in the song. |
+| `sr-ball` | Standing Room v14 (track ball) | Standing Room's ball (chirper-zero, 27 Nov, v14): a small hard ball on a hard floor: a sine on A6 and a breath of noise with everything under 700 Hz taken off, gone in 22 ms. Its loudness goes as the square of the veloci… |
 | `sr-chord` | Standing Room v1 (track chord) | Standing Room's dub chord (chirper-zero, 26 Nov): three saws and a square through a short filter envelope, dry; its space is the bus `dub`, a dotted-eighth echo whose feedback breathes. |
 | `sr-clap` | Standing Room v1 (track clap) | Standing Room's clap (chirper-zero, 26 Nov): the machine's clap, three bursts, short, dry. |
 | `sr-click-t` | Standing Room v13 (track click) | Standing Room's click (chirper-zero, 26 Nov): the machine's rim with a breath of white noise, 40 ms, above 500 Hz and lifted 6 dB round 11 kHz: bright enough that a wall can take its top away. From v13 with its own note … |
@@ -93,6 +95,7 @@ resolved and self-contained: `patch: NAME` on a track gives the instrument as th
 | `wd-chord` | Wind Down v1 (track chord) | Wind Down: what three cycles make when they meet: a short filtered chord. |
 | `wd-comp` | Wind Down v2 (track comp) | Wind Down: the complement's click (after Out of Step v2): two cycles of a saw on G5 dying in 12 ms, above 3 kHz, lifted round 10 kHz. |
 | `wd-ghost` | Wind Down v1 (track ghost) | Wind Down: a bass with no fundamental (after Hearing Things): harmonics two to six of the note and nothing at the note. |
+| `wd-grip` | Wind Down v11 (tracks cell, cell-drop) | Wind Down: the bar with a hand on its middle (v11, after Ring True's rt-held): the cell's patch, and its bar a second time two octaves up (a wooden bar's second mode). Each has its level on the stroke: expr.note (dB on t… |
 | `wd-hat` | Wind Down v2 (track hat) | Wind Down: the hat (after Hearing Things): the machine's hat, 28 ms, above 5 kHz, whose loudness is all velocity. |
 | `wd-kick` | Wind Down v1 (track kick) | Wind Down: the drum. The machine's bass drum on G, short. |
 | `wd-knock` | Wind Down v6 (track knock) | Wind Down: the drum's answer when a meeting lands on it (v6, after Least Common's lc-knock): a small kettledrum head let ring 800 ms. |
