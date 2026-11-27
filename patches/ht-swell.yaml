@@ -1,0 +1,26 @@
+{
+ "about": "Hearing Things' low note with a shape (chirper-zero, 27 Nov, v27): a plain tone and its octave, 240 ms long, its loudness drawn by its track's lane (auto.shape, dB, a straight line 40 dB long): on the track `swell` it rises to its top and stops, on the track `struck` it begins at its top and dies away: one is the other played backwards. Nothing over 165 Hz. BANKED by tools/patchbank.py (27 Nov 2026) from Hearing Things v27 (tracks swell, struck): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "2ms",
+   "d": "0s",
+   "r": "8ms"
+  },
+  "layers": [
+   {
+    "level": "0dB",
+    "phase": 0.0
+   },
+   {
+    "level": "-9dB",
+    "phase": 0.0,
+    "ratio": 2.0
+   }
+  ]
+ }
+}

@@ -1,0 +1,49 @@
+{
+ "about": "Ring True: the metal that rings true (v21). rt-motor's bar and disc with the engine's stroke-to-stroke wander off (`vary: 0`): every stroke sounds its written note (rt-motor's are 2 cents under to 5 over it, a new draw each time), so that two of them tuned a set number of waves a second apart breathe at that rate and no other. BANKED by tools/patchbank.py (27 Nov 2026) from Ring True v21 (tracks metal, metal-room, metal-kept, metal-drop, metal-twin): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.6
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "curve": 1.0,
+   "d": "0s",
+   "r": "2.5s"
+  },
+  "layers": [
+   {
+    "bright": 1,
+    "decay": {
+     "mod": [
+      {
+       "amount": 1.0,
+       "src": "expr.ring"
+      }
+     ],
+     "value": 0.012
+    },
+    "level": {
+     "mod": [
+      {
+       "amount": 6.0,
+       "src": "lfo.motor"
+      }
+     ],
+     "value": "-6dB"
+    },
+    "modes": "glock",
+    "strike": 0.6,
+    "type": "modal",
+    "vary": 0.0
+   }
+  ],
+  "lfo": {
+   "motor": {
+    "phase": 0.25,
+    "rate": "1/4",
+    "retrig": true
+   }
+  }
+ }
+}
