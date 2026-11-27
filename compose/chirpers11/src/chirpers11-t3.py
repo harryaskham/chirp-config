@@ -311,6 +311,18 @@ between two sixteenths, the next nowhere, and the last two within 4 ms of a sixt
 nearly sqrt(2) and 19/6 nearly sqrt(10). When the click steps to 7 + 5 every one of them moves, and one
 corner echo lands ON a sixteenth: 5 across and 12 deep is 13. Each echo comes from where its corner is
 (across / late, of the way to that side) and every wall it met takes 3 dB, as the room's walls do.
+
+v21 (27 Nov): UNDER THE DOME (C11T3_DOME=0 takes it out: v20). Every wall in this song has been flat,
+and a flat wall gives a click back once. The hall of "standing room" has a dome, and a dome like this
+one (an ellipse turned round) has a FOCUS: from the click up to ANY part of it and down to that one
+place on the floor is the same way round, 7 sixteenths: the curve is the one for which that is so. In
+the row before the people come in (bars 129-136, which had nothing of its own) you walk to it. Two
+sixteenths of sound away, the twelve parts of the dome answer one after another, those ahead of you
+first and those behind you last, from all round: a rattle. With every bar it is shorter. On the focus
+(the last three bars) all twelve arrive together: ONE stroke, on step 9 where nothing else in this room
+strikes, made of twelve, and not one of them was played any louder: the only thing that changed is
+where you stand (the Albert Hall's echo, before the mushrooms were hung in 1969; the whispering place
+under any dome).
 """
 import json
 import math
@@ -555,6 +567,17 @@ FOUR_PAN = 0.85                                        # an echo from straight l
 FOUR_VEL = 0.75                                        # the velocity of an echo at 0 dB (the loudest written, two first echoes together, is +2 dB: 0.944)
 FOUR_PANS = 9                                          # tracks, evenly from -0.8 to 0.8: an echo is on the nearest
 FOUR_GAIN = os.environ.get("C11T3_FOUR_GAIN", "-20dB") # the tracks' fader. Set in the whole song's master, which holds the click and every echo of it near -18 dBFS: at -2, -8 and -14dB the first corner echo came out as loud as the click itself (-17.6 to -18.1); at -20dB what sounds at its instant is 3.4 dB under the side walls' first echo (the echo by itself about 5 under): a wall's worth and a little more
+DOME = os.environ.get("C11T3_DOME", "1") != "0" and FOUR   # v21: the hall has a dome, and the dome has a focus (every wall till now was flat)
+DOME_IN = ("standing room", 2)                         # the section and the row of it (from 0): the row before the people come in, which had nothing of its own
+DOME_PATH = 7                                          # sixteenths from the click up to the dome and down to its focus: THE SAME BY WAY OF EVERY PART OF THE DOME (an ellipse is the curve for which that is so). The click is on step 2: step 9, where nothing else in this room strikes
+DOME_UP = 3                                            # sixteenths from the focus up to the dome (and 4 from the click to it)
+DOME_PARTS = 12                                        # the parts of the dome an echo is written from: a ring of it, evenly round you (the first DOME_TURN of a part off straight ahead), DOME_RISE degrees up
+DOME_TURN = 0.25
+DOME_RISE = 45.0
+DOME_WALK = (2.0, 5)                                   # sixteenths of sound from the focus at the row's first bar, and the bars it takes to walk there (in a straight line, evenly): the rest of the row you stand on it. Five, not six: in the row's seventh bar Zeno's ball bounces on step 8.98, with the focus; so the focus is heard alone in the sixth and the eighth
+DOME_VEL = 0.75                                        # every part's echo, at every bar: nothing gets louder but by arriving together
+DOME_PAN = 0.9                                         # the part straight to your left is this far left
+DOME_GAIN = os.environ.get("C11T3_DOME_GAIN", "-24dB") # the tracks' fader, set in the whole song's master between two readings. THE FADER SETS THE RATTLE, NOT THE FOCUS: this master holds the focused stroke at the click's own level whatever the fader (-18.5 dBFS in its 40 ms at -20dB, -19.5 at -28dB; the click is -19.7). At -20dB the parts of the rattle stood 1 to 10 dB over what was in their gaps (their highest samples -6 dBFS: nearly the focus); at -28dB they were level with their gaps or under
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
 SONIC_MACH = 2.0                                       # its speed, in speeds of sound: at 2 its past is heard at the tempo it happened at
 SONIC_AWAY = 2                                         # sixteenths of sound away at its nearest (81.7 m: as far as the pipes are long)
@@ -882,6 +905,34 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def dome_row():
+    """The first bar of the row under the dome, or None."""
+    sec = next((x for x in SECS if x[0] == DOME_IN[0]), None)
+    return sec[1] + ROW * DOME_IN[1] if DOME and sec is not None and DOME_IN[1] * ROW < sec[2] else None
+
+
+def dome_off(j):
+    """How far from the focus you are in bar j of the row, in sixteenths of sound."""
+    return DOME_WALK[0] * max(0.0, 1 - j / DOME_WALK[1])
+
+
+def dome_parts():
+    """[(which way round from straight ahead, degrees; the pan)] of every part of the dome."""
+    return [((i + DOME_TURN) * 360 / DOME_PARTS, round(DOME_PAN * math.sin(math.radians((i + DOME_TURN) * 360 / DOME_PARTS)), 3)) for i in range(DOME_PARTS)]
+
+
+def dome_late(j, turn):
+    """Sixteenths after the click that the echo from the part `turn` degrees round arrives in bar j: up to the dome (DOME_PATH - DOME_UP), and down from it to where you are: sqrt(up^2 - 2 up off cos + off^2), where cos is the cosine of the angle between the way you walk and the way to that part."""
+    off = dome_off(j); c = math.cos(math.radians(DOME_RISE)) * math.cos(math.radians(turn))
+    return DOME_PATH - DOME_UP + math.sqrt(DOME_UP ** 2 - 2 * DOME_UP * off * c + off ** 2)
+
+
+def dome_notes():
+    """{part: [note]}: the dome's echo of the row's every click, a note from each part."""
+    b0 = dome_row()
+    return {i: [{"at": round((b0 + j) * BEATS + (CLICK_STEP + dome_late(j, turn)) * STEP, 5), "len": 0.2, "pitch": "A5", "vel": DOME_VEL} for j in range(ROW)] for i, (turn, _) in enumerate(dome_parts())} if b0 is not None else {}
 
 
 def four_rows():
@@ -1428,6 +1479,15 @@ def song():
         fo_rows = four_rows()
         doc["about"] = doc["about"].replace(" Generated by", f" From v20 the hangar has its other two walls in its last two rows (bars {fo_rows[0][0] + 1} to {fo_rows[-1][0] + ROW}), in front and behind and as far apart as the side ones: an echo that has met both pairs comes back from a corner, the square root of (across squared plus deep squared) sixteenths late, which is almost never on a sixteenth: 8.49, 13.42, 16.97 and 18.97 with the click in the middle, and when it steps to 7 + 5 one corner lands on the grid, because 5 and 12 make 13. Generated by")
         assert "From v20" in doc["about"]
+    if dome_row() is not None:
+        if "sr-corner" not in PATCHES:
+            raise SystemExit("the dome's echo is the click as a wall leaves it (sr-corner): C11T3_FOUR must be on")
+        do_notes = dome_notes()
+        for do_i, (do_turn, do_pan) in enumerate(dome_parts()):
+            doc["tracks"].append({"name": f"dome-{do_i + 1}", "patch": "sr-corner", "gain": DOME_GAIN, "pan": do_pan,
+                                  "fx": [{"type": "eq", "bands": ["hp cutoff=250", "lp cutoff=9000"]}], "notes": do_notes[do_i]})     # the walls' own filter
+        doc["about"] = doc["about"].replace(" Generated by", f" From v21 the hall has a dome, the first wall in the song that is not flat, and you walk under it in the row before the people come in (bars {dome_row() + 1} to {dome_row() + ROW}). A dome like this one has a focus: from the click up to any part of it and down to that one place is the same way round, {DOME_PATH} sixteenths. Anywhere else the {DOME_PARTS} parts of it answer one after another, the ones ahead of you first and the ones behind last: a rattle {dome_late(0, 180) - dome_late(0, 0):.1f} sixteenths long in the row's first bar, shorter with every bar as you walk in; on the focus (the last {ROW - DOME_WALK[1]} bars) they arrive together, one stroke on step {CLICK_STEP + DOME_PATH} made of {DOME_PARTS}, and no part of it was played any louder. Generated by")
+        assert "From v21" in doc["about"]
     return doc
 
 
@@ -1484,6 +1544,13 @@ def echoes(a, b, n=16):
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
         sec = 60 / BPM * BEATS
+        if dome_row() is not None:
+            do_six = STEP * 60 / BPM * 1000; do_b0 = dome_row()
+            print(f"under the dome, bars {do_b0 + 1}-{do_b0 + ROW} ({int(do_b0 * BEATS * 60 / BPM) // 60}:{do_b0 * BEATS * 60 / BPM % 60:04.1f}): from the click to the dome and down to the focus {DOME_PATH} sixteenths ({DOME_PATH * do_six / 1000 * SOUND:.0f} m) by way of every part ; {DOME_PARTS} parts, {DOME_RISE:g} degrees up, {DOME_UP} sixteenths from the focus ; you start {DOME_WALK[0]:g} sixteenths ({DOME_WALK[0] * do_six / 1000 * SOUND:.0f} m) from it and are on it after {DOME_WALK[1]} bars ; {DOME_GAIN}")
+            print("   the parts (degrees round from straight ahead, pan): " + " ".join(f"{t:.0f}:{p:+.2f}" for t, p in dome_parts()))
+            for do_j in range(ROW):
+                do_l = sorted(dome_late(do_j, t) for t, _ in dome_parts())
+                print(f"   bar {do_b0 + do_j + 1}: {dome_off(do_j):.2f} sixteenths off ; the echoes on steps " + " ".join(f"{CLICK_STEP + v:.2f}" for v in do_l) + f" ; first to last {(do_l[-1] - do_l[0]) * do_six:.1f} ms")
         if FOUR and four_rows():
             fo_six = STEP * 60 / BPM * 1000
             print(f"the hangar's other two walls: in front and behind, {FOUR_DEEP[0]} + {FOUR_DEEP[1]} sixteenths there and back ({(FOUR_DEEP[0] + FOUR_DEEP[1]) / 2 * fo_six / 1000 * SOUND:.0f} m deep, as it is wide) ; every wall takes {-FOUR_EACH:g} dB (the first {-FOUR_FIRST:g}) ; echoes that met more than {FOUR_WALLS} walls are left out ; {sum(len(v) for v in four_notes().values())} echoes on {sum(1 for v in four_notes().values() if v)} tracks ({FOUR_GAIN})")
