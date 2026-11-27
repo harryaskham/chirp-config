@@ -322,6 +322,16 @@ they are 1 against 2 against 3 ... against 8, every small polyrhythm at once, an
 p/q of the bar is harmonic q and its multiples, which are the harmonics of a note q times as high:
 the note heard at any moment is the DENOMINATOR of the time. It is Cowell's and Theremin's
 rhythmicon (1931): the same ratios as pitch and as rhythm; phase is what makes them one note or eight.
+
+v23 (27 Nov): THE CLICK COMES APART (C11T7_DISP=0 takes it out: v22). A click is every frequency
+starting at once. An all-pass filter lets every frequency through at the level it came in at and
+changes only its PHASE: near the filter's own frequency the sound is held back a little. A chain of
+them, their frequencies spread evenly in pitch from 400 Hz to 8 kHz, holds each frequency back by
+about (filters) / (f ln 20): the low ones longest. So a click goes in and a falling chirp comes out:
+the same spectrum, to the dB, and another sound: its harmonics are out of step. In the sixth row of
+"slips" (bars 65 to 72) A's click on sixteenths 6 and 14 is given a second copy through such a chain,
+on A's side: 32 filters for two bars, then 64, 128, 256: the click's third harmonic comes 14, 29,
+57 and then 114 ms after its twenty-fourth.
 """
 import json
 import math
@@ -612,6 +622,16 @@ RHY_LEN = 0.2                                          # beats a stroke is held
 RHY_VEL = 0.8
 RHY_PAN = 0.5                                          # the lowest is this far left, the highest this far right, evenly: each rhythm has a place; at the bar line they still strike as one
 RHY_GAIN = os.environ.get("C11T7_RHY_GAIN", "-14dB")   # the first harmonic's fader, set in the whole song's master between two readings, BEFORE their scores were read, FROM THE QUIET END (the eighth harmonic, 18 dB under the first): at -12dB its strokes stood a median 1 dB over the music in their own band (22 of 40 level with it or over) and at -18dB 5 under (13 of 40); 179 and 107 of all 214 strokes were level with the music or over. The harmonics in empty bands (350, 583, 699, 816 Hz) stand 7 to 16 dB clear at -12dB; the first two are in the bass's band (B flat 2 is the bass's own note in bars 107 to 110) and are under it at any fader tried. Harmonic n is 20 log10(n) dB under it (a saw's own law: so that all eight struck together, from phase nought, are the first eight terms of one saw)
+DISP = os.environ.get("C11T7_DISP", "1") != "0" and RHY   # v23: the click's own harmonics go out of step: a chain of all-pass filters changes nothing in a click but the PHASE of each frequency, and the click comes out as a falling chirp (the same spectrum, another sound)
+DISP_IN = ("slips", 5)                                 # the section and the row of it (from 0): the last-but-two row of "slips", which had nothing of its own (the swarm is before it, the gears after)
+DISP_STAGES = (32, 64, 128, 256)                       # all-pass filters in the chain, for two bars each: every two bars the chain is twice as long
+DISP_BAND = (400.0, 8000.0)                            # Hz: the filters' own frequencies, evenly spaced in pitch between these: each holds back the frequencies near its own, so a frequency f is late by about (filters) / (f ln(top / bottom)): the low ones last
+DISP_Q = 2.0
+DISP_ON = (6, 14)                                      # the sixteenths of the bar: two of A's own clicks (with the hat): it is A's click that is heard to come apart, and the next sixteenth has only the air on it
+DISP_VEL = 0.9                                         # A's
+DISP_PAN = -0.35                                       # A's side in this row
+DISP_KEEP = "-120dB"                                   # a held note this far down goes into each chain for as long as its stage lasts, AND NOTHING ELSE KEEPS THE CHAIN RUNNING: the engine stops a bus's effects when the last voice that feeds it ends (it takes a filter to have no tail), and the click's voice ends after 27 ms, while 256 all-pass filters are still giving it back 100 ms later. Read on the bench without it: the click's third harmonic came out 30 dB down, the sixth 18 to 33, the stroke 25 ms long. With it: every band within 0.1 dB of the click's own
+DISP_GAIN = os.environ.get("C11T7_DISP_GAIN", "-8dB")  # set in the whole song's master between two readings, BEFORE their scores were read (A's click is -2dB): what is heard of the copy is its TAIL, after A's own click is over: between 500 and 1500 Hz, from 30 to 110 ms after the stroke, the mix is 6.1, 8.5 and 9.4 dB over what it was at -6dB (64, 128, 256 filters) and 3.0, 4.1, 5.0 dB over at -12dB; with 32 filters there is no tail at either (the copy is over in 24 ms: a click on a click). Nearer the louder: a chirp has to be heard as one. THE MASTER DELIVERS THE COPY 8 dB LOUDER THROUGH 256 FILTERS THAN THROUGH 32 (the same energy went in: its peak is 7 dB lower, and this master holds peaks)
 SWARM = os.environ.get("C11T7_SWARM", "1") != "0" and FOCUS      # v18: the click comes apart and finds itself (twelve clicks that listen only to each other)
 SWARM_ROWS = tuple(int(x) for x in os.environ.get("C11T7_SWARM_ROWS", "56,120").split(","))    # the first bar (from 0) of each row it plays in: the two breaks in which the bass drum rests and then comes in
 SWARM_BARS = ROW                                                     # how long a row is
@@ -675,6 +695,33 @@ def gear_notes():
             out += [{"at": round(b + j * q / p, 6), "len": 0.25, "pitch": GEAR_NOTE, "vel": GEAR_ACCENT[0 if j % p == 0 else 1]} for j in range(p * turns)]
             b += q * turns
     return out
+
+
+def disp_row():
+    """The first bar of the row in which the click comes apart, or None."""
+    sec = next((x for x in SECS if x[0] == DISP_IN[0]), None)
+    return sec[1] + ROW * DISP_IN[1] if DISP and sec is not None and DISP_IN[1] * ROW < sec[2] else None
+
+
+def disp_cuts(k):
+    """The k all-pass filters' own frequencies (Hz): evenly spaced in pitch across DISP_BAND."""
+    lo, hi = DISP_BAND
+    return [round(lo * (hi / lo) ** ((i + 0.5) / k), 2) for i in range(k)]
+
+
+def disp_late(f, k):
+    """Seconds by which a chain of k filters holds back the frequency f (the sum of each filter's group delay there)."""
+    out = 0.0
+    for f0 in disp_cuts(k):
+        x = f / f0
+        out += 2 / (DISP_Q * 2 * math.pi * f0) * (1 + x * x) / ((1 - x * x) ** 2 + x * x / DISP_Q ** 2)
+    return out
+
+
+def disp_notes(j):
+    """Stage j's strokes: A's click on DISP_ON, in the stage's bars of the row."""
+    b0, per = disp_row(), ROW // len(DISP_STAGES)
+    return [{"at": (b0 + j * per + i) * BEATS + st * STEP, "len": 0.125, "pitch": NOTE, "vel": DISP_VEL} for i in range(per) for st in DISP_ON]
 
 
 def rhy_row():
@@ -1295,6 +1342,19 @@ def song():
                                   "notes": [{"at": rh_t, "len": RHY_LEN, "pitch": RHY_ROOT, "vel": RHY_VEL} for rh_t in rhy_strokes(rh_n)]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v22 one note comes apart into {RHY_N} rhythms (bars {rh_b0 + 1} to {rh_b0 + ROW}): the first {RHY_N} harmonics of {RHY_ROOT}, each a plain tone, the n-th striking n times a bar; two more come in every bar, and all {RHY_N} play the row's second half. On every bar line they strike together from the same point of their waves and are one note, a saw; inside the bar they are 1 against 2 against 3 and so on to {RHY_N}, and what strikes at p/q of the bar is harmonic q with its multiples: the note heard is the denominator (a rhythmicon: Cowell and Theremin, 1931). Generated by")
         assert "From v22" in doc["about"]
+    if disp_row() is not None:
+        assert ROW % len(DISP_STAGES) == 0
+        di_b0 = disp_row(); di_hz = [588.0, 1176.0, 2352.0, 4704.0]       # the click's 3rd, 6th, 12th and 24th harmonics (it is a saw on G3, 196 Hz, with nothing under 500 Hz)
+        PATCHES["os-keep"] = {"about": f"Out of Step's keeper (chirper-zero, 27 Nov, v23): one plain tone, held, played {DISP_KEEP[1:]} down into a chain of filters so that the engine keeps the chain running after the click that went into it has ended. It is not there to be heard, and at that level it is under the last bit of the file.",
+                              "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": ["sine phase=0"], "amp": {"a": "1ms", "d": "0s", "s": 1, "r": "1ms"}}}
+        for di_j, di_k in enumerate(DISP_STAGES):
+            doc["tracks"].append({"name": f"keep-{di_j + 1}", "patch": "os-keep", "gain": DISP_KEEP, "pan": 0.0, "out": f"chain-{di_j + 1}",
+                                  "notes": [{"at": (di_b0 + di_j * (ROW // len(DISP_STAGES))) * BEATS, "len": (ROW // len(DISP_STAGES)) * BEATS, "pitch": "G1", "vel": 0.5}]})
+            doc["buses"][f"chain-{di_j + 1}"] = {"fx": [{"type": "filter", "kind": "allpass", "cutoff": di_f, "q": DISP_Q} for di_f in disp_cuts(di_k)]}
+            doc["tracks"].append({"name": f"disp-{di_j + 1}", "patch": "os-click", "gain": DISP_GAIN, "pan": DISP_PAN, "out": f"chain-{di_j + 1}",
+                                  "auto": {"open": {"points": open_lane()}}, "notes": disp_notes(di_j)})      # dry: the chain is all it goes through
+        doc["about"] = doc["about"].replace(" Generated by", f" From v23 A's click comes apart (bars {di_b0 + 1} to {di_b0 + ROW}): on two sixteenths of every bar a second copy of it goes through a chain of all-pass filters, which change nothing in it but the phase of each frequency: the spectrum is the click's, and the sound is a falling chirp, because its harmonics no longer start together: the chain holds the low ones back longest. Every two bars the chain is twice as long ({', '.join(str(k) for k in DISP_STAGES)} filters): the click's third harmonic (588 Hz) comes {', '.join(f'{1000 * (disp_late(588.0, k) - disp_late(4704.0, k)):.0f}' for k in DISP_STAGES)} ms after its twenty-fourth. Generated by")
+        assert "From v23" in doc["about"]
     return doc
 
 
@@ -1324,6 +1384,11 @@ def lock(k):
 if __name__ == "__main__":
     if os.environ.get("C11T7_SHOW"):
         sec = 60 / BPM * BEATS
+        if disp_row() is not None:
+            di_b0 = disp_row(); di_per = ROW // len(DISP_STAGES)
+            print(f"the click comes apart (all-pass: phase only), bars {di_b0 + 1}-{di_b0 + ROW} ({int(di_b0 * sec) // 60}:{di_b0 * sec % 60:04.1f}): A's click on sixteenths {', '.join(str(x) for x in DISP_ON)} again through a chain of all-pass filters ({DISP_BAND[0]:g} to {DISP_BAND[1]:g} Hz, q {DISP_Q:g}) ; {DISP_GAIN}, pan {DISP_PAN}")
+            for di_j, di_k in enumerate(DISP_STAGES):
+                print(f"   bars {di_b0 + di_j * di_per + 1}-{di_b0 + (di_j + 1) * di_per}: {di_k} filters ; held back, ms: " + " ".join(f"{f:g} Hz: {1000 * disp_late(f, di_k):.1f}" for f in (588.0, 784.0, 1176.0, 1568.0, 2352.0, 3136.0, 4704.0, 6272.0)))
         if rhy_row() is not None:
             rh_b0 = rhy_row(); rh_hz = 440 * 2 ** (({"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}[RHY_ROOT[0]] + (-1 if "b" in RHY_ROOT else 0) + 12 * (int(RHY_ROOT[-1]) + 1) - 69) / 12)
             print(f"one note comes apart (the rhythmicon), bars {rh_b0 + 1}-{rh_b0 + ROW} ({int(rh_b0 * sec) // 60}:{rh_b0 * sec % 60:04.1f}): harmonics 1 to {RHY_N} of {RHY_ROOT} ({rh_hz:.2f} Hz): " + ", ".join(f"{k}: {k * rh_hz:.0f} Hz {float(RHY_GAIN[:-2]) - 20 * math.log10(k):.1f} dB from bar {rh_b0 + 1 + int((k - 1) * RHY_BUILD)}" for k in range(1, RHY_N + 1)) + f" ; {sum(len(rhy_strokes(k)) for k in range(1, RHY_N + 1))} strokes")
