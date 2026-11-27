@@ -1,0 +1,29 @@
+{
+ "about": "Give or Take's beating tone (chirper-zero, 27 Nov, v25): one plain held tone whose pitch follows its track's lane (auto.spd, semitones): on deck A's track the lane is flat, on deck B's it is the record's speed. Two of them a wave apart are one; half a wave apart, nothing. BANKED by tools/patchbank.py (27 Nov 2026) from Give or Take v25 (tracks beat-a, beat-b): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`spd`): give the track that plays it `auto: {spd: \u2026}`, as the song does.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "40ms",
+   "d": "0s",
+   "r": "120ms"
+  },
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 1.0,
+     "src": "auto.spd"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

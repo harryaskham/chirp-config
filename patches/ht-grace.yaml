@@ -1,0 +1,36 @@
+{
+ "about": "Hearing Things' small click (chirper-zero, 27 Nov, v25): the pair's wooden click (`ht-two`: a saw from phase nought with everything under 700 Hz taken off, 16 ms, no noise in it: the same click to the sample every time) with a top at 7500 Hz: nothing of it over 10 kHz. BANKED by tools/patchbank.py (27 Nov 2026) from Hearing Things v25 (track shrink): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "16ms",
+   "r": "8ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 700,
+    "kind": "hp",
+    "q": 0.7
+   },
+   {
+    "cutoff": 7500,
+    "q": 0.7
+   },
+   {
+    "cutoff": 7500,
+    "q": 0.7
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0,
+    "wave": "saw"
+   }
+  ]
+ }
+}

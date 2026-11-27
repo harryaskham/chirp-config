@@ -1,0 +1,29 @@
+{
+ "about": "Standing Room's bass round the corner (chirper-zero, 27 Nov, v25): one plain tone; six tracks of it are the bass's first six partials (the track's lane auto.h says which, in semitones over the note), each with its own shadow. BANKED by tools/patchbank.py (27 Nov 2026) from Standing Room v25 (tracks bend-1, bend-2, bend-3, bend-4, bend-5, bend-6): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`h`): give the track that plays it `auto: {h: \u2026}`, as the song does.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "5ms",
+   "d": "0s",
+   "r": "30ms"
+  },
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 1.0,
+     "src": "auto.h"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

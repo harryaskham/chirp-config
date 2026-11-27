@@ -1,0 +1,32 @@
+{
+ "about": "Out of Step's note that is out of step with itself (chirper-zero, 27 Nov, v25): a plain tone whose phase an unheard wave pushes 0.25 of a turn ahead and back, 2 times a beat (4.20 Hz). Nothing else is done to it. BANKED by tools/patchbank.py (27 Nov 2026) from Out of Step v25 (track pm-2): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "10ms",
+   "d": "0s",
+   "r": "40ms"
+  },
+  "layers": [
+   {
+    "audible": false,
+    "fixed": 4.2,
+    "name": "wob",
+    "phase": 0.0
+   },
+   {
+    "phase": 0.0,
+    "pm": [
+     {
+      "depth": 1.5708,
+      "from": "wob"
+     }
+    ]
+   }
+  ]
+ }
+}
