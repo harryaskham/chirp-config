@@ -336,6 +336,17 @@ A2, 110 Hz; 220 and 330 with it), to your left, in the row before the dome (bars
 then 3, then 5 sixteenths there and back: from the short one the note is down in a tenth of a
 second; from the long one it is still coming down when the next click goes in. How far the sound has
 been is how slowly it comes down.
+
+v23 (27 Nov): THE CORRIDOR'S HANDRAIL (C11T3_RAIL=0 takes it out: v22). Sound has two speeds here:
+343 m/s in the air and 5100 in steel. Put an ear to a long rail and have somebody knock on it a
+long way off: the knock is heard twice, first through the steel and then through the air, and how
+far apart is how far off (2.72 ms a metre: Biot measured the speed of sound in iron this way in
+1808, on 951 m of water pipe in Paris, and the two knocks were 2.5 s apart). In the third of the
+corridor's four rows (bars 33 to 40) somebody knocks on the handrail twice a bar, a mark further
+each time (a mark is 20.4 m: what the air crosses in a thirty-second), out to 163 m and back. The
+air's knock (D6, on the right) lands on sixteenths 7 and 15 every time, quieter the further off; the
+steel's ring (D7, in the left ear, which is on the rail) comes before it: 56 ms before from the
+nearest mark, 444 ms before from the furthest, and hardly quieter. The rail has the news first.
 """
 import json
 import math
@@ -602,6 +613,24 @@ DUCT_POINTS = 48                                       # points of the lane a gl
 DUCT_VEL = 0.8
 DUCT_PAN = -0.4                                        # the duct's mouth is to your left
 DUCT_GAIN = os.environ.get("C11T3_DUCT_GAIN", "-22dB") # set in the whole song's master between two readings, BEFORE their scores were read. At -20dB the echo's lowest tone began 2 to 13 dB over the music in its own band (median 9) and was level with it 300 ms on; at -28dB it began level and was 8 to 10 dB under at 300 ms: the fall would not be followed. THIS MASTER DUCKS THE ECHO WITH EVERY BASS DRUM (10 dB down at 150 and 600 ms after a start on step 3): it is heard between the drums. The scorer likes it louder (-20dB read 99.646, -28dB 99.633): not the reason
+RAIL = os.environ.get("C11T3_RAIL", "1") != "0" and DUCT   # v23: the corridor's handrail: one knock is heard twice, because sound has two speeds (Biot, 1808: a knock on 951 m of iron water pipe in Paris came 2.5 s sooner through the iron than through the air in it)
+RAIL_IN = ("the corridor", 2)                          # the section and the row of it (from 0): the third of the corridor's four rows, which had nothing the other three have not
+RAIL_SPEED = 5100.0                                    # m/s: sound along a steel bar (in air: SOUND, 343)
+RAIL_MARKS = (1, 2, 3, 4, 5, 6, 7, 8, 8, 7, 6, 5, 4, 3, 2, 1)   # where on the rail each knock is struck, in thirty-seconds of AIR from you (20.4 m each at this tempo): out to 163 m and back
+RAIL_ON = (7, 15)                                      # the sixteenths of the bar on which the AIR's knock lands: three sixteenths after a bass drum (the master has let go by then); the knock itself is struck that much BEFORE. Read in v22's render, the knock's band is at -47 and -57 dBFS on these two
+RAIL_NOTE = "D7"                                       # what the rail brings: its ring (the song is on D)
+RAIL_PARTS = ((1, 0), (2.756, -6))                     # a free bar's first two ways of ringing (ratio, dB): 2349 and 6474 Hz: nothing over 10 kHz
+RAIL_RING = "70ms"
+RAIL_LOSS = 0.5                                        # dB a mark that the steel keeps (it does not spread: a rail is one way only)
+RAIL_GAIN = os.environ.get("C11T3_RAIL_GAIN", "-22dB") # the rail's ring: read in the whole song's master at -22dB (13 of 16 rise 6 dB or more; all 16 are 6 to 34 dB over the music in their band) and -28dB (9 of 16 rise): the louder of the two, because at the quieter nearly half did not begin. The three that do not rise at -22dB fall on a bass drum or one of the corridor's echoes
+RAIL_PAN = -0.8                                        # your left ear is on the rail
+AIR_NOTE = "D6"                                        # what the air brings: the knock, an octave duller than the rail's ring. IT WAS FIRST A THUD ON F3 (174.6 Hz) AND THAT DID NOT WORK, READ TWICE IN THE WHOLE SONG: on sixteenths 7 and 15 the bass's note is still sounding and NOT ONE THUD OF 16 ROSE 6 dB; on 1 and 9 (the band is 40 to 55 dB emptier there) 2 of 16 rose, because the bass drum's tail is what comes before them, and the master delivered the same thud 20 dB apart by place where 9 dB were written. THE LOW BAND IS THE DRUM'S AND THE BASS'S IN THIS ROW. Between 1100 and 1250 Hz the row is at -42 to -60 dBFS on every sixteenth
+AIR_PARTS = ((1, 0), (2.756, -10))
+AIR_RING = "40ms"
+AIR_LAW = 0.5                                          # the air's knock falls as 1 over the distance to this power: 3 dB a doubling (a corridor keeps the sound in; open air would be 1: 6 dB)
+AIR_GAIN = os.environ.get("C11T3_AIR_GAIN", "-20dB")   # the air's knock: set in the whole song's master between two readings, BEFORE their scores were read: at -18dB 15 of the 16 rose 6 dB or more (8 to 40 dB over the music in their band), at -24dB 12 of 16 (2 to 35 over): the ones that did not begin were the far ones, and the far ones are the story. THE THREE THAT FALL WITH THE TOCK (bars 33 and 40 on 7, bar 36 on 15) ARE DELIVERED 13 TO 15 dB UNDER THE SAME KNOCK ELSEWHERE
+AIR_PAN = 0.4                                          # the other ear
+RAIL_VEL = 0.8
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
 SONIC_MACH = 2.0                                       # its speed, in speeds of sound: at 2 its past is heard at the tempo it happened at
 SONIC_AWAY = 2                                         # sixteenths of sound away at its nearest (81.7 m: as far as the pipes are long)
@@ -929,6 +958,24 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def rail_row():
+    """The first bar of the row with the rail, or None."""
+    sec = next((x for x in SECS if x[0] == RAIL_IN[0]), None)
+    return sec[1] + ROW * RAIL_IN[1] if RAIL and sec is not None and RAIL_IN[1] * ROW < sec[2] else None
+
+
+def rail_knocks():
+    """One tuple a knock: (mark, metres off, the beat it is struck on, the beat the steel brings it, the beat the air brings it, the steel's dB, the air's dB).
+    The air's knock is ON the grid (RAIL_ON); the knock is struck a thirty-second a mark before; the steel brings it metres / RAIL_SPEED after that."""
+    assert len(RAIL_MARKS) == ROW * len(RAIL_ON), len(RAIL_MARKS)
+    b0 = rail_row(); beat = 60 / BPM; out = []
+    for j, k in enumerate(RAIL_MARKS):
+        air = (b0 + j // len(RAIL_ON)) * BEATS + RAIL_ON[j % len(RAIL_ON)] * STEP
+        m = k * beat / 8 * SOUND; struck = air - k / 8
+        out.append((k, m, struck, struck + m / RAIL_SPEED / beat, air, -RAIL_LOSS * k, -20 * AIR_LAW * math.log10(k)))
+    return out
 
 
 def duct_row():
@@ -1563,6 +1610,18 @@ def song():
                               "notes": [{"at": round(du_at, 5), "len": round(du_len, 5), "pitch": DUCT_NOTE, "vel": DUCT_VEL} for du_at, du_len, _, _ in du]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v22 the hall has an air duct, {SOUND / (2 * duct_hz()):.2f} m across, to your left in the row before the dome (bars {duct_row() + 1} to {duct_row() + ROW}). A wall gives a click back as a click. A duct does not: a sound that crosses it as it goes along it goes along more slowly, and the nearer a note is to the duct's own ({duct_hz():.0f} Hz, half a wave across) the later it is back: so each click comes back as a note that starts high and falls to {DUCT_NOTE}, and never quite arrives. The duct is {', '.join(str(p) for p in sorted(set(DUCT_BACK)))} sixteenths there and back: from the short one the fall is quick, from the long one slow: how far it has been is how slowly it comes down. Generated by")
         assert "From v22" in doc["about"]
+    if rail_row() is not None:
+        rl = rail_knocks(); rl_gap = [(st - ai) * 60 / BPM * 1000 for _, _, _, st, ai, _, _ in rl]
+        PATCHES["sr-rail"] = {"about": f"Standing Room's handrail (chirper-zero, 27 Nov, v23): what the STEEL brings of a knock on a long rail: its ring, a free bar's first {len(RAIL_PARTS)} ways of ringing ({', '.join(f'{r * hz(RAIL_NOTE):.0f}' for r, _ in RAIL_PARTS)} Hz), {RAIL_RING}. It comes at {RAIL_SPEED:g} m/s, before the air's.",
+                              "play": {"vel_sens": 0.5}, "synth": {"layers": [f"sine phase=0 ratio={r:g} level={lv:g}dB" for r, lv in RAIL_PARTS], "amp": {"a": "0.3ms", "d": RAIL_RING, "s": 0, "r": "20ms", "curve": 3}}}
+        PATCHES["sr-knock"] = {"about": f"Standing Room's handrail (chirper-zero, 27 Nov, v23): what the AIR brings of the same knock, duller and later ({', '.join(f'{r * hz(AIR_NOTE):.0f}' for r, _ in AIR_PARTS)} Hz), {AIR_RING}. It comes at {SOUND:g} m/s, after the steel's.",
+                               "play": {"vel_sens": 0.5}, "synth": {"layers": [f"sine phase=0 ratio={r:g} level={lv:g}dB" for r, lv in AIR_PARTS], "amp": {"a": "1ms", "d": AIR_RING, "s": 0, "r": "20ms", "curve": 3}}}
+        doc["tracks"].append({"name": "rail", "patch": "sr-rail", "gain": RAIL_GAIN, "pan": RAIL_PAN,
+                              "notes": [{"at": round(st, 5), "len": 0.2, "pitch": RAIL_NOTE, "vel": round(RAIL_VEL * 10 ** (sdb / 20), 4)} for _, _, _, st, _, sdb, _ in rl]})
+        doc["tracks"].append({"name": "knock", "patch": "sr-knock", "gain": AIR_GAIN, "pan": AIR_PAN,
+                              "notes": [{"at": round(ai, 5), "len": 0.2, "pitch": AIR_NOTE, "vel": round(RAIL_VEL * 10 ** (adb / 20), 4)} for _, _, _, _, ai, _, adb in rl]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v23 the corridor has a handrail and your left ear is on it (bars {rail_row() + 1} to {rail_row() + ROW}). Somebody knocks on the rail further and further down the corridor, {rl[0][1]:.1f} m more each time, out to {max(m for _, m, *_ in rl):.0f} m and back. Every knock is heard twice: first through the steel (its ring, on the left: sound goes {RAIL_SPEED:g} m/s in steel), then through the air (an octave duller, on the right: {SOUND:g} m/s). The air's knocks are on the grid; the rings come {-max(rl_gap):.0f} ms before them from the nearest mark and {-min(rl_gap):.0f} ms before from the furthest: the gap is a ruler, {-max(rl_gap) / rl[0][1]:.2f} ms a metre (Biot measured the speed of sound in iron this way in 1808). Generated by")
+        assert "From v23" in doc["about"]
     return doc
 
 
@@ -1619,6 +1678,12 @@ def echoes(a, b, n=16):
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
         sec = 60 / BPM * BEATS
+        if rail_row() is not None:
+            rl = rail_knocks(); rl_b0 = rail_row()
+            print(f"the corridor's handrail, bars {rl_b0 + 1}-{rl_b0 + ROW} ({int(rl_b0 * sec) // 60}:{rl_b0 * sec % 60:04.1f}): steel {RAIL_SPEED:g} m/s, air {SOUND:g} m/s ; a mark is {rl[0][1]:.2f} m (a thirty-second of air) ; the ring {RAIL_NOTE} ({RAIL_GAIN}, pan {RAIL_PAN}), the air's knock {AIR_NOTE} ({AIR_GAIN}, pan {AIR_PAN}) ; the steel keeps {RAIL_LOSS} dB a mark, the air falls as 1 over the distance to the power {AIR_LAW}")
+            for rl_k, rl_m, rl_s, rl_st, rl_ai, rl_sdb, rl_adb in rl:
+                rl_step = lambda t: f"{int(t // BEATS) + 1}:{(t % BEATS) / STEP:.3f}"
+                print(f"   {rl_m:5.1f} m: struck {rl_step(rl_s)} ; the steel's ring {rl_step(rl_st)} ({(rl_st - rl_s) * 60 / BPM * 1000:.1f} ms after, {rl_sdb:+.1f} dB) ; the air's knock {rl_step(rl_ai)} ({(rl_ai - rl_s) * 60 / BPM * 1000:.0f} ms after, {rl_adb:+.1f} dB) ; the ring comes {(rl_ai - rl_st) * 60 / BPM * 1000:.0f} ms before it")
         if duct_row() is not None:
             du = duct_echoes(); du_b0 = duct_row(); du_sec = 60 / BPM
             print(f"the hall's air duct, bars {du_b0 + 1}-{du_b0 + ROW} ({int(du_b0 * BEATS * du_sec) // 60}:{du_b0 * BEATS * du_sec % 60:04.1f}): {SOUND / (2 * duct_hz()):.2f} m across, its own note {DUCT_NOTE} ({duct_hz():.1f} Hz) ; the ways across heard: {', '.join(f'{m * duct_hz():.0f} Hz {lv:g} dB' for m, lv in DUCT_MODES)} ; each echo first heard {DUCT_TOP:g} times too high ; {DUCT_GAIN}, pan {DUCT_PAN}")
