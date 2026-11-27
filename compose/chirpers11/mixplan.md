@@ -94,6 +94,9 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v19 (16:57): both its ends are v18's to 0.1 dB (bars 1 to 16 by four -22.5 -23.5 -23.6 -20.7 dBFS;
+  the last sixteen by four -24.3 -23.7 -23.2 -19.7; highest sample -1.30). Inside, the two spun coins only (bars
+  93 to 96, 173 to 176): the coin is metal (a cluster from 4 to 14 kHz), flicked, and damped as it lies down.
 - Wind Down v19 (16:31): its first eight bars are v18's (by two -30.1 -30.3 -30.1 -30.1 dBFS). THE RECORD'S END
   CHANGED: the clock strikes one on the last stroke (a B flat 2 bell, let ring 5 s): from the last stroke by second
   -10.4 -21.0 -32.8 -42.5 -53.7 -71.9 -85.5 -97.4 -119.5, then nothing (v18 -9.0 -23.8 -38.0 -47.2 -63.1 -76.0
