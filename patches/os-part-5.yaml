@@ -1,0 +1,21 @@
+{
+ "about": "Out of Step's rhythmicon, harmonic 5 (chirper-zero, 27 Nov, v22): one plain tone at 5 times the note played, from phase nought, struck and dying in 220ms. Eight of them (1, 2, 3, 4, 5, 6, 7, 8) on one note, each 20 log10(n) dB under the first, struck together are the first eight terms of a saw: one note. Struck n to the bar they are eight rhythms. BANKED by tools/patchbank.py (27 Nov 2026) from Out of Step v22 (track part-5): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "220ms",
+   "r": "40ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "phase": 0.0,
+    "ratio": 5.0
+   }
+  ]
+ }
+}

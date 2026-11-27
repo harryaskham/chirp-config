@@ -1,0 +1,48 @@
+{
+ "about": "Wind Down: the chime of the clock on the wall (v18). A bell with no third: six partials (hum, prime, fifth, octave, twelfth, double octave), so every partial of every bell is a note of the song's scale; the higher ones die sooner. Four of them ring Give or Take's quarters (chirper-zero's tune) two octaves under that clock's bars: the pitch they would have at the quarter speed this song stops at. BANKED by tools/patchbank.py (27 Nov 2026) from Wind Down v18 (track chime): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.4
+ },
+ "synth": {
+  "amp": {
+   "a": "0.5ms",
+   "d": "2.4s",
+   "r": "2.4s",
+   "s": 0
+  },
+  "layers": [
+   {
+    "damp": 0.5,
+    "partials": [
+     [
+      0.5,
+      0.35
+     ],
+     [
+      1.0,
+      1.0
+     ],
+     [
+      1.5,
+      0.3
+     ],
+     [
+      2.0,
+      0.4
+     ],
+     [
+      3.0,
+      0.15
+     ],
+     [
+      4.0,
+      0.08
+     ]
+    ],
+    "tilt": 0.0,
+    "type": "additive"
+   }
+  ]
+ }
+}
