@@ -71,6 +71,26 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v13 (27 Nov): THE BAR AFTER SAYS WHO HAS LEFT. Two switches (`--without-left`, `-ajar`; both off is v12 byte for
+byte):
+  LEFT   v12's rule the other way round. A catch says who is coming; now the bar after a thing has gone says
+         who has left: the leaver plays whatever of its OWN figure falls in that bar's first beat, 3 dB under
+         its stroke, and nothing after. Four of the seven leave with a gesture of their own and keep it (the
+         change is paid and shut, the walls sing, the meetings hold their last chord, the cell is dropped).
+         The three that only stopped now have one:
+           bar 177  the bass: one more note, on the and of one (G1, with the fundamental it was given)
+           bar 185  the pattern: its first three strokes (sixteenths 0, 1 and 3)
+           bar 193  the drum: one stroke on the one, on G: after two bars with the beater held against it
+                    (B flat, then C) the last stroke is let go and is the note the drum always had. Then
+                    the spring runs down.
+  AJAR   the one catch that told nothing was the room's (bar 80): its door opened slowly through two bars
+         (-60 dB to 0), so in the caught bar it was half shut and not heard. Now the door is open for the
+         whole caught bar and shut before it: the click alone is heard IN the room for one bar, and then
+         the room comes. First built the other way (the door opening in the last beat only): on the bench
+         the bar read the same to 0.2 dB with it and without: the walls answer a click three and five
+         sixteenths late, and a door that opens with the last click lets nothing through before the bar
+         line.
+
 v12 (27 Nov): THE CATCH SAYS WHO IS COMING. Two switches (`--without-tell`, `-whole`; both off is v11 byte for
 byte):
   TELL   seven times the escapement catches: a bar with only the click, and after it something new. Until now
@@ -259,7 +279,9 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True}
+GONE = {'to': 4, 'db': -3}              # v13: the sixteenth of the bar after a thing has gone up to which its own figure is played once more; dB on those strokes
+AJAR = {'beats': 4, 'over': 0.25}       # v13: beats before the room comes at which its door is open; beats it takes to open (it was shut to open over eight)
 TELL = {'from': 12, 'db': -3}           # v12: the sixteenth of a caught bar from which the newcomer's own figure is played; dB on those strokes
 WHOLE = {'gain': '-6dB', 'bars': (COMES['cell'] - 1,)}   # v12: dB on the bass's own voice (harmonics two to six) under the lead's fundamental; the caught bars (from 0) it is in (first: all five; see the docstring)
 GRIP = {'note': -12, 'semis': 24, 'from': '-40dB', 'patch': 'wd-grip'}   # v11: dB on the cell's note with the hand all the way down; its second mode's place above the note; that layer's level with no hand; the patch
@@ -449,6 +471,18 @@ def told(bar):
     return []
 
 
+def left(bar):
+    """v13: what a thing that went with the bar line before this bar plays of its own figure in this bar's first beat: (track, note) pairs, in time order."""
+    b, first, out = bar * 4, range(GONE['to']), []
+    if bar == GOES['ghost']:
+        out += [(tr, {'at': b + s / 4, 'len': 0.45, 'pitch': GHOST[bar % 4][i], 'vel': .85}) for i, s in enumerate((2, 6, 10, 14)) if s in first for tr in (('ghost', 'under') if ON['real'] else ('ghost',))]
+    if bar == GOES['pattern']:
+        out += [('saw', {'at': b + s / 4, 'len': 0.2, 'pitch': 'G3', 'vel': .8 if s == 0 else .62}) for s in PATTERN if s in first]
+    if bar == RUNS_DOWN:
+        out += [('kick', {'at': b, 'len': 0.5, 'pitch': 'G1', 'vel': .95})]
+    return out
+
+
 def here(thing, bar):
     return COMES[thing] <= bar < GOES[thing] and not caught(bar)
 
@@ -483,6 +517,8 @@ def build():
                 T['ghost'].append({'at': b + 4 - LEAD['beats'], 'len': LEAD['beats'], 'pitch': LEAD['pitch'], 'vel': LEAD['vel'], 'gain': WHOLE['gain']})
         for tr, n in (told(bar) if ON['tell'] and caught(bar) else []):   # v12 TELL: the catch says who is coming
             T[tr].append({**n, 'gain': f"{round(float(n.get('gain', '0dB')[:-2]) + TELL['db'], 2)}dB"})
+        for tr, n in (left(bar) if ON['left'] else []):          # v13 LEFT: the bar after says who has left
+            T[tr].append({**n, 'gain': f"{round(float(n.get('gain', '0dB')[:-2]) + GONE['db'], 2)}dB"})
         if here('pattern', bar):
             slip = (bar - (GOES['pattern'] - LEAVE) + 1) % 8 if ON['slip'] and bar >= GOES['pattern'] - LEAVE else 0
             for half in (0, 8):
@@ -554,6 +590,8 @@ def build():
 def door(thing):
     """A bus fader that is shut (-60 dB) until its thing comes, open while it is here, and shut again over two bars as it goes."""
     a, z = COMES[thing] * 4, GOES[thing] * 4
+    if ON['ajar'] and thing == 'room':                         # v13 AJAR: the door opens in the last beat before the room comes
+        return {'points': [['0b', -60], [f"{a - AJAR['beats'] - AJAR['over']}b", -60], [f"{a - AJAR['beats']}b", 0], [f'{z}b', 0], [f'{z + 8}b', -60], [f'{BARS * 4}b', -60]], 'curve': 0}
     return {'points': [['0b', -60]] + ([[f'{a - 8}b', -60]] if a >= 8 else []) + [[f'{a}b', 0], [f'{z}b', 0], [f'{z + 8}b', -60], [f'{BARS * 4}b', -60]], 'curve': 0}
 
 
@@ -740,7 +778,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v11, the last five v10, the last eight v9, the last eleven v8, the last thirteen v7, the last sixteen v6, the last nineteen v5, the last twenty-two v4, the last twenty-five v3, the last thirty-one v2, all thirty-seven v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last two off is v12, the last four v11, the last seven v10, the last ten v9, the last thirteen v8, the last fifteen v7, the last eighteen v6, the last twenty-one v5, the last twenty-four v4, the last twenty-seven v3, the last thirty-three v2, all thirty-nine v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -762,6 +800,8 @@ if __name__ == '__main__':
                        ([(b, f"the bass comes back before the drum: its fundamental holds {LEAD['pitch']} through the last {'beat' if LEAD['beats'] == 1 else str(LEAD['beats']) + ' beats'}") for b in CATCHES if b > COMES['ghost']] if ON['lead'] and ON['catch'] else []) +
                        ([(b, 'the catch says who is coming: ' + ', '.join(f"{tr} {n['pitch']} on sixteenth {round((n['at'] - b * 4) * 4)}" for tr, n in told(b))) for b in CATCHES if told(b)] if ON['tell'] and ON['catch'] else []) +
                        ([(b, f"for that beat the bass is whole: its own voice plays the {LEAD['pitch']} under its fundamental") for b in CATCHES if b > COMES['ghost'] and b in WHOLE['bars']] if ON['whole'] and ON['lead'] and ON['catch'] else []) +
+                       ([(b, 'the bar after says who has left: ' + ', '.join(f"{tr} {n['pitch']} on sixteenth {round((n['at'] - b * 4) * 4)}" for tr, n in left(b))) for b in range(BARS) if left(b)] if ON['left'] else []) +
+                       ([(COMES['room'] - 1, "the room's door is open through the caught bar: the click alone is heard in the room")] if ON['ajar'] and ON['catch'] else []) +
                        ([(GOES['cell'] - 1, "the hand lets go of the stick: the cell's last stroke bounces")] if ON['drop'] else []) +
                        ([(COMES['meetings'], 'each meeting is heard to part: the two cycles that met click once more, 3, 5 or 7 sixteenths on')] if ON['part'] else []) +
                        ([(GOES['ghost'] - REAL['bars'], 'the bass is given its fundamental')] if ON['real'] else []) +
