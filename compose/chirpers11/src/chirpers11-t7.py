@@ -411,6 +411,12 @@ ever changes. One is held. The other begins again on every beat: in step, a quar
 wave late, a third, a half. Together they are twice the cosine of half the turn between
 them: 6 dB up, 3 dB up, as loud as one, nothing: a note that dies away in every bar by
 lateness alone.
+
+v32 (28 Nov): IN STEP, A CLICK; OUT OF STEP, A HUM (C11T7_BUZZ=0 takes it out: v31). In
+bars 17 to 24 sixteen tones of one low note (the 5th to the 20th of G1) are struck on the
+off beats, all at one level. Begun together they are in step once every wave of the note
+and tick there. Begun each a different part of its own wave late, the same tones at the
+same levels never meet, and there is no tick. Nothing differs but where each wave begins.
 """
 import json
 import math
@@ -792,6 +798,13 @@ LATE_WAVES = 28                                        # waves to the beat: 58.8
 LATE_NOTE = ("Bb1", 58.27047018976124)                 # the note written and its frequency; the patch moves it to LATE_WAVES
 LATE_BY = ((0, 1), (1, 4), (1, 3), (1, 2))             # how late the second tone begins on each beat of every bar, in waves (a fraction): 0, a quarter, a third, a half: the two together +6.02, +3.01, 0.00 dB of one, and nothing
 LATE_GAIN = os.environ.get("C11T7_LATE_GAIN", "-38dB")   # each track. THE BENCH FIRST (the two tracks alone at -20 dB): one tone's worth (the third beat) -29.0 dBFS; in step +6.02, a quarter late +3.03; half a wave late 34.9 to 58.1 dB under one tone (the starts are whole samples). Read in the whole song's master at -38dB (both seeds) BEFORE any score: one tone's worth -29.0 dBFS (this master lifts it 18.0 dB), in step -22.2
+BUZZ = os.environ.get("C11T7_BUZZ", "1") != "0" and LATE   # v32: IN STEP, A CLICK; OUT OF STEP, A HUM: sixteen tones of one low note at one level, struck on the off beats. Begun together they are in step once every wave of the note and tick there, 49 times a second. Begun each a different part of its own wave late they never meet, and the same tones at the same levels have no tick in them. Nothing differs but where each wave begins
+BUZZ_IN = ("one click", 2)                             # the section and its row (from 0): bars 17 to 24: the click, the second click and the drum, and nothing else
+BUZZ_NOTE = ("G1", 440.0 * 2 ** ((31 - 69) / 12))      # the note whose tones they are (the drum's): 49.0 Hz
+BUZZ_TONES = (5, 20)                                   # its tones written: the 5th to the 20th: 245 to 980 Hz, all at one level; the note itself is not written
+BUZZ_PAIRS = (2, 2, 2, 2, 2, 2, 1, 1)                  # pairs a bar: one stab in step and one out of step, on the off beats, the order turned round every other pair (so each kind falls in both halves of the bar: read on v31, the old music is 8 dB louder after beats 0 and 2 than after 1 and 3); it thins in the last two bars
+BUZZ_LEN = 0.45                                        # beats a stab is held
+BUZZ_GAIN = os.environ.get("C11T7_BUZZ_GAIN", "-40dB")   # each track. THE BENCH FIRST (the two tracks alone at -20 dB): in step -28.7 dBFS with its highest sample -15.3 (13.4 dB over); out of step -29.1 and -23.9 (5.2 dB over); tone by tone the same to 0.0 dB. Aimed at -28 dBFS. The first build (-36dB, a lift of 17 dB guessed) read -24.3 in the song: the lift here is 20.4 dB, and its ticks reached -8.8 dBFS. Read at -40dB in the whole song's master (both seeds) BEFORE any score: in step -28.3 dBFS (highest sample -12.8), out of step -28.5 (-21.6)
 SING = os.environ.get("C11T7_SING", "1") != "0" and os.environ.get("C11T7_VERN", "1") != "0" and os.environ.get("C11T7_FIVE", "1") != "0" and JET      # v16: the clicks sing (every phase set to nought)
 SING_IN = ("slips", 24, 32)                                          # the section, and the bars of it: the bare row between the vernier and the hat
 SING_OF = "a-ear"                                                    # whose strokes: A's, as they are in those bars
@@ -1035,6 +1048,27 @@ def swarm_ticks():
 
 
 _HUM_MEMO = {}
+
+
+def buzz_row():
+    """The first bar (from 0) of the row with the tones in step and out of step, or None."""
+    sec = next((x for x in SECS if x[0] == BUZZ_IN[0]), None)
+    return sec[1] + ROW * BUZZ_IN[1] if BUZZ and sec is not None and BUZZ_IN[1] * ROW < sec[2] else None
+
+
+def buzz_late(k):
+    """How late the kth tone begins when they are out of step, as a part of its own wave: j (j - 1) / (2 n) for the jth of n (Schroeder's rule: the flattest wave the same tones can make)."""
+    n = BUZZ_TONES[1] - BUZZ_TONES[0] + 1; j = k - BUZZ_TONES[0] + 1
+    return (j * (j - 1) / (2 * n)) % 1
+
+
+def buzz_stabs():
+    """[(the beat a stab begins, "in" or "out")]: in pairs, on the off beats; the order turned round every other pair."""
+    out = []
+    for bar, pairs in enumerate(BUZZ_PAIRS):
+        for p in range(pairs):
+            b = (buzz_row() + bar) * BEATS + 2 * p; out += [(b + 0.5, "in"), (b + 1.5, "out")] if len(out) % 4 == 0 else [(b + 0.5, "out"), (b + 1.5, "in")]
+    return out
 
 
 def late_row():
@@ -1825,6 +1859,16 @@ def song():
                               "notes": [{"at": at, "len": round((lt[i + 1][0] if i + 1 < len(lt) else lt_end) - at, 7), "pitch": LATE_NOTE[0], "vel": 0.8} for i, (at, _, _) in enumerate(lt)]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v31 loudness is lateness (bars {late_row() + 1} to {late_row() + ROW}, the row after the drum has gone): two low tones of {LATE_WAVES} waves to the beat ({LATE_WAVES * BPM / 60:.1f} Hz) at one level, and neither ever changes: one is held, the other begins again on every beat, {', '.join('in step' if n == 0 else f'{n}/{d} of a wave late' for n, d in LATE_BY)}: together {', '.join('nothing' if v is None else f'{v:+.1f} dB' for _, _, v in lt[:len(LATE_BY)])} of one. Generated by")
         assert "From v31" in doc["about"]
+    if buzz_row() is not None:
+        import math as bz_math
+        bz_n = BUZZ_TONES[1] - BUZZ_TONES[0] + 1; bz = buzz_stabs()
+        for bz_kind, bz_what in (("in", "every tone begun together: in step once every wave of the note, where they tick"), ("out", "each tone begun a different part of its own wave late (Schroeder's rule): the same tones at the same levels, never in step: no tick")):
+            PATCHES[f"os-buzz-{bz_kind}"] = {"about": f"Out of Step's {bz_n} tones of {BUZZ_NOTE[0]} (the {BUZZ_TONES[0]}th to the {BUZZ_TONES[1]}th: {BUZZ_TONES[0] * BUZZ_NOTE[1]:.0f} to {BUZZ_TONES[1] * BUZZ_NOTE[1]:.0f} Hz), all at one level (chirper-zero, 28 Nov, v32): {bz_what}.",
+                                             "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": [f"sine phase={(0 if bz_kind == 'in' else (1 - buzz_late(k)) % 1):g} ratio={k} level={-10 * bz_math.log10(bz_n):.2f}dB" for k in range(BUZZ_TONES[0], BUZZ_TONES[1] + 1)],
+                                                                                 "filters": ["lp cutoff=7000"], "amp": {"a": "3ms", "d": "0s", "s": 1, "r": "15ms"}}}
+            doc["tracks"].append({"name": f"buzz-{bz_kind}", "patch": f"os-buzz-{bz_kind}", "gain": BUZZ_GAIN, "pan": 0.0, "notes": [{"at": t, "len": BUZZ_LEN, "pitch": BUZZ_NOTE[0], "vel": 0.8} for t, kd in bz if kd == bz_kind]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v32 in step, a click; out of step, a hum (bars {buzz_row() + 1} to {buzz_row() + len(BUZZ_PAIRS)}): the {BUZZ_TONES[0]}th to the {BUZZ_TONES[1]}th tones of {BUZZ_NOTE[0]} ({BUZZ_TONES[0] * BUZZ_NOTE[1]:.0f} to {BUZZ_TONES[1] * BUZZ_NOTE[1]:.0f} Hz), all at one level, struck on the off beats in pairs: one with every tone begun together (in step once every wave of the note: a tick {BUZZ_NOTE[1]:.0f} times a second) and one with each begun a different part of its own wave late (the same tones at the same levels, and no tick), the order turned round every other pair: {len(bz) // 2} of each. Generated by")
+        assert "From v32" in doc["about"]
     return doc
 
 
@@ -1854,6 +1898,9 @@ def lock(k):
 if __name__ == "__main__":
     if os.environ.get("C11T7_SHOW"):
         sec = 60 / BPM * BEATS
+        if buzz_row() is not None:
+            bz = buzz_stabs(); bz_sec = buzz_row() * BEATS * 60 / BPM; bz_n = BUZZ_TONES[1] - BUZZ_TONES[0] + 1
+            print(f"in step, a click; out of step, a hum ({BUZZ_GAIN} each), bars {buzz_row() + 1}-{buzz_row() + len(BUZZ_PAIRS)} ({int(bz_sec) // 60}:{bz_sec % 60:04.1f}): the tones {BUZZ_TONES[0]} to {BUZZ_TONES[1]} of {BUZZ_NOTE[0]} ({BUZZ_NOTE[1]:.2f} Hz: {BUZZ_TONES[0] * BUZZ_NOTE[1]:.0f} to {BUZZ_TONES[1] * BUZZ_NOTE[1]:.0f} Hz), {bz_n} of them at one level ; a stab of {BUZZ_LEN:g} beats on the off beats, in pairs: one in step (every tone begun together: a tick every {1000 / BUZZ_NOTE[1]:.1f} ms) and one out of step (each begun this part of its own wave late: " + " ".join(f"{buzz_late(k):g}" for k in range(BUZZ_TONES[0], BUZZ_TONES[1] + 1)) + ") ; the order turned round every other pair ; pairs a bar: " + " ".join(str(p) for p in BUZZ_PAIRS) + f" ; {len(bz) // 2} of each")
         if late_row() is not None:
             lt = late_starts(); lt_sec = late_row() * BEATS * 60 / BPM
             print(f"loudness by lateness ({LATE_GAIN} each), bars {late_row() + 1}-{late_row() + ROW} ({int(lt_sec) // 60}:{lt_sec % 60:04.1f}): two tones of {LATE_WAVES} waves to the beat ({LATE_WAVES * BPM / 60:.2f} Hz: {LATE_NOTE[0]} {1200 * __import__('math').log2(LATE_WAVES * BPM / 60 / LATE_NOTE[1]):+.0f} cents), one held for {ROW} bars, the other begun again on every beat ({len(lt)} notes)")
