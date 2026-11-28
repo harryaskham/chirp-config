@@ -94,6 +94,11 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Wind Down v25 (04:28): both ends as they were, to the figure (nothing written before bar 144 or after bar 192):
+  bars 1 to 8 by two -30.1 -30.2 -30.0 -30.1 dBFS; from the last stroke by second -10.4 -21.1 -33.6 -40.7 -42.9
+  -44.8 -43.1 -45.0 -35.6 (seed 11 -9.8 -19.9 -32.8 -40.5 -43.0 -44.9 -43.2 -45.0 -35.6); highest sample -1.30.
+  Inside: a falling row of dry clicks after beat 3 of each bar, bars 144 to 192, a click shorter every eight
+  bars: meant (Ring True's notched stick counts who is still here).
 - Ring True v25 (04:02): both ends as they were (nothing written before bar 17 or after bar 176): bars 1 to 8 by
   two -17.78 -17.79 -17.82 -17.80 / -17.90 -17.87 -17.97 -17.94 dBFS; bar 184 -11.09 / -10.91; the tail by second
   -18.5 -33.5 -47.8 -61.1 / -20.1 -34.9 -49.0 -62.1; highest sample -1.46 / -1.37. Inside: a row of dry clicks
