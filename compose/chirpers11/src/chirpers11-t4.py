@@ -32,6 +32,25 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v25 (28 Nov), THE NINTH THING IS SCRAPED, AND IT COUNTS THE OTHERS. Three switches (`--without-rasp`, `-tally`,
+`-zip`; all three off is v24 byte for byte).
+  RASP   seven things are struck and one is sung. The ninth is scraped: a notched stick (`rt-rasp`: a notch is
+         a very small dry bar, six milliseconds, with grit on it; nothing in it rings, so it can be neither
+         let go nor stopped). A stroke on it is a ROW of clicks, a sixty-fourth apart (30 ms: the only thing in the
+         song that is not on a sixteenth), drawn so that the last falls on beat 3 of the bar, where nothing
+         but the weight is. It plays from the family's first bar to the bar before the hands come off, and
+         rests wherever a thing is listened to alone.
+  TALLY  the row has a notch for every thing that is ringing in that bar (a ring of a quarter or more): none
+         among the taps (the stick's own tap is all there is), one when the wood is let go, two with the
+         metal, three with the string, five with the skin and the air, six with the plate while there is no
+         weight, seven at the peak: and back, five, two, one, none, as they are stopped. The more things ring
+         the harder it is scraped: a dB a notch on the whole row. In the bar before
+         each new thing the weight tolls, and the row is already one longer. Where everything rings and no
+         click is left, the row of dry clicks is at its longest: it is the one thing the hall cannot blur.
+  ZIP    the row climbs to its last click: each notch a step of the five notes under the next (the stick is
+         scraped towards its thin end), so a long row is heard as longer and as rising: seven notches begin
+         on Bb5 and end on D7.
+
 v24 (28 Nov), THE EIGHTH THING IS NOT STRUCK. Three switches (`--without-glass`, `-rub`, `-four`; all three
 off is v23 byte for byte).
   GLASS  seven things are struck, ring when a hand lets them go and stop when it holds them. The eighth is the
@@ -455,12 +474,19 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True, 'trade': True, 'slack': True, 'hint': True, 'twin': True, 'quicken': True, 'told': True, 'third': True, 'foretold': True, 'hallpair': True, 'slows': True, 'fall': True, 'glass': True, 'rub': True, 'four': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True, 'trade': True, 'slack': True, 'hint': True, 'twin': True, 'quicken': True, 'told': True, 'third': True, 'foretold': True, 'hallpair': True, 'slows': True, 'fall': True, 'glass': True, 'rub': True, 'four': True, 'rasp': True, 'tally': True, 'zip': True}
 TRADE = {'to': 128, 'pairs': (('wood', 'metal', 12, 120), ('string', 'skin', 0, 124))}   # v20: the bar (from 0) at which each has its own cell again; the pairs that play each other's: how many semitones the second is over the first, and the bar (from 0) they trade at
 TWIN = {'patch': 'rt-true', 'ring': 0.3, 'db': -6, 'gap': 1, 'bars': ((48, 64, 4), (96, 112, 2), (112, 144, 1))}   # v21: the metal's patch while it is a pair (the motor's, with the engine's stroke-to-stroke wander off: another sound, another name); the least ring, s, at which the second bar is struck; dB on each of the two (in step at the stroke they add to the old stroke); sixteenths to one wave of the gap between them where QUICKEN is off; the bars (from 0, to but not with) in which the metal is a pair, and the sixteenths to a wave there with QUICKEN
 THIRD = {'pair': ('air', 'plate', 24), 'at': 116, 'told': (78, 80), 'lift': 4}   # v22: (the last: dB on the plate's strokes while it plays the pipe's cell: two of its four fall on the bass drum, and the first build's peak read 2 to 3 dB poorer above 6 kHz, bars 117 to 128) v22: the third pair that trades (how many semitones the second is over the first), the bar (from 0) it trades at, and the bars (from 0, to but not with) in which it is told once before, stopped
 GLASS = {'patch': 'rt-glass', 'gain': '-28dB', 'pan': 0.2, 'room': '-14dB', 'notes': ((128, 136, 'Bb3', 0), (136, 144, 'D4', 0), (144, 152, 'F4', 0), (152, 168, 'Bb4', -3), (168, 176, 'D5', -6)), 'early': 0.5, 'vel': 0.7,
          'cents': 4, 'twin': -8, 'partial': (14.57, -20), 'rub': 3, 'rate': '3/8', 'turn': 1.5, 'speak': '500ms', 'stop': '1s'}   # v24: the glass: its patch, fader (bench, raw, 200 to 520 Hz: at -20 dB it stood 1 to 3 dB OVER the whole song in its band and 5 to 8 over the song's middle 100 ms: a lead; at -28 it is under the strokes and over the gaps), place and room; its notes (bars from 0, to but not with; and dB: the fewer the things that ring, the more this master lifts a held note); beats before the next note that the finger moves; touch; the twin's cents and dB; the second partial (semitones, dB); half the rock of the finger's turn (dB), the turn, and the turn in beats (a beat and a half: two turns to three beats. Once a beat and 3 dB, the first build's, was 1.9 dB as delivered UNDER a 6 dB dip this master makes in a held note at every drum stroke: not to be told from it); how long it takes to speak and to stop
+RASP = {'patch': 'rt-rasp', 'gain': '-12dB', 'notch': -8, 'bare': -6, 'more': 1, 'pan': -0.45, 'room': '-14dB', 'bars': (TOP[1], TOP[12] + 8), 'at': 8, 'gap': 1 / 16, 'ringing': 0.25, 'pitch': 'D7', 'climb': 1, 'vel': (0.5, 0.85), 'len': 0.04, 'plain': 0}   # v25: the rasp: its patch, fader, dB on every notch before the last click, and dB on a last click that has no weight under it (all three from the finished song: at -6 dB and no trims the last click read -10 dBFS with the weight and -3.5 without it, and the notches, between the strokes, -3 to -7: this master lifts a click that falls between the drum's strokes 18 dB and one that falls with the drum 8), dB more on the whole row for each notch in it (TALLY: the more things ring the harder it is scraped: with none, the third build's, the peak's seven notches were 10 to 20 dB under what rings in their band and its last click 4 under), place and room; the bars it plays in (from 0, to but not with); the sixteenth of the bar its row ends on; the gap between notches (beats: a sixty-fourth); the ring at which a thing counts as ringing; the last click's note; steps of the five notes each notch is under the next (ZIP); touch (the first notch, the last click); a click's length (beats); the notches without TALLY
+RASP_PATCH = {'about': "Ring True: the rasp (v25): the ninth thing, scraped and not struck: one notch of a notched stick: a very small dry bar (six milliseconds) with two milliseconds of grit on it. Nothing in it rings.",
+              'synth': {'layers': [{'type': 'modal', 'modes': 'bar', 'decay': '6ms', 'bright': 0.9, 'strike': 0.8},
+                                   {'type': 'noise', 'color': 'white', 'level': {'value': '-70dB', 'mod': [{'src': 'env.burst', 'amount': 52}]}}],
+                        'env': {'burst': {'a': '0.1ms', 'd': '2ms', 's': 0, 'r': '2ms'}},
+                        'amp': {'a': '0.1ms', 'd': '0s', 's': 1, 'r': '20ms'}},
+              'play': {'event_stable': True, 'vel_sens': 0.6}}   # (the first build's notch was noise alone through a narrow band: two milliseconds of it are two or three chances, and the same click read -11 to -23 dBFS from bar to bar: some notches were not there)
 FOUR = {'at': 12, 'db': 3}   # v24: the sixteenth of the bar (beat 4) on which the plate's traded strokes are lifted again, and by how much
 SLOWS = {'bars': ((136, 140, 2), (140, 144, 4))}   # v23: the bars (from 0, to but not with) in which the metal's pair goes back the way it came, and sixteenths to one wave of the gap there (they stand before TWIN's own spans)
 TOLD = {'pair': ('string', 'skin', 0), 'bars': (62, 64)}   # v21: the second pair's trade told once before, stopped: the last cell before the string is let go
@@ -833,6 +859,31 @@ def stroke(thing, at, pitch, vel, r):
     return n
 
 
+def rasp_count(bar):
+    """v25 TALLY: the rasp's notches in a bar: the struck things that are in and ring RASP['ringing'] or more."""
+    return sum(1 for k in things() if bar >= enters(k) and not any(a <= bar < b for a, b in [OUT_OF.get(k, (0, 0))]) and ring_at(k, bar) >= RASP['ringing'])
+
+
+def rasp_bare(bar):
+    """v25 RASP: is the row's last click alone on its beat: no weight in the bar (lifted, or standing aside)?"""
+    return any(a <= bar < b for a, b in [OUT_OF.get('weight', (0, 0))]) or bool(ON['aside'] and laid(ASIDE['for'], bar))
+
+
+def rasp_notes():
+    """v25 RASP: a row a bar, its last click on RASP['at']; it rests where a thing is listened to alone."""
+    out = []
+    for bar in range(*RASP['bars']):
+        if listened(bar):
+            continue
+        n = rasp_count(bar) if ON['tally'] else RASP['plain']
+        land = bar * 4 + RASP['at'] / 4
+        for j in range(n, -1, -1):
+            out.append({'at': round(land - j * RASP['gap'], 4), 'len': RASP['len'], 'pitch': step(RASP['pitch'], -RASP['climb'] * j) if ON['zip'] else RASP['pitch'],
+                        'vel': round(RASP['vel'][1] - (RASP['vel'][1] - RASP['vel'][0]) * j / max(n, 1), 3),
+                        **({'gain': f"{db:g}dB"} if (db := (RASP['notch'] if j else RASP['bare'] if rasp_bare(bar) else 0) + (RASP['more'] * n if ON['tally'] else 0)) else {})})
+    return out
+
+
 def build():
     T = {k: [] for k in things()}
     if ON['room']:
@@ -909,6 +960,8 @@ def build():
                     T[k] = [{**n, 'gain': f"{round(float(n.get('gain', '0dB')[:-2]) + FOUR['db'], 2)}dB"} if THIRD['at'] <= n['at'] // 4 < TRADE['to'] and round(n['at'] % 4 * 4) == FOUR['at'] else n for n in T[k]]
     if ON['glass']:                                               # v24 GLASS: the eighth thing, sung and not struck: one held note a section while the others are stopped
         T['glass'] = [{'at': a * 4, 'len': (b - a) * 4 - GLASS['early'], 'pitch': pitch, 'vel': GLASS['vel'], **({'gain': f'{db}dB'} if db else {})} for a, b, pitch, db in GLASS['notes']]
+    if ON['rasp']:                                                # v25 RASP: the ninth thing, scraped: a row of clicks a bar
+        T['rasp'] = rasp_notes()
     if ON['twin'] and ON['motor'] and T.get('metal'):             # v21 TWIN: the metal is a pair; QUICKEN: the gap between them doubles twice
         both, second = [], []
         for n in T['metal']:
@@ -1038,6 +1091,9 @@ def song(T, bars=BARS):
                       'amp': {'a': GLASS['speak'], 'd': '0s', 's': 1, 'r': GLASS['stop']}},
             'play': {'vel_sens': 0.3, 'gate': 1}}}
         doc['tracks'].append({'name': 'glass', 'patch': GLASS['patch'], 'gain': GLASS['gain'], 'pan': GLASS['pan'], **({'sends': {'room': GLASS['room']}} if 'room' in doc.get('buses', {}) else {}), 'notes': T['glass']})
+    if T.get('rasp'):                                             # v25 RASP: its patch and its track
+        doc['patches'] = {**doc['patches'], RASP['patch']: RASP_PATCH}
+        doc['tracks'].append({'name': 'rasp', 'patch': RASP['patch'], 'gain': RASP['gain'], 'pan': RASP['pan'], **({'sends': {'room': RASP['room']}} if 'room' in doc.get('buses', {}) else {}), 'notes': T['rasp']})
     if T.get('metal-twin-room'):                                  # v22 HALLPAIR: the second bar's own way to the hall, as the first's
         first = next(t for t in doc['tracks'] if t['name'] == 'metal-room')
         doc['tracks'].append({**{x: y for x, y in first.items() if x != 'notes'}, 'name': 'metal-twin-room', 'notes': T['metal-twin-room']})
@@ -1074,7 +1130,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the fifty-eight that are on: all off is v1; the last fifty-three off is v2; the last forty-nine off is v3; the last forty-six off is v4; the last forty-three off is v5; the last forty-two off is v6; the last thirty-nine off is v7; the last thirty-seven off is v8; the last thirty-four off is v9; the last thirty off is v10; the last twenty-six off is v11; the last twenty-four off is v12; the last twenty-two off is v13; the last twenty off is v14; the last nineteen off is v15; the last eighteen off is v16; the last seventeen off is v17; the last sixteen off is v18; the last fourteen off is v19; the last eleven off is v20; the last eight off is v21; the last five off is v22; the last three off is v23)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the sixty-one that are on: all off is v1; the last fifty-six off is v2; the last fifty-two off is v3; the last forty-nine off is v4; the last forty-six off is v5; the last forty-five off is v6; the last forty-two off is v7; the last forty off is v8; the last thirty-seven off is v9; the last thirty-three off is v10; the last twenty-nine off is v11; the last twenty-seven off is v12; the last twenty-five off is v13; the last twenty-three off is v14; the last twenty-two off is v15; the last twenty-one off is v16; the last twenty off is v17; the last nineteen off is v18; the last seventeen off is v19; the last fourteen off is v20; the last eleven off is v21; the last eight off is v22; the last six off is v23; the last three off is v24)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -1131,6 +1187,17 @@ if __name__ == '__main__':
             print(f"    the weight's head is {HEFT['db']} dB up under its disc: open it is over the old drum's head, shut {2 * DISC['db'] - HEFT['db']} dB under it")
         if ON['trade']:
             print(f"    the things trade cells, one pair at a time, to bar {TRADE['to']}: " + '; '.join(f"from bar {at + 1} the {x} plays the {y}'s" + (f" (an octave {'down' if semis > 0 else 'up'})" if semis else '') + f" and the {y} the {x}'s" + (f" (an octave {'up' if semis > 0 else 'down'})" if semis else '') for x, y, semis, at in TRADE['pairs']) + f"; from bar {TRADE['to'] + 1} each has its own again")
+        if ON['rasp']:
+            runs = []
+            for b in range(*RASP['bars']):
+                c = None if listened(b) else rasp_count(b) if ON['tally'] else RASP['plain']
+                if runs and runs[-1][2] == c:
+                    runs[-1][1] = b
+                else:
+                    runs.append([b, b, c])
+            print(f"    the ninth thing is scraped: a notched stick: a row of clicks a sixty-fourth apart ({60000 / BPM * RASP['gap']:.0f} ms), the last on beat {RASP['at'] // 4 + 1} of the bar, bars {RASP['bars'][0] + 1}-{RASP['bars'][1]}; it rests where a thing is listened to alone" +
+                  (': a notch for every thing that rings: ' + ', '.join((f"bar {a + 1}" if a == b else f"bars {a + 1}-{b + 1}") + f": {c}" for a, b, c in runs if c is not None) + f"; and {RASP['more']:g} dB more on the row for each notch in it" if ON['tally'] else '') +
+                  (f"; the row climbs to its last click ({RASP['pitch']}), each notch a step of the five notes under the next: {' '.join(step(RASP['pitch'], -RASP['climb'] * j) for j in range(7, -1, -1))}" if ON['zip'] else ''))
         if ON['glass']:
             print("    the eighth thing is not struck: a glass, sung by a finger going round its rim: it sounds only while the hand is on it, so it sings where the others are stopped: " + ', '.join(f"{pt} bars {a + 1}-{b}" for a, b, pt, _ in GLASS['notes']) + f"; on bar {GLASS['notes'][-1][1] + 1} the hands begin to come off and the finger does first: as the others are let go and ring, the glass stops" + (f"; the finger takes {GLASS['turn']:g} beats to come round: its level rocks {2 * GLASS['rub']:g} dB, two turns to three beats: the swell falls on a beat, then between two, and meets the bar line every third bar" if ON['rub'] else ''))
         if ON['four'] and ON['third'] and ON['trade'] and THIRD['lift']:
