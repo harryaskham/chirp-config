@@ -94,6 +94,12 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v25 (05:05): the quiet pages 0.06 dB up through the loudness target (the song has a backbeat now,
+  bars 25 to 176): bars 1 to 16 by four -22.4 -23.3 -23.5 -20.6 dBFS (was -22.4 -23.4 -23.6 -20.6); the last
+  sixteen by four -22.8 -23.7 -23.1 -19.5 (was -22.9 -23.8 -23.1 -19.6); bars 185 to 192 -20.96 / -20.94 (was
+  -21.02 / -21.00); highest sample -1.30. Inside Hearing Things' last bar: one small click 30 ms before bar
+  17's one (-15.8 dBFS), then a double click on that one: meant (the purse's clasp). Nothing written in bars
+  177 to 192.
 - Wind Down v25 (04:28): both ends as they were, to the figure (nothing written before bar 144 or after bar 192):
   bars 1 to 8 by two -30.1 -30.2 -30.0 -30.1 dBFS; from the last stroke by second -10.4 -21.1 -33.6 -40.7 -42.9
   -44.8 -43.1 -45.0 -35.6 (seed 11 -9.8 -19.9 -32.8 -40.5 -43.0 -44.9 -43.2 -45.0 -35.6); highest sample -1.30.
