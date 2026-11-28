@@ -424,6 +424,13 @@ and 141 a long plain tone glides slowly up and is broken for 90 ms just where a 
 glides quickly down across it; the short one is whole. It is said to be heard the other way
 round: the long glide unbroken, the hole in the short one (the gap transfer). In bars 139
 and 143 it is made the way it is said to sound, to be compared.
+
+v36 (28 Nov): AFTER THE FALL, A NOTE THAT DOES NOT MOVE (C11T5_AFTER=0 takes it out: v35).
+For eight bars the bass has fallen without a break (v26). The moment it stops, in bar 121,
+one plain note (E4) is held for three beats and does not move at all. After a long fall a
+steady note is said to seem to rise for a moment (the waterfall illusion, in sound: Shu,
+Swindale and Cynader, 1993). The same note is held again in bars 123 and 125 as the
+after-effect wears off: the same note, as long and as loud. Nothing of the fall is changed.
 """
 import json
 import math
@@ -746,6 +753,22 @@ def para_tones(p):
         if level >= PARA_FLOOR:
             out.append((PARA_APART ** k, f, level))
     return out
+
+
+def after_notes():
+    """[the beat each held note begins on] after the row of the bass that falls for ever; [] without."""
+    r = gliss_row()
+    return [float((r + ROW + b) * BEATS) for b in AFTER_BARS if r + ROW + b < BARS] if AFTER and r is not None else []
+
+
+def after_lane():
+    """The track's lane (dB): AFTER_FLAT through each note, a point at the middle of each of its places and one at each end, a straight line between."""
+    n = len(AFTER_FLAT) // (len(AFTER_BARS) * AFTER_BEATS); m = AFTER_BEATS * n; pts = [["0b", AFTER_FLAT[0]]]
+    for k, at in enumerate(after_notes()):
+        pts.append([f"{at:g}b", AFTER_FLAT[k * m]])
+        pts += [[f"{at + (j + 0.5) / n:.4f}b", AFTER_FLAT[k * m + j]] for j in range(m)]
+        pts.append([f"{at + AFTER_BEATS + 0.25:g}b", AFTER_FLAT[k * m + m - 1]])
+    return pts
 
 
 def gap_row():
@@ -1269,6 +1292,13 @@ GAP_MS = 90                                            # ms from the end of the 
 GAP_EDGE = 10                                          # ms a piece takes to come and to go
 GAP_NOTE = "C6"                                        # the written note; the lanes are in semitones from it
 GAP_GAIN = os.environ.get("C11T5_GAP_GAIN", "-34dB")   # both tracks. THE BENCH FIRST (the two tracks alone at -20 dB): one glide alone, in the break, -29.0 dBFS; the builds were set for -43 on the bench. THE SECOND BUILD READ (both seeds, before any score): before the break, in it, after it: -21.9 -22.9 -24.3 dBFS where the long glide is broken, -22.1 -23.0 -24.1 where the short one is; the long glide where it is alone -34 to -23: the master's dent after every drum stroke is still in it
+AFTER = os.environ.get("C11T5_AFTER", "1") != "0" and GAP and GLISS   # v36: AFTER THE FALL, A NOTE THAT DOES NOT MOVE (the after-effect of a steady change of pitch: Shu, Swindale and Cynader, 1993; the waterfall illusion, in sound). For eight bars four tones have fallen without a break (the bass that falls for ever, v26). The moment they stop, one plain note is held, and it does not move at all: after a long fall a steady note is said to seem to RISE for a moment. The same note is held twice more, 4 and 8 bars on, as the after-effect wears off: the same note, as long and as loud. The song's own fall is the cause; nothing is added to it
+AFTER_BARS = (0, 2, 4)                                 # bars after the fall's row in which the note is held (from 0): the first begins on the bar line the fall ends on
+AFTER_BEATS = 3                                        # beats the note is held
+AFTER_NOTE = "E4"                                      # 329.6 Hz: inside what fell (27.5 to 440 Hz), under the tune in the noise (A4 and up). Read on v35: a semitone either side of it is -41 to -43 dBFS in bars 121 to 128
+AFTER_EDGE = 40                                        # ms the note takes to come and to go
+AFTER_FLAT = (-6.4, -6.6, -6.8, -6.9, -7, -7, -7.1, -7.1, -7.1, -7.2, -7.1, -7, -0.1, -1.8, -3.6, -4.8, -5.6, -6.1, -6.4, -6.6, -6.8, -6.9, -7, -7.1, -7.1, -7.1, -7.1, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.1, -1, -2.4, -4, -5, -5.7, -6.2, -6.5, -6.7, -6.8, -6.9, -7, -7.1, -7.1, -7.1, -7.1, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7, -0.1, -1.8, -3.6, -4.8, -5.6, -6.1, -6.4, -6.6, -6.8, -6.9, -7, -7.1, -7.1, -7.1, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7, -0.3, -1.9, -3.7, -4.9, -5.6, -6.1, -6.4, -6.6, -6.8, -6.9, -7, -7.1, -7.1, -7.1, -7.1, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7, -0.9, -2.3, -3.9, -5, -5.7, -6.1, -6.5, -6.7, -6.8, -6.9, -7, -7.1, -7.1, -7.1, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7, 0, -1.7, -3.6, -4.8, -5.5, -6, -6.4, -6.6, -6.8, -6.9, -7, -7.1, -7.1, -7.1, -7.1, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7, -0.2, -1.8, -3.7, -4.8, -5.6, -6.1, -6.4, -6.6, -6.8, -6.9, -7, -7.1, -7.1, -7.1, -7.1, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7, -1.1, -2.6, -4.1, -5.1, -5.8, -6.2, -6.5, -6.7, -6.8, -6.9, -7, -7.1, -7.1, -7.1, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7, -0, -1.7, -3.6, -4.8, -5.5, -6, -6.4, -6.6, -6.8, -6.9, -7, -7.1)   # dB on the track through each note, by twenty-fourth of the beat (72 places a note, a note after another): THE MASTER'S OWN DENTS TURNED OVER. The first build had none (-42 dB): the note's frequency did not move (0.13 cents at the most between any two tenths of a second) but its level did: the master took it down 7 dB for less than a sixth of a beat at every half beat, where the click is (-30.5 to -27.5 dBFS by quarter of a beat). This is that reading (the song's envelope less the bench's, seed 0), 0 at the place the master holds lowest. The three notes read alike within 0.7 dB and the two seeds within 0.4
+AFTER_GAIN = os.environ.get("C11T5_AFTER_GAIN", "-36.4dB")   # THE BENCH FIRST (the track alone at -20 dB): the note -26.0 dBFS; set for -30 in the song with 18 dB of lift (a part in a bare break got 17 to 18.5): -42 dB. THE LIFT WAS 13.4 dB in the dents and 20.6 at the most. The second build is set by the lowest (AFTER_FLAT brings every place down to it) for -29 dBFS: -36.4 dB
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1851,6 +1881,13 @@ def song():
             doc["tracks"].append({"name": f"gap-{which}", "patch": "ht-gap", "gain": GAP_GAIN, "pan": 0.0, "notes": ns, "auto": {"glide": {"points": gap_lane(which), "curve": 0}}})
         doc["about"] = doc["about"].replace(" Generated by", f" From v35 the gap goes to the other one (bars {gf[0][0] + 1} to {gf[-1][0] + 1}): a long plain tone glides slowly up and a short one quickly down across it; in bars {' and '.join(str(f[0] + 1) for f in gf if f[1] == 'long')} the long one is broken for {GAP_MS} ms where they cross and the short one is whole, and it is said to be heard the other way round; in bars {' and '.join(str(f[0] + 1) for f in gf if f[1] == 'short')} it is made the way it is said to sound. Generated by")
         assert "From v35" in doc["about"]
+    if after_notes():
+        PATCHES["ht-after"] = {"about": f"Hearing Things' note that does not move (chirper-zero, 28 Nov, v36): one plain tone, held; {AFTER_EDGE} ms to come and to go. After the bass that falls for ever it is said to seem to rise.",
+                               "play": {"gate": 1, "vel_sens": 0}, "synth": {"layers": ["sine phase=0"], "filters": ["lp cutoff=7000"], "amp": {"a": f"{AFTER_EDGE}ms", "d": "0s", "s": 1, "r": f"{AFTER_EDGE}ms"}}}
+        doc["tracks"].append({"name": "after", "patch": "ht-after", "gain": AFTER_GAIN, "pan": 0.0, "notes": [{"at": at, "len": AFTER_BEATS, "pitch": AFTER_NOTE, "vel": 0.8} for at in after_notes()],
+                              "auto": {"level": {"points": after_lane(), "curve": 0}}, "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.level", "amount": 1}]}}]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v36 after the fall, a note that does not move (bars {', '.join(str(int(at) // BEATS + 1) for at in after_notes())}): the moment the bass that falls for ever stops, one plain note ({AFTER_NOTE}) is held for {AFTER_BEATS} beats and does not move; after a long fall a steady note is said to seem to rise; the same note is held again 4 and 8 bars on. Generated by")
+        assert "From v36" in doc["about"]
     return doc
 
 
@@ -1868,6 +1905,9 @@ def dump(doc):
 if __name__ == "__main__":
     if os.environ.get("C11T5_SHOW"):
         sec = 60 / BPM * BEATS
+        if after_notes():
+            an_ = after_notes(); a_sec = lambda b: f"{int(b * 60 / BPM) // 60}:{b * 60 / BPM % 60:04.1f}"
+            print(f"after the fall, a note that does not move ({AFTER_GAIN}): {AFTER_NOTE} ({hz(AFTER_NOTE):.1f} Hz), a plain tone held {AFTER_BEATS} beats ({AFTER_BEATS * 60 / BPM:.2f} s), {AFTER_EDGE} ms to come and to go ; in bars " + ", ".join(f"{int(b) // BEATS + 1} ({a_sec(b)})" for b in an_) + f" ; the row of the bass that falls for ever ends on the first one's bar line ({a_sec(an_[0])}) after {ROW} bars of falling ; the second and third begin {(an_[1] - an_[0]) * 60 / BPM:.2f} and {(an_[2] - an_[0]) * 60 / BPM:.2f} s after it ; the track's gain follows a lane: the master's own dents turned over, {len(AFTER_FLAT)} places, {min(AFTER_FLAT):g} to {max(AFTER_FLAT):g} dB")
         if gap_row() is not None:
             gf = gap_figs(); g_sec = gap_row() * BEATS * 60 / BPM; g_mid = (GAP_LONG[2] * GAP_LONG[3]) ** 0.5
             print(f"the gap goes to the other one ({GAP_GAIN}), bars {gap_row() + 1}-{gap_row() + ROW} ({int(g_sec) // 60}:{g_sec % 60:04.1f}): a long plain tone glides up from {GAP_LONG[2]:.0f} to {GAP_LONG[3]:.0f} Hz in {GAP_LONG[1] - GAP_LONG[0]:g} beats (beats {GAP_LONG[0]:g} to {GAP_LONG[1]:g} of the bar) ; a short one glides down {GAP_SHORT[1]:g} semitones in {GAP_SHORT[0]:g} of a beat ({g_mid * 2 ** (GAP_SHORT[1] / 24):.0f} to {g_mid * 2 ** (-GAP_SHORT[1] / 24):.0f} Hz) ; they cross at {g_mid:.1f} Hz on beat {(GAP_LONG[0] + GAP_LONG[1]) / 2:g} ; a break of {GAP_MS} ms centred there ; " + " ; ".join(f"bar {b + 1}: the {kind} one is broken" for b, kind, _, _, _ in gf))
