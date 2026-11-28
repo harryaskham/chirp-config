@@ -440,6 +440,12 @@ In bars 89 to 96 a low knock twice a bar, each time twice as far off (1.3 m to 1
 then back. Each doubling takes 6 dB off the knock itself and makes it later, a whole beat
 at the far end; the room's answer to it is the same wherever it is struck. From 2.5 m on
 there is more room than knock: that is how an ear tells how far off a sound is.
+
+v35 (28 Nov): SOONER OR LOUDER (C11T3_EARS=0 takes it out: v34). In bars 145 to 152 the same
+plain pip in both ears walks from the left to the right twice. In bars 146 to 148 both ears
+get it exactly as loud and one gets it sooner, by the way round a head (up to 551 millionths
+of a second). In bars 150 to 152 both get it at the same instant and one gets it louder (up
+to 9.4 dB). Rayleigh's two ways of telling where a sound is, one at a time.
 """
 import json
 import math
@@ -825,6 +831,17 @@ RECEDE_ROOM = {"kind": "hall", "decay": "1.6s", "mix": 1.0, "low_cut": 120, "hig
 RECEDE_TRIM = (-4.4, -2.7, -4.6, -2.5, -4.5, -2.0, -4.5, -2.0, -4.5, -2.0, -4.5, -2.0, -4.7, -1.0, -4.3, 0.0)   # dB on each knock in turn (by its velocity). THE FIRST BUILD HAD NONE, and in the finished song the steps were not 6 dB: out -7.8 -4.0 -7.9 -4.2, back -1.8 -9.3 -2.6 -4.7: the master lifts a knock after beat 0 by 21.2 to 21.6 dB and one after beat 2 by 16.9 to 19.6 (bar by bar). These are what the first build read, turned over; for the eight far knocks (under the room: they cannot be read) the place's middle
 RECEDE_GAIN = os.environ.get("C11T3_RECEDE_GAIN", "-23.9dB")   # the knock's track. THE BENCH FIRST (one knock alone at -20 dB, velocity 1): highest sample -25.5 dBFS. The first build (-25.5 dB, no trims): the nearest knock -9.7 dBFS going and -14.1 coming back; with the trims and 1.6 dB more both are aimed at -12.5. THE SECOND BUILD READ (both seeds, before any score): -12.5 and -12.5 / -12.2 and -12.4 dBFS; the steps -6.0 -5.9 -5.1 going and -6.1 -6.0 -4.2 coming back; the room after the knock -43.4 to -35.1 dBFS, level with the old music in 160 to 200 Hz and 18 dB under it in 120 to 450
 RECEDE_ROOM_GAIN = os.environ.get("C11T3_RECEDE_ROOM_GAIN", "-35.9dB")   # the room's track. THE BENCH (one knock's whole answer alone at the knock's fader): its energy is 4.4 dB over the knock's (the two ears 5.6 and 2.6 dB over: the engine's hall answers more on the left); so 6.0 dB (step RECEDE_CRIT) and 4.4 dB under the knock's fader makes them equal at 2.55 m
+EARS = os.environ.get("C11T3_EARS", "1") != "0" and RECEDE   # v35: SOONER OR LOUDER (Rayleigh's two ways of telling where a sound is): the same plain pip in both ears walks from the left to the right twice. The first time both ears get it exactly as loud, and one gets it sooner, by as much as the way round a head takes (Woodworth: the head's radius over the speed of sound, times the angle plus its sine). The second time both get it at the same instant, and one gets it louder. A low tone is placed by the first; the second is what a pan knob does
+EARS_IN = ("standing room", 4)                         # the section and its row (from 0): bars 145 to 152. Read on v34 by twelfths of the beat: after beats 0 and 2, 400 to 480 Hz is -53 -61 -60 -64 -54 dBFS in twelfths 1 to 5 (after beats 1 and 3 it is not: -39 -37 -35 in twelfths 3 to 5)
+EARS_AT = (1 / 3, 2 + 1 / 3)                           # the beats of the bar a pip begins on (its middle; each ear half the difference to either side)
+EARS_NOTE = "A4"                                       # the pip: 440 Hz: a whole wave is 2273 millionths of a second, so the widest difference here (551) is under a quarter of a wave: the ear can tell which wave came first
+EARS_MS = 80                                           # ms a pip lasts
+EARS_EDGE = 8                                          # ms it takes to come and to go
+EARS_ANGLES = (-70, -42, -14, 14, 42, 70)              # degrees from straight ahead (minus: to the left), a pip each. THE FIRST BUILD HAD EIGHT (-70 to 70 by 20), from the first bar of each four: its second pip (beat 2.333 of bars 145 and 149) fell where the old music is -23 and -24 dBFS in 300 to 640 Hz, 4 to 7 dB OVER the pip; from the second bar of each four the old music at the pips is -42 to -55
+EARS_WALKS = ("time", "level")                         # the walks, 4 bars each: by which ear gets it sooner; by which gets it louder. A walk's pips are in the LAST bars of its four (three bars here: the first is left to the room)
+EARS_HEAD = 0.0875                                     # m: the radius of a head
+EARS_LEVEL = 10.0                                      # dB between the ears for a sound straight to one side, in the walk by level; the sine of the angle of it elsewhere. MY CHOICE: a real head shadows a tone as low as this by less
+EARS_GAIN = os.environ.get("C11T3_EARS_GAIN", "-32.5dB")   # both tracks. THE BENCH FIRST (the two tracks alone at -20 dB): a pip of the walk by time -34.0 dBFS in each ear (its middle 60 ms); set for -27 in the song with the 19.5 dB the master gave the knock a third of a beat after the drum in bars 89 to 96. THE SECOND BUILD READ (each ear by itself, both seeds, before any score): by time the left ear later by -541 -357 -125 +125 +375 +563 millionths of a second (starts are rounded to the sample) and the ears 0.0 dB apart, -27.3 to -24.1 dBFS; by level 0 millionths and -9.4 -6.7 -2.4 +2.4 +6.7 +9.4 dB; the quieter ear over the old music by 10.5 dB at the least
 AIR_PAN = 0.4                                          # the other ear
 RAIL_VEL = 0.8
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
@@ -1154,6 +1171,22 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def ears_row():
+    """The first bar (from 0) of the row of the two walks, or None."""
+    sec = next((x for x in SECS if x[0] == EARS_IN[0]), None)
+    return sec[1] + ROW * EARS_IN[1] if EARS and sec is not None and EARS_IN[1] * ROW < sec[2] else None
+
+
+def ears_pips():
+    """[(walk, degrees, beat of the song, s the left ear gets it later than the right (minus: sooner), dB the right ear gets it louder than the left)]."""
+    out = []; per = ROW // len(EARS_WALKS); wait = per - len(EARS_ANGLES) // len(EARS_AT)
+    for i, w in enumerate(EARS_WALKS):
+        for k, a in enumerate(EARS_ANGLES):
+            th = math.radians(a); bar, j = divmod(k, len(EARS_AT))
+            out.append((w, a, (ears_row() + i * per + wait + bar) * BEATS + EARS_AT[j], EARS_HEAD / SOUND * (th + math.sin(th)) if w == "time" else 0.0, EARS_LEVEL * math.sin(th) if w == "level" else 0.0))
+    return out
 
 
 def recede_row():
@@ -2121,6 +2154,15 @@ def song():
         doc["tracks"].append({"name": "recede-room", "patch": "sr-recede", "gain": RECEDE_ROOM_GAIN, "pan": 0.0, "fx": [{"type": "reverb", **RECEDE_ROOM}], "notes": [{"at": h, "len": 0.25, "pitch": RECEDE_NOTE[0], "vel": 1.0} for _, h, _, _, _ in rk]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v34 the knock goes away and the room does not (bars {recede_row() + 1} to {recede_row() + ROW}): a low knock twice a bar, each time twice as far off ({rk[0][3]:.1f} m to {RECEDE_FAR:.0f} m) and then back; each doubling takes 6 dB off the knock and makes it later (a whole beat at the far end), and the room's answer stays as loud: from {RECEDE_FAR / 2 ** (RECEDE_STEPS - 1 - RECEDE_CRIT):.1f} m on there is more room than knock. Generated by")
         assert "From v34" in doc["about"]
+    if ears_row() is not None:
+        ep = ears_pips(); e_len = EARS_MS / 1000 * BPM / 60
+        PATCHES["sr-ears"] = {"about": f"Standing Room's pip for sooner or louder (chirper-zero, 28 Nov, v35): a plain tone, {EARS_MS} ms, {EARS_EDGE} ms to come and to go; its wave begins afresh with every note, so a note begun later is the same sound later. Its loudness goes as the square of the velocity.",
+                              "play": {"vel_sens": 1, "gate": 1}, "synth": {"layers": ["sine phase=0"], "filters": ["lp cutoff=7000"], "amp": {"a": f"{EARS_EDGE}ms", "d": "0s", "s": 1, "r": f"{EARS_EDGE}ms"}}}
+        for nm, sg in (("ears-l", -1), ("ears-r", 1)):
+            doc["tracks"].append({"name": nm, "patch": "sr-ears", "gain": EARS_GAIN, "pan": float(sg),
+                                  "notes": [{"at": round(t - sg * itd / 2 * BPM / 60, 7), "len": round(e_len, 7), "pitch": EARS_NOTE, "vel": round(10 ** ((-EARS_LEVEL / 2 + sg * ild / 2) / 40), 5)} for _, _, t, itd, ild in ep]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v35 sooner or louder (bars {ears_row() + 1} to {ears_row() + ROW}): the same plain pip in both ears walks from the left to the right twice: first both ears get it exactly as loud and one gets it sooner (by up to {max(abs(p[3]) for p in ep) * 1e6:.0f} millionths of a second: the way round a head), then both get it at the same instant and one gets it louder (by up to {max(abs(p[4]) for p in ep):.1f} dB). Generated by")
+        assert "From v35" in doc["about"]
     return doc
 
 
@@ -2176,6 +2218,9 @@ def echoes(a, b, n=16):
 
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
+        if ears_row() is not None:
+            ep = ears_pips(); e_sec = ears_row() * BEATS * 60 / BPM
+            print(f"sooner or louder ({EARS_GAIN}), bars {ears_row() + 1}-{ears_row() + ROW} ({int(e_sec) // 60}:{e_sec % 60:04.1f}): the same plain pip ({EARS_NOTE}, {hz(EARS_NOTE):.0f} Hz, {EARS_MS} ms) in each ear on beats " + " and ".join(f"{x:.3f}" for x in EARS_AT) + f" of every bar, from the left to the right ; a head of {100 * EARS_HEAD:g} cm ; " + " ; ".join(f"the walk by {w} (bars {int(min(p[2] for p in ep if p[0] == w)) // BEATS + 1}-{int(max(p[2] for p in ep if p[0] == w)) // BEATS + 1}), degrees and " + ("millionths of a second the left ear gets it later (minus: sooner): " + " ".join(f"{p[1]:+d}:{p[3] * 1e6:+.0f}" for p in ep if p[0] == w) if w == "time" else "dB the right ear gets it louder: " + " ".join(f"{p[1]:+d}:{p[4]:+.1f}" for p in ep if p[0] == w)) for i, w in enumerate(EARS_WALKS)))
         if recede_row() is not None:
             rk = recede_knocks(); rc_sec = recede_row() * BEATS * 60 / BPM
             print(f"the knock goes away, the room does not ({RECEDE_GAIN}; the room {RECEDE_ROOM_GAIN}), bars {recede_row() + 1}-{recede_row() + ROW} ({int(rc_sec) // 60}:{rc_sec % 60:04.1f}): a low knock ({RECEDE_NOTE[0]}, {RECEDE_NOTE[1]:.1f} Hz and its octave, 90 ms) struck on beats {RECEDE_AT[0]:.3f} and {RECEDE_AT[1]:.3f} of every bar ; {RECEDE_STEPS} distances out (bars {recede_row() + 1}-{recede_row() + ROW // 2}) and back ; the room's answer ({RECEDE_ROOM['kind']}, {RECEDE_ROOM['decay']} to die) the same every time ; step: metres off, heard ms after it is struck, the knock dB, the knock against the room's whole answer dB: " + " | ".join(f"{k}: {m:.2f} m, {1000 * m / SOUND:.1f} ms, {-20 * math.log10(2) * k:.1f}, {20 * math.log10(2) * (RECEDE_CRIT - k):+.1f}" for _, _, k, m, _ in rk[:RECEDE_STEPS]) + f" ; {len(rk)} knocks ; trimmed by place for the master (dB, knock by knock): " + " ".join(f"{t:g}" for t in RECEDE_TRIM))
