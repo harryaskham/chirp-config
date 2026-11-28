@@ -431,6 +431,11 @@ one plain note (E4) is held for three beats and does not move at all. After a lo
 steady note is said to seem to rise for a moment (the waterfall illusion, in sound: Shu,
 Swindale and Cynader, 1993). The same note is held again in bars 123 and 125 as the
 after-effect wears off: the same note, as long and as loud. Nothing of the fall is changed.
+
+v37 (28 Nov): THE WIDER, THE LOUDER (C11T5_SPREAD=0 takes it out: v36). In bars 59 to 64 two
+pips that read the same on a meter: one plain tone (E5), and four plain tones (A4 E5 A5 E6)
+each a quarter of its power. The ear adds loudness band by band, so the spread one is said
+to sound louder. Two bars alike on the meter; then the spread one is really 3 dB down, then 6.
 """
 import json
 import math
@@ -753,6 +758,18 @@ def para_tones(p):
         if level >= PARA_FLOOR:
             out.append((PARA_APART ** k, f, level))
     return out
+
+
+def spread_row():
+    """The first bar (from 0) of the row in which the wider is the louder, or None."""
+    sec = next((x for x in SECS if x[0] == SPREAD_IN[0]), None)
+    return sec[1] + ROW * SPREAD_IN[1] if SPREAD and sec is not None and SPREAD_IN[1] * ROW < sec[2] else None
+
+
+def spread_pips():
+    """[(pip from 0, beat of the song, True for the four tones, dB it is really turned down)]: SPREAD_AT in every bar from bar SPREAD_FROM of the row; two bars to a step of SPREAD_DOWN; in a step's first bar the one tone comes first, in its second the four."""
+    b0 = (spread_row() + SPREAD_FROM) * BEATS; n = len(SPREAD_AT); assert n == 2 and (ROW - SPREAD_FROM) == 2 * len(SPREAD_DOWN)
+    return [(i, b0 + (i // n) * BEATS + SPREAD_AT[i % n], (i % n == 1) == ((i // n) % 2 == 0), SPREAD_DOWN[i // n // 2] if (i % n == 1) == ((i // n) % 2 == 0) else 0) for i in range((ROW - SPREAD_FROM) * n)]
 
 
 def after_notes():
@@ -1299,6 +1316,17 @@ AFTER_NOTE = "E4"                                      # 329.6 Hz: inside what f
 AFTER_EDGE = 40                                        # ms the note takes to come and to go
 AFTER_FLAT = (-6.4, -6.6, -6.8, -6.9, -7, -7, -7.1, -7.1, -7.1, -7.2, -7.1, -7, -0.1, -1.8, -3.6, -4.8, -5.6, -6.1, -6.4, -6.6, -6.8, -6.9, -7, -7.1, -7.1, -7.1, -7.1, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.1, -1, -2.4, -4, -5, -5.7, -6.2, -6.5, -6.7, -6.8, -6.9, -7, -7.1, -7.1, -7.1, -7.1, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7, -0.1, -1.8, -3.6, -4.8, -5.6, -6.1, -6.4, -6.6, -6.8, -6.9, -7, -7.1, -7.1, -7.1, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7, -0.3, -1.9, -3.7, -4.9, -5.6, -6.1, -6.4, -6.6, -6.8, -6.9, -7, -7.1, -7.1, -7.1, -7.1, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7, -0.9, -2.3, -3.9, -5, -5.7, -6.1, -6.5, -6.7, -6.8, -6.9, -7, -7.1, -7.1, -7.1, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7, 0, -1.7, -3.6, -4.8, -5.5, -6, -6.4, -6.6, -6.8, -6.9, -7, -7.1, -7.1, -7.1, -7.1, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7, -0.2, -1.8, -3.7, -4.8, -5.6, -6.1, -6.4, -6.6, -6.8, -6.9, -7, -7.1, -7.1, -7.1, -7.1, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7, -1.1, -2.6, -4.1, -5.1, -5.8, -6.2, -6.5, -6.7, -6.8, -6.9, -7, -7.1, -7.1, -7.1, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7.2, -7, -0, -1.7, -3.6, -4.8, -5.5, -6, -6.4, -6.6, -6.8, -6.9, -7, -7.1)   # dB on the track through each note, by twenty-fourth of the beat (72 places a note, a note after another): THE MASTER'S OWN DENTS TURNED OVER. The first build had none (-42 dB): the note's frequency did not move (0.13 cents at the most between any two tenths of a second) but its level did: the master took it down 7 dB for less than a sixth of a beat at every half beat, where the click is (-30.5 to -27.5 dBFS by quarter of a beat). This is that reading (the song's envelope less the bench's, seed 0), 0 at the place the master holds lowest. The three notes read alike within 0.7 dB and the two seeds within 0.4
 AFTER_GAIN = os.environ.get("C11T5_AFTER_GAIN", "-36.4dB")   # THE BENCH FIRST (the track alone at -20 dB): the note -26.0 dBFS; set for -30 in the song with 18 dB of lift (a part in a bare break got 17 to 18.5): -42 dB. THE LIFT WAS 13.4 dB in the dents and 20.6 at the most. The second build is set by the lowest (AFTER_FLAT brings every place down to it) for -29 dBFS: -36.4 dB
+SPREAD = os.environ.get("C11T5_SPREAD", "1") != "0" and AFTER   # v37: THE WIDER, THE LOUDER: two pips that read the same on a meter. One is a single plain tone; the other is four plain tones a fourth or a fifth apart, each a quarter of the power. The ear adds loudness band by band, not power: what is spread over more of the ear is said to sound louder (Zwicker, Flottorp and Stevens, 1957). Then the spread one is really turned down, step by step: at which step are the two alike?
+SPREAD_IN = ("never arrives", 2)                       # the section and its row (from 0): bars 57 to 64
+SPREAD_FROM = 2                                        # bars into the row it begins: bar 59 (the two lines cross in bars 57 and 58)
+SPREAD_NOTE = "E5"                                     # the one tone (659.3 Hz)
+SPREAD_TONES = (-7, 0, 5, 12)                          # the four, in semitones from it: A4 E5 A5 E6 (440 to 1319 Hz): each further from its neighbour than the ear's own band is wide there
+SPREAD_AT = (1.75, 3.75)                               # beats of the bar a pip begins on: evenly 2 beats apart, off the pairs of "the second one sounds louder" (beats 0.25, 0.75, 2.25, 2.75) and off the tick (the half beats). Read on v36 FIRST (b/oldat2.py: the old music under a pip in the band of each of its four tones, from every sixteenth of bars 59 to 64)
+SPREAD_LEN = 0.25                                      # beats a pip lasts (120 ms)
+SPREAD_EDGE = (4, 10)                                  # ms it takes to come and to go
+SPREAD_DOWN = (0, 3, 6)                                # dB the spread pip is really turned down, 2 bars each
+SPREAD_TRIM = (4.8, 3.7, 4.5, 2.9, 2.3, 2.3, 3.2, 4.2, 2.9, 4.7, 3.4, 2.2)   # dB on a pip, by pip: THE FIRST BUILD READ TURNED OVER. With no trims (-28.5 dB) the master delivered the one tone at -22.1 to -19.9 dBFS and the spread pip against it at +0.9, -1.5, -3.1, -2.2, -7.6 and -7.1 dB bar by bar where 0, 0, -3, -3, -6 and -6 are written, the same on both seeds: each pip's level less what it should read (-18, less what it is written down), turned over, 1.15 times as deep
+SPREAD_GAIN = os.environ.get("C11T5_SPREAD_GAIN", "-23.7dB")   # both tracks. THE BENCH FIRST (the two pips alone at -20 dB): each -29.0 dBFS on the meter (the spread one's highest sample 4.9 dB over the one tone's); the first build set for -18 in the song with 19.5 dB of lift: -28.5 dB: it read -22.1 to -19.9 (a lift of 15.4 to 17.6 dB). The second build is set for -18 with the trims: -23.7 dB
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1888,6 +1916,16 @@ def song():
                               "auto": {"level": {"points": after_lane(), "curve": 0}}, "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.level", "amount": 1}]}}]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v36 after the fall, a note that does not move (bars {', '.join(str(int(at) // BEATS + 1) for at in after_notes())}): the moment the bass that falls for ever stops, one plain note ({AFTER_NOTE}) is held for {AFTER_BEATS} beats and does not move; after a long fall a steady note is said to seem to rise; the same note is held again 4 and 8 bars on. Generated by")
         assert "From v36" in doc["about"]
+    if spread_row() is not None:
+        sp_ = spread_pips(); s_lv = [(-dn if wide else 0.0) + (SPREAD_TRIM[i] if SPREAD_TRIM else 0.0) for i, _, wide, dn in sp_]; s_top = max(s_lv); s_amp = {"a": f"{SPREAD_EDGE[0]}ms", "d": "0s", "s": 1, "r": f"{SPREAD_EDGE[1]}ms"}
+        PATCHES["ht-spread-1"] = {"about": "Hearing Things' pip of one plain tone for the wider, the louder (chirper-zero, 28 Nov, v37). Its loudness goes as the square of the velocity.",
+                                  "play": {"vel_sens": 1, "gate": 1}, "synth": {"layers": ["sine phase=0"], "filters": ["lp cutoff=9000"], "amp": s_amp}}
+        PATCHES[f"ht-spread-{len(SPREAD_TONES)}"] = {"about": f"Hearing Things' pip of {len(SPREAD_TONES)} plain tones for the wider, the louder (chirper-zero, 28 Nov, v37): {' '.join(f'{st:+d}' for st in SPREAD_TONES)} semitones from the note, each {10 * math.log10(len(SPREAD_TONES)):.2f} dB under the one tone of `ht-spread-1`: the same power in all. Its loudness goes as the square of the velocity.",
+                                  "play": {"vel_sens": 1, "gate": 1}, "synth": {"layers": [f"sine phase=0 ratio={2 ** (st / 12):.6f} level={-10 * math.log10(len(SPREAD_TONES)):.2f}dB" for st in SPREAD_TONES], "filters": ["lp cutoff=9000"], "amp": s_amp}}
+        for nm, w0 in ((1, False), (len(SPREAD_TONES), True)):
+            doc["tracks"].append({"name": f"spread-{nm}", "patch": f"ht-spread-{nm}", "gain": SPREAD_GAIN, "pan": 0.0, "notes": [{"at": round(t, 6), "len": SPREAD_LEN, "pitch": SPREAD_NOTE, "vel": round(10 ** ((s_lv[i] - s_top) / 40), 5)} for i, t, wide, _ in sp_ if wide == w0]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v37 the wider, the louder (bars {spread_row() + SPREAD_FROM + 1} to {spread_row() + ROW}): two pips that read the same on a meter, one a single plain tone and one of {len(SPREAD_TONES)} tones spread over an octave and a half; then the spread one is really turned down, {' and '.join(str(d) for d in SPREAD_DOWN[1:])} dB. Generated by")
+        assert "From v37" in doc["about"]
     return doc
 
 
@@ -1905,6 +1943,9 @@ def dump(doc):
 if __name__ == "__main__":
     if os.environ.get("C11T5_SHOW"):
         sec = 60 / BPM * BEATS
+        if spread_row() is not None:
+            sp_ = spread_pips(); s_sec = (spread_row() + SPREAD_FROM) * BEATS * 60 / BPM; s_f = hz(SPREAD_NOTE)
+            print(f"the wider, the louder ({SPREAD_GAIN}), bars {spread_row() + SPREAD_FROM + 1}-{spread_row() + ROW} ({int(s_sec) // 60}:{s_sec % 60:04.1f}): {len(sp_)} pips of {SPREAD_LEN} of a beat ({SPREAD_LEN * 60000 / BPM:.0f} ms) on beats {' and '.join(f'{x:g}' for x in SPREAD_AT)} of every bar ; one plain tone ({SPREAD_NOTE}, {s_f:.1f} Hz) or {len(SPREAD_TONES)} ({' '.join(f'{s_f * 2 ** (st / 12):.1f}' for st in SPREAD_TONES)} Hz), each of them {10 * math.log10(len(SPREAD_TONES)):.2f} dB under the one: the same power ; bar by bar (1 the one tone, {len(SPREAD_TONES)} the spread): " + " | ".join(" ".join(str(len(SPREAD_TONES)) if w else "1" for _, _, w, _ in sp_[k:k + len(SPREAD_AT)]) for k in range(0, len(sp_), len(SPREAD_AT))) + f" ; the spread one really turned down by {' '.join(str(d) for d in SPREAD_DOWN)} dB, two bars each" + (f" ; trims {min(SPREAD_TRIM):+.1f} to {max(SPREAD_TRIM):+.1f} dB" if SPREAD_TRIM else " ; no trims"))
         if after_notes():
             an_ = after_notes(); a_sec = lambda b: f"{int(b * 60 / BPM) // 60}:{b * 60 / BPM % 60:04.1f}"
             print(f"after the fall, a note that does not move ({AFTER_GAIN}): {AFTER_NOTE} ({hz(AFTER_NOTE):.1f} Hz), a plain tone held {AFTER_BEATS} beats ({AFTER_BEATS * 60 / BPM:.2f} s), {AFTER_EDGE} ms to come and to go ; in bars " + ", ".join(f"{int(b) // BEATS + 1} ({a_sec(b)})" for b in an_) + f" ; the row of the bass that falls for ever ends on the first one's bar line ({a_sec(an_[0])}) after {ROW} bars of falling ; the second and third begin {(an_[1] - an_[0]) * 60 / BPM:.2f} and {(an_[2] - an_[0]) * 60 / BPM:.2f} s after it ; the track's gain follows a lane: the master's own dents turned over, {len(AFTER_FLAT)} places, {min(AFTER_FLAT):g} to {max(AFTER_FLAT):g} dB")
