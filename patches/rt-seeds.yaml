@@ -1,0 +1,37 @@
+{
+ "about": "Ring True: the gourd (v28), the eleventh thing, the only one that is shaken: dry seeds in a shell. They do not arrive together (a front of 3 ms), rattle on the wall for 30 ms, and a few run on round it for as long as the note is held, 14 dB under. Nothing in it has a note: noise from 4.5 to 11 kHz, most of it near 6.8 kHz. BANKED by tools/patchbank.py (28 Nov 2026) from Ring True v28 (track gourd): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.6
+ },
+ "synth": {
+  "amp": {
+   "a": "3ms",
+   "curve": 2.0,
+   "d": "30ms",
+   "r": "25ms",
+   "s": 0.2
+  },
+  "filters": [
+   {
+    "cutoff": 4500,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 11000
+   },
+   {
+    "cutoff": 6800,
+    "gain": "6dB",
+    "kind": "peak",
+    "q": 1.2
+   }
+  ],
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}

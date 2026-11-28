@@ -1,0 +1,23 @@
+{
+ "about": "Give or Take's plain pip for chance and for the spread (chirper-zero, 28 Nov, v38): one sine, 3 ms to come and 15 to go. Its loudness goes as the square of the velocity. BANKED by tools/patchbank.py (28 Nov 2026) from Give or Take v38 (track chance): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "3ms",
+   "d": "0s",
+   "r": "15ms"
+  },
+  "filters": [
+   {}
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ]
+ }
+}

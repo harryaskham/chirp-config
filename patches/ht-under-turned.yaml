@@ -1,0 +1,20 @@
+{
+ "about": "Hearing Things' plain note under the hiss, upside down (chirper-zero, 28 Nov, v39): one sine begun 0.5 of a turn on, 60 ms to come and 60 to go. Its loudness goes as the square of the velocity. BANKED by tools/patchbank.py (28 Nov 2026) from Hearing Things v39 (track under-t): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "60ms",
+   "d": "0s",
+   "r": "60ms"
+  },
+  "layers": [
+   {
+    "phase": 0.5
+   }
+  ]
+ }
+}
