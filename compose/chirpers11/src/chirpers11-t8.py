@@ -79,17 +79,20 @@ v24 (28 Nov): THE TICK COMES APART AS THE SPRING RUNS DOWN, AND THE RECORD IS OF
            sound and its last (the lift time): the weaker the swing, the longer the tooth takes to fall. So
            each of the 32 last clicks has its tooth again, and the tooth falls after the click by a time that
            grows as the spring's speed falls (RUNDOWN['lift'] seconds times one over the speed, less one):
-           nothing at bar 193, 15 ms at bar 197, 54 ms at bar 199, a tenth of a second at the last click: the
-           tick thickens, then comes apart into two sounds. On the last stroke no tooth falls: the wheel has
-           stopped.
-  LIMP     the second pallet's tooth has twice as far to fall: tick is still one sound when tock is two.
+           nothing at bar 193, 16 ms at bar 197, 35 ms at bar 199, 83 ms at the last click but one: the tick
+           thickens, then comes apart into two sounds. On the last stroke no tooth falls: the wheel has
+           stopped. (The teeth are placed by the tempo map as written, turned round: second_at.)
+  LIMP     the second pallet's tooth has twice as far to fall (2 to 208 ms): tick is still one sound when tock
+           is two.
   WOW      everything here is ON a record, and the record is pressed off its centre (WOW['off'] mm): once a
            turn the groove runs fast and slow under the needle, and what rings long enough to show it wavers
            in pitch: the clock's bells. The same hole and a smaller circle: the nearer the label, the deeper
            the wow, so each quarter's chime wavers more than the last (the radius falls evenly, as v21's
            hiss does), and the hour bell most. It turns with the record: it is at its top where the groove
            joins itself, at every joint of the run-out. New patches, the old bells with the wow:
-           `wd-chime-wow-1` to `-4` and `wd-hour-wow`.
+           `wd-chime-wow-1` to `-4` and `wd-hour-wow`. Ring True's strings, which are tuned to the hour bell,
+           now hear it go out of tune and back once a turn: benched alone with them, its ring is 1.8 dB
+           lower in its third second than the steady bell's (without them the two are the same to 0.1 dB).
   WAVER    the meetings' last chord (bar 161: held a bar, then six seconds dying as it opens) is the one other
            sound on the record long enough for a turn to be heard in it: it wavers too, four turns and more
            (`wd-open-wow`). Nothing else is given the wow: a liberty; the rest is too short to show it.
@@ -524,7 +527,7 @@ SPIRAL = {'patch': 'wd-spiral', 'gain': '-51dB', 'hp': 700, 'lp': 6000, 'in': 4,
 RUMBLE = {'patch': 'wd-rumble', 'gain': '-32dB', 'hp': 25, 'lp': 90, 'pitch': 'C3', 'vel': 0.8, 'in': (-6,), 'from': 'joint'}   # v23: the bearing's rumble: its patch, fader (the second build's -20 dB stood 10 dB OVER the surface in the run-out: this master lifted it 13.6 dB), band, the chip noise's note (its step rate), touch, and the dB on its first turns as it comes in
 PALLET = {'patch': 'wd-pallet', 'gain': '-20dB', 'hp': 10000, 'ms': 6, 'bars': (8, 144), 'vel': 0.8, 'exit': {'patch': 'wd-pallet-exit', 'gain': '-10dB', 'band': (8000, 11000), 'steep': 3, 'on': (6, 14)}}   # v23: the tooth on the pallet: its patch, fader (bench), where it begins (Hz), how long it is, the bars (from 0, to but not with) in which it is struck with the click where the drum plays, and its touch (the click's own shape is not copied: one touch)
 NEARER = {'up': 9, 'lock': 6}   # v22: dB on the playing groove's surface where it comes back as the spring runs down (the lead-in in bars 1 to 8 is as it was: chirper-zero's seam), and on the locked groove's hiss
-RUNDOWN = {'lift': 0.04, 'limp': 2, 'gain': '-20dB', 'exit': '-10dB'}   # v24: seconds of lift time for each time the spring's speed has halved... (times one over the speed, less one); how many times as far the second pallet's tooth falls (LIMP); the two teeth's faders under the last ticks (v23's own, read in the row)
+RUNDOWN = {'lift': 0.04, 'limp': 2, 'gain': '-20dB', 'exit': '-10dB'}   # v24: seconds of lift time where the spring's speed has halved (it is this times one over the speed, less one); how many times as far the second pallet's tooth falls (LIMP); the two teeth's faders under the last ticks (v23's own, read in the row)
 WOW = {'off': 0.4, 'top': 0.25, 'chime': 'wd-chime-wow', 'hour': 'wd-hour-wow', 'held': 'wd-open-wow'}   # v24: mm the record's hole is off its centre; where in its turn the wow is at the joint (0.25: its top); the wowed bells' names
 PREECHO = {'at': {15: -30, 31: -30, 47: -30, 111: -30}, 'not': ('pallet-down', 'pallet-exit-down', 'chime-q1', 'chime-q2', 'chime-q3', 'chime-q4', 'rumble', 'pallet', 'pallet-exit', 'tick', 'clock-tick', 'clock-tock', 'chime', 'hour', 'groove', 'surface', 'lift', 'spiral')}   # v22: the caught bars (from 0) whose next bar is heard a turn early, and the dB under itself at which it is (the first build had all seven at -30: the scorer's cuts at bars 64, 80 and 96, the catches' own beginnings, read 0.20 0.18 0.20 before and 0.16 0.16 0.17 with it: two sections lost at its two highest settings, structure 100 to 95.3, the total 1.08 down); the tracks that do not print through (the click and the clocks keep their own time; the run-out is not music)
 SURFACE = {'patch': 'wd-surface', 'gain': '-58dB', 'hp': 700, 'lp': 6000, 'pitch': 'D3', 'vel': 0.8}   # v20: the record's surface: its fader (benched), its band, the chip noise's note (its step rate: slow enough not to come round inside a turn)
