@@ -461,6 +461,12 @@ both ears, and in the last two bars it is all one hiss: a point. Nothing is pann
 v38 (28 Nov): HOW FAR BY HOW DULL ALONE (C11T3_DULL=0 takes it out: v37). Outside, in bars 9
 to 16, the same low knock twice a bar: the first as it is, the second with its top taken
 half an octave lower each bar and written as loud.
+
+v39 (28 Nov): SAID INTO THE ROOM AGAIN AND AGAIN, ONLY THE ROOM IS LEFT (C11T3_LUC=0 takes it
+out: v38). After Alvin Lucier's "I am sitting in a room" (1969): he recorded himself speaking,
+played the recording into the room and recorded that, over and over, until the words were gone
+and only the room's own notes were left. Here: three knocks a bar in the corridor (bars 17 to
+24), and every bar they have been through the corridor once more.
 """
 import json
 import math
@@ -887,6 +893,17 @@ DULL_STEP = 0.5                                        # octaves the low-pass co
 DULL_EDGE = (1, 90, 20)                                # ms a knock takes to come, to die and to go
 DULL_TRIM = (0.0,) * 16                                # dB on a knock, knock by knock: none
 DULL_GAIN = os.environ.get("C11T3_DULL_GAIN", "-25.9dB")   # the eight tracks. THE BENCH FIRST (the eight alone at -20 dB): a knock -40.3 to -40.0 dBFS over its first 110 ms, the second of a bar -0.18 to +0.05 dB against the first with no trims, and 3 dB under it where the low-pass is written (bars 11 to 16: within 2 in a hundred); the first build set for -27 in the song with 19 dB of lift
+LUC = os.environ.get("C11T3_LUC", "1") != "0" and DULL   # v39: SAID INTO THE ROOM AGAIN AND AGAIN, ONLY THE ROOM IS LEFT (after Alvin Lucier, "I am sitting in a room", 1969). Three knocks a bar in the corridor; every bar they have been through the corridor once more. What a room gives back it gives back best on its own notes, so each time round the knocks are less and the room's notes more
+LUC_IN = ("the corridor", 0)                         # the section and its row (from 0): bars 17 to 24. READ FIRST (v38, seed 0): 250 to 650 Hz reads -38.8 dBFS in the middle window of 100 ms there
+LUC_AT = (0.25, 0.75, 1.25)                          # beats of every bar a knock is on
+LUC_NOTE = "D2"                                      # the corridor's own note (STAND_ROOT)
+LUC_KNOCK = 30                                       # ms the knock (a saw) takes to die
+LUC_WAYS = (2, 3, 4, 6, 8)                           # the ways across the corridor that ring (times STAND_ROOT): the five of the standing wave
+LUC_UP = 6.0                                         # dB a pass lifts each way (an eq peak); the same 6 dB is taken off the whole after every pass
+LUC_TAU = 0.080                                      # s a way's ring takes to fall to 1/e after one pass, the same for every way
+LUC_Q = 1.0                                          # 1: the textbook peak. THE ENGINE FIRST (b/again1.yaml, the rate read from 60 to 160 ms after the last knock): one pass died at 119 dB a second where 108.6 is written; with 1.3 here it died at 99. (My first reading, over 300 ms, gave 141: it had run into the floor of a 16-bit file)
+LUC_TRIM = (0.0, 5.6, 10.7, 16.0, 21.6, 21.2, 21.4, 21.5)   # dB on a bar's knocks, bar by bar: EVERY SAYING AS LOUD AS THE FIRST. Read on the bench (b/again1.txt) with none: everything's loudest 50 ms fell from -40.7 dBFS in the first bar to -64.7 in the last, the peaks' 6 dB a pass taken off and no more; those (0, 5.4, 10.7, 15.6, 19.7, 22.6, 23.8, 24) put every bar's loudest 50 ms where the first bar's is ON THE BENCH. THE SECOND BUILD: in the song's master the eight bars' loudest 50 ms came out -20.2 -20.3 -20.2 -20.6 -22.2 -18.8 -17.6 -17.6 dBFS on seed 0 and -20.4 -20.6 -20.4 -20.8 -22.0 -18.9 -18.2 -18.0 on seed 11 (the master lifts what is left of the last bars more than it lifts the knocks): each bar turned by the middle of the two seeds' distance from the first bar (-0.00 +0.19 +0.03 +0.44 +1.85 -1.38 -2.38 -2.46 dB)
+LUC_GAIN = os.environ.get("C11T3_LUC_GAIN", "-19.3dB")   # the first bar's fader; bar j is LUC_UP * j lower and LUC_TRIM[j] higher. THE BENCH FIRST (the row alone, -20 dB): every bar's loudest 50 ms -40.7 to -40.7 dBFS; the first build set for -22 dBFS in the song with 18 dB of lift, a guess
 AIR_PAN = 0.4                                          # the other ear
 RAIL_VEL = 0.8
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
@@ -1216,6 +1233,23 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def luc_row():
+    """The first bar (from 0) of the row in which a knock is said into the room again and again, or None."""
+    sec = next((x for x in SECS if x[0] == LUC_IN[0]), None)
+    return sec[1] + ROW * LUC_IN[1] if LUC and sec is not None and LUC_IN[1] * ROW < sec[2] else None
+
+
+def luc_q(n):
+    """The q of the eq peak on way n: a ring that falls to 1/e in LUC_TAU (the textbook peak's pole, times LUC_Q for the engine's)."""
+    return math.pi * STAND_ROOT * n * LUC_TAU / 10 ** (LUC_UP / 40) * LUC_Q
+
+
+def luc_knocks():
+    """[(bar of the row from 0 = passes it has been through, beat of the song)]: LUC_AT in every bar of the row."""
+    b0 = luc_row() * BEATS; assert len(LUC_TRIM) == ROW
+    return [(j, b0 + j * BEATS + q) for j in range(ROW) for q in LUC_AT]
 
 
 def dull_row():
@@ -2277,6 +2311,21 @@ def song():
             doc["tracks"].append({"name": f"dull-{k}", "patch": f"sr-dull-{k}", "gain": DULL_GAIN, "pan": 0.0, "notes": [{"at": round(t, 6), "len": DULL_LEN, "pitch": DULL_NOTE, "vel": round(10 ** ((DULL_TRIM[i] - d_top) / 40), 5)} for i, t, st in dk_ if st == k]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v38 how far by how dull alone (bars {dull_row() + 1} to {dull_row() + ROW}): outside, the same low knock twice a bar, the second with its top taken half an octave lower each bar and written as loud. Generated by")
         assert "From v38" in doc["about"]
+    if luc_row() is not None:
+        ag_ = luc_knocks(); ag_base = float(LUC_GAIN.replace("dB", ""))
+        PATCHES["sr-said"] = {"about": f"Standing Room's knock to be said again (chirper-zero, 28 Nov, v39): a saw that dies in {LUC_KNOCK} ms, under 3 kHz. Its loudness goes as the square of the velocity.",
+                              "play": {"vel_sens": 1, "gate": 1}, "synth": {"layers": ["saw"], "filters": ["lp cutoff=3000"], "amp": {"a": "0.5ms", "d": f"{LUC_KNOCK}ms", "s": 0, "r": "5ms"}}}
+        PATCHES["sr-keep"] = {"about": "Standing Room's keeper (chirper-zero, 28 Nov, v39): one plain tone, held, played 120 dB down into a chain of eqs so that the engine keeps the chain running after the knock that went into it has ended. It is not there to be heard.",
+                              "play": {"gate": 1}, "synth": {"layers": ["sine"], "amp": {"a": "5ms", "d": "0s", "s": 1, "r": "5ms"}}}
+        for j in range(ROW):
+            ag_t = {"name": f"said-{j}", "patch": "sr-said", "gain": f"{ag_base - LUC_UP * j + LUC_TRIM[j]:.1f}dB", "pan": 0.0, "notes": [{"at": round(t, 6), "len": 0.1, "pitch": LUC_NOTE, "vel": 1} for k, t in ag_ if k == j]}
+            if j:
+                doc.setdefault("buses", {})[f"again-{j}"] = {"fx": [{"type": "eq", "bands": [f"peak cutoff={STAND_ROOT * n:.3f} q={luc_q(n):.3f} gain={LUC_UP:g}dB" for n in LUC_WAYS]} for _ in range(j)]}
+                ag_t["out"] = f"again-{j}"
+                doc["tracks"].append({"name": f"said-keep-{j}", "patch": "sr-keep", "gain": "-120dB", "pan": 0.0, "out": f"again-{j}", "notes": [{"at": (luc_row() + j) * BEATS, "len": BEATS, "pitch": LUC_NOTE, "vel": 1}]})
+            doc["tracks"].append(ag_t)
+        doc["about"] = doc["about"].replace(" Generated by", f" From v39 three knocks are said into the corridor again and again (bars {luc_row() + 1} to {luc_row() + ROW}): every bar they have been through the corridor's five ringing ways once more, and bar by bar the knocks go and the corridor's own notes are left (after Alvin Lucier, I am sitting in a room, 1969). Generated by")
+        assert "From v39" in doc["about"]
     return doc
 
 
@@ -2332,6 +2381,9 @@ def echoes(a, b, n=16):
 
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
+        if luc_row() is not None:
+            ag_sec = luc_row() * BEATS * 60 / BPM; ag_base = float(LUC_GAIN.replace("dB", ""))
+            print(f"said again and again, only the room is left ({LUC_GAIN}), bars {luc_row() + 1}-{luc_row() + ROW} ({int(ag_sec) // 60}:{ag_sec % 60:04.1f}): {len(LUC_AT)} knocks a bar (a saw on {LUC_NOTE}, {LUC_KNOCK} ms) on beats " + " ".join(f"{q:g}" for q in LUC_AT) + f" ; bar by bar they have been through 0 to {ROW - 1} passes of the corridor's ways " + " ".join(str(n) for n in LUC_WAYS) + " (" + " ".join(f"{STAND_ROOT * n:.1f}" for n in LUC_WAYS) + f" Hz) ; a pass lifts each way {LUC_UP:g} dB (q " + " ".join(f"{luc_q(n):.1f}" for n in LUC_WAYS) + f": a ring that falls to 1/e in {1000 * LUC_TAU:g} ms) and the {LUC_UP:g} dB are taken off the whole again ; the faders bar by bar: " + " ".join(f"{ag_base - LUC_UP * j + LUC_TRIM[j]:.1f}" for j in range(ROW)) + " dB" + (" ; trims " + " ".join(f"{x:+.1f}" for x in LUC_TRIM) + " dB" if any(LUC_TRIM) else " ; no trims"))
         if dull_row() is not None:
             dk_ = dull_knocks(); u_sec = dull_row() * BEATS * 60 / BPM
             print(f"how far by how dull alone ({DULL_GAIN}), bars {dull_row() + 1}-{dull_row() + ROW} ({int(u_sec) // 60}:{u_sec % 60:04.1f}): {len(dk_)} low knocks ({DULL_NOTE}, {hz(DULL_NOTE):.1f} Hz, a saw, {DULL_LEN * 60000 / BPM:.0f} ms) on beats " + " ".join(f"{x:g}" for x in DULL_AT) + f" of every bar ; the first of a bar through a low-pass at {DULL_TOP} Hz ; the second, bar by bar, at " + " ".join(f"{dull_cut(j):.0f}" for j in range(ROW)) + f" Hz: {DULL_STEP:g} of an octave a bar ; by the classical law (the loss in dB as the square of the frequency) " + " ".join(f"{2 ** (2 * j * DULL_STEP):g}" for j in range(ROW)) + " times as far" + (f" ; trims {min(DULL_TRIM):+.1f} to {max(DULL_TRIM):+.1f} dB" if any(DULL_TRIM) else " ; no trims"))
