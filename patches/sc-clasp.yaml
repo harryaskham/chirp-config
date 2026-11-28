@@ -1,0 +1,43 @@
+{
+ "about": "Small Change: the purse's clasp (v25). Two small metal balls that pass each other: each a very short glockenspiel bar (18 ms) with a millisecond and a half of grit on its front. Dry: it is not money and goes into no purse. BANKED by tools/patchbank.py (28 Nov 2026) from Small Change v25 (track clasp): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.6
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "0s",
+   "r": "30ms"
+  },
+  "env": {
+   "grit": {
+    "a": "0.1ms",
+    "d": "1.5ms",
+    "r": "1.5ms",
+    "s": 0
+   }
+  },
+  "layers": [
+   {
+    "bright": 0.8,
+    "decay": "18ms",
+    "modes": "glock",
+    "strike": 0.6,
+    "type": "modal"
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 52.0,
+       "src": "env.grit"
+      }
+     ],
+     "value": "-70dB"
+    },
+    "type": "noise"
+   }
+  ]
+ }
+}

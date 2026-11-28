@@ -1,0 +1,26 @@
+{
+ "about": "Out of Step's plain tone for one and one (chirper-zero, 28 Nov, v34): 520.8 Hz, 62 whole waves to the sixteenth; the second tone half a turn behind: the first turned over. Its loudness goes as the square of the velocity. BANKED by tools/patchbank.py (28 Nov 2026) from Out of Step v34 (track sum-out): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "2ms",
+   "d": "0s",
+   "r": "2ms"
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.5
+   }
+  ],
+  "pitch": -0.081289
+ }
+}
