@@ -71,6 +71,21 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v28 (28 Nov): EVERYONE IS COUNTED IN, AND THE ELEVEN IS COUNTED BEFORE IT COMES. Three switches (`--without-entered`,
+`-counts`, `-laid`; all three off is v27 byte for byte).
+  ENTERED  the notched stick counts the seven out as they leave (v25: bars 145 to 192, a row a bar). It was not
+           there when they came. Now each is counted IN: one row in the bar it comes (bars 17, 33, 49, 65, 81, 97;
+           not the grid, which is the click itself), a notch for each one here: 2 3 4 5 6 7. And these rows CLIMB
+           to their click (the notches before it, rising, as in Ring True), where the rows that count them out
+           are drawn back and fall away after it: counted in, counted out.
+  COUNTS   the eleven's big brother is told twice before the eleven comes (v27: bars 91 and 102). In Least Common
+           (v28) it counts its own eleven softly before the small one comes; here too: between its first told
+           stroke and home its bar again every 11 beats, softer (not on its own strokes, not in a caught bar): bar
+           93 beat 4, bar 99 beat 2, bar 104 beat 4, bar 107 beat 3, bar 110 beat 2: 8 elevens from bar 91 to
+           home, bar 113, where the small one takes the count up on that very beat.
+  LAID     when only the click is left the stick was put down (its last row is in bar 192). Now that is heard:
+           one tap of its lowest notch in bar 193, where the next row would have been.
+
 v27 (28 Nov): THE BIG BROTHER COMES HOME TOO, AND HERE THE TWO AGREE. Three switches on (`--without-elder`,
 `-told`, `-apart`; all three off is v26 byte for byte) and one written and off (`--with-aired`).
   ELDER   in Least Common (v27) the eleven has a big brother: its wooden bar let ring, 269.5 Hz, on the bar line
@@ -576,7 +591,10 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True, 'quarters': True, 'hour': True, 'hammer': True, 'one': True, 'sympathy': True, 'groove': True, 'surface': True, 'lift': True, 'leadin': True, 'reveal': True, 'inner': True, 'spiral': False, 'preecho': True, 'nearer': True, 'pallet': True, 'exit': True, 'rumble': True, 'rundown': True, 'limp': True, 'wow': True, 'waver': True, 'tally': True, 'back': True, 'full': True, 'eleven': True, 'lands': True, 'creeps': True, 'elder': True, 'told': True, 'apart': True, 'aired': False}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True, 'quarters': True, 'hour': True, 'hammer': True, 'one': True, 'sympathy': True, 'groove': True, 'surface': True, 'lift': True, 'leadin': True, 'reveal': True, 'inner': True, 'spiral': False, 'preecho': True, 'nearer': True, 'pallet': True, 'exit': True, 'rumble': True, 'rundown': True, 'limp': True, 'wow': True, 'waver': True, 'tally': True, 'back': True, 'full': True, 'eleven': True, 'lands': True, 'creeps': True, 'elder': True, 'told': True, 'apart': True, 'aired': False, 'entered': True, 'counts': True, 'laid': True}
+ENTERED = {'db': 0, 'trim': {}}   # v28: the rows that count the seven in: dB on a row; dB by the bar (from 1)
+COUNTS = {'db': -7, 'trim': {393: 3, 415: 3}}   # v28: the big brother's own count before home: dB on a stroke (its told strokes are at -3, its strokes from home at 0); dB by beat (bar 99 beat 2 and bar 104 beat 4: at one level those two were 2.1 and 1.7 dB over the music in their band, where the other three were 4.5 to 4.8: the music has its D4 and C4 there)
+LAID = {'pitch': 'Bb5', 'vel': 0.8, 'db': 0}   # v28: the stick laid down: the note of its lowest notch, touch, dB
 GROOVE = {'patch': 'wd-groove', 'turn': 1.8, 'after': 1.1, 'turns': 4, 'dust': ((0, 'G2', 1.0, 0), (3, 'D4', .7, -9), (8, 'A3', .6, -14), (15, 'F4', .8, -6)),   # v20: the run-out groove: seconds a turn (33 1/3 a minute); seconds from the last stroke to the first joint; turns; what is in a turn: (sixteenths of a turn after the joint, the chip noise's note: its step rate, how hard, dB)
           'gain': '-28dB', 'pan': 0, 'ms': 4, 'hp': 180, 'lp': 2600, 'rest': 1.5}   # its fader (bench: at -24 dB the joint's highest sample stood 2 to 6 dB over the wall clock's ticks: 4 dB off) and place; a speck's length, ms; its band; seconds of the song after the last joint (the surface goes in them)
 SPIRAL = {'patch': 'wd-spiral', 'gain': '-51dB', 'hp': 700, 'lp': 6000, 'in': 4, 'to': 8, 'out': 4, 'radius': (146.05, 60.3, 53.2), 'lock': 'wd-inner', 'every': 8, 'walls': 2, 'up': 4, 'down': 70}   # v21: the playing groove's surface: its patch, fader (bench, alone: at the run-out's -58 dB the white hiss stood 10 dB under the locked groove's chip noise: -78 dBFS for -68: so 7 dB up, to meet it at the first joint with INNER's 3.8) and band at the first groove (the run-out's, v20); bars over which it comes in; the bar to which it is held, and bars over which it goes, where it does not stay; an LP's first, last and locked groove, mm from the centre; the run-out surface's name when its band has slid; bars between the points of the slide's line; low-pass filters in a row at the band's top (Out of Step's last bars lie over the first eight: nothing over 10 kHz); REVEAL: bars over which it comes up again from the bar the spring runs down; dB it is down in between
@@ -984,6 +1002,36 @@ def eleven_notes():
     return out
 
 
+def elder_count():
+    """v28 COUNTS: between its first told stroke and home the big brother counts its own eleven softly: its bar again every ELEVEN['beats'] beats (not on its own strokes, not in a caught bar), at the first stroke's pitch."""
+    if not (ON['counts'] and ON['told'] and ON['elder']):
+        return []
+    own, home = {q['at'] for q in elder_notes()}, ELEVEN['from'] * 4
+    out = []
+    for at in range(min(own) + ELEVEN['beats'], home, ELEVEN['beats']):
+        if at in own or caught(at // 4):
+            continue
+        db = COUNTS['db'] + COUNTS['trim'].get(at, 0)
+        out.append({'at': at, 'len': ELDER['len'], 'pitch': f"{eleven_hz(0, (BARS - ELEVEN['from']) * 4 // ELEVEN['beats']):.2f}hz", 'vel': ELDER['vel'], **({'gain': f'{db:g}dB'} if db else {})})
+    return out
+
+
+def entered_notes():
+    """v28 ENTERED: each of the seven is counted in as it comes: a row in the bar it comes (not the first: the grid is the click itself), a notch for each one here; the row CLIMBS to its click (the notches before it). LAID: one tap of the lowest notch in the bar after the last row."""
+    out = []
+    for k in GATHER if ON['entered'] else []:
+        bar = COMES[k]
+        if bar == 0 or caught(bar):
+            continue
+        n = tally_count(bar)
+        for j in range(n + 1):
+            db = (TALLY['notch'] + TALLY['fall'] * (j - 1) + (TALLY['first'] if j == 1 else 0) if j else 0) + ENTERED['db'] + ENTERED['trim'].get(bar + 1, 0)
+            out.append({'at': round(bar * 4 + TALLY['at'] / 4 - j * TALLY['gap'], 4), 'len': TALLY['len'], 'pitch': TALLY['ladder'][j], 'vel': round(TALLY['vel'][1] - TALLY['vel'][0] * j, 3), **({'gain': f'{db:g}dB'} if db else {})})
+    if ON['laid']:
+        out.append({'at': TALLY['bars'][1] * 4 + TALLY['at'] / 4, 'len': TALLY['len'], 'pitch': LAID['pitch'], 'vel': LAID['vel'], **({'gain': f"{LAID['db']:g}dB"} if LAID['db'] else {})})
+    return out
+
+
 def tally_count(bar):
     """v25 TALLY: how many of the seven are still here in a bar."""
     return sum(1 for k in GATHER if COMES[k] <= bar < GOES[k])
@@ -1385,13 +1433,13 @@ def song():
             doc['tracks'].append({'name': 'pallet-exit-down', 'patch': PALLET['exit']['patch'], 'gain': RUNDOWN['exit'], 'pan': click.get('pan', 0), 'notes': down[True]})
     if ON['tally']:                                            # v25 TALLY: Ring True's notched stick counts who is still here
         doc['patches'] = {**doc['patches'], TALLY['patch']: TALLY_PATCH}
-        doc['tracks'].append({'name': 'tally', 'patch': TALLY['patch'], 'gain': TALLY['gain'], 'pan': TALLY['pan'], 'notes': tally_notes()})
+        doc['tracks'].append({'name': 'tally', 'patch': TALLY['patch'], 'gain': TALLY['gain'], 'pan': TALLY['pan'], 'notes': sorted(tally_notes() + entered_notes(), key=lambda q: q['at'])})
     if ON['eleven']:                                           # v26 ELEVEN: Least Common's eleven, from all gathered to the last stroke
         doc['patches'] = {**doc['patches'], ELEVEN['patch']: ELEVEN_PATCH}
         doc['tracks'].append({'name': 'eleven', 'patch': ELEVEN['patch'], 'gain': ELEVEN['gain'], 'pan': ELEVEN['pan'], **({'sends': {'hall': ELEVEN['hall']}} if ELEVEN['hall'] and 'hall' in doc.get('buses', {}) else {}), 'notes': eleven_notes()})
     if ON['elder'] and ON['eleven']:                            # v27 ELDER: the eleven's big brother, every eleven bars from all gathered to the last stroke
         doc['patches'] = {**doc['patches'], ELDER['patch']: elder_patch()}
-        doc['tracks'].append({'name': ELDER['track'], 'patch': ELDER['patch'], 'gain': ELDER['gain'], 'pan': ELDER['pan'], **({'sends': {'hall': ELDER['hall']}} if ON['aired'] and 'hall' in doc.get('buses', {}) else {}), 'notes': elder_notes()})
+        doc['tracks'].append({'name': ELDER['track'], 'patch': ELDER['patch'], 'gain': ELDER['gain'], 'pan': ELDER['pan'], **({'sends': {'hall': ELDER['hall']}} if ON['aired'] and 'hall' in doc.get('buses', {}) else {}), 'notes': sorted(elder_notes() + elder_count(), key=lambda q: q['at'])})
     if ON['preecho'] and ON['catch']:                           # v22 PREECHO: in each caught bar the first turn of the bar after it, a turn early
         turn = GROOVE['turn'] * BPM / 60                        # beats in one turn of the record (the tempo is steady at every catch)
         for t in list(doc['tracks']):
@@ -1435,7 +1483,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v26, the last six v25, the last nine v24, the last thirteen v23, the last sixteen v22, the last eighteen v21, the last twenty-one v20, the last twenty-four v19, the last twenty-seven v18, the last twenty-nine v17, the last thirty-one v16, the last thirty-three v15, the last thirty-five v14, the last thirty-seven v13, the last thirty-nine v12, the last forty-one v11, the last forty-four v10, the last forty-seven v9, the last fifty v8, the last fifty-two v7, the last fifty-five v6, the last fifty-eight v5, the last sixty-one v4, the last sixty-four v3, the last seventy v2, all seventy-six v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v27, the last six v26, the last nine v25, the last twelve v24, the last sixteen v23, the last nineteen v22, the last twenty-one v21, the last twenty-four v20, the last twenty-seven v19, the last thirty v18, the last thirty-two v17, the last thirty-four v16, the last thirty-six v15, the last thirty-eight v14, the last forty v13, the last forty-two v12, the last forty-four v11, the last forty-seven v10, the last fifty v9, the last fifty-three v8, the last fifty-five v7, the last fifty-eight v6, the last sixty-one v5, the last sixty-four v4, the last sixty-seven v3, the last seventy-three v2, all seventy-nine v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -1511,7 +1559,10 @@ if __name__ == '__main__':
                        ([(GOES['cell'], "the strings answer the dropped stroke: held open through the bar after the cell, then let down")] if ON['answer'] and ON['true'] and ON['strings'] and ON['drop'] else []) +
                        ([(GOES['change'] - 1, "the last seed is paid with interest: the held B flat swells and is shut on the one")] if ON['interest'] and ON['paid'] else []) +
                        ([(DRUM_IN, 'the drum has a chest: a bell of 4 dB at 71 Hz')] if ON['chest'] else []) +
-                       ([(GOES['cell'] - NUDGE['bars'], 'the hand drags the cell a sixteenth late and lets it catch up')] if ON['nudge'] else []))
+                       ([(GOES['cell'] - NUDGE['bars'], 'the hand drags the cell a sixteenth late and lets it catch up')] if ON['nudge'] else []) +
+                       ([(min(COMES[k] for k in GATHER if COMES[k]), "each of the seven is counted in as it comes: the notched stick's row in the bar it comes, a notch for each one here, climbing to its click on beat 3 (the rows that count them out fall away after theirs): " + ', '.join(f"bar {COMES[k] + 1}: {tally_count(COMES[k])}" for k in GATHER if COMES[k] and not caught(COMES[k])))] if ON['entered'] and ON['tally'] else []) +
+                       ([(TALLY['bars'][1], f"the stick is laid down: one tap of its lowest notch ({LAID['pitch']}) on beat 3, where the next row would have been")] if ON['laid'] and ON['tally'] else []) +
+                       ([(elder_count()[0]['at'] // 4, f"the big brother counts its own eleven before the small one comes, as in Least Common: its bar again every {ELEVEN['beats']} beats, {-COUNTS['db']} dB under its strokes from home (not on its own strokes, not in a caught bar): " + ', '.join(f"bar {q['at'] // 4 + 1} beat {q['at'] % 4 + 1}" for q in elder_count()))] if elder_count() else []))
         for bar, what in marks:
             t = clock(bar)
             print(f'bar {bar + 1:3d}  {int(t) // 60}:{t % 60:05.2f}  {what}')
