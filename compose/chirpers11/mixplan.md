@@ -94,6 +94,13 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Ring True v26 (06:04): both ends 0.12 dB lower through the loudness target (the song has a tune now, bars 37
+  to 165; nothing written before bar 37 or after bar 166): bars 1 to 8 by two -17.90 -17.92 -17.94 -17.92 dBFS
+  (was -17.78 -17.79 -17.82 -17.80); bars 169-176 -17.03 (was -16.88); bars 177-183 -17.67 (was -17.55); bar 184
+  -11.12 (was -11.09); the tail by second -18.8 -33.9 -48.2 -61.5 (was -18.5 -33.5 -47.8 -61.1); highest sample
+  -1.46 (seed 11: bars 1 to 8 -18.02 -17.99 -18.09 -18.06; bar 184 -10.94; the tail -20.5 -35.4 -49.6 -62.6).
+  Inside: a soft low plucked tune from 175 to 466 Hz (-11 to -13 dBFS in that band), one to seven notes a bar:
+  meant (the tenth thing, a comb of steel tongues).
 - Least Common v26 (05:29): bars 1 to 4 as they were (-17.42 / -17.31 dBFS). The last four bars, a bar each,
   -17.2 -17.4 -17.2 -17.0 (was -17.2 -17.3 -17.2 -16.8; seed 11 -17.1 -17.2 -17.0 -16.9, was -16.7): the last
   bar is 0.2 dB lower. In it, inside Standing Room's first bars: one low wooden note at 539 Hz (51 cents over
