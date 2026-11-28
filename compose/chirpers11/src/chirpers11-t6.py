@@ -58,7 +58,23 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True, 'spun': True, 'lands': True, 'metal': True, 'damped': True, 'flick': True, 'tally': True, 'reckon': True, 'linger': True, 'rounded': True, 'paid': True, 'cannot': True, 'late': True, 'offkey': True, 'closing': True, 'receipt': True, 'clasp': True, 'miss': True, 'snap': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True, 'spun': True, 'lands': True, 'metal': True, 'damped': True, 'flick': True, 'tally': True, 'reckon': True, 'linger': True, 'rounded': True, 'paid': True, 'cannot': True, 'late': True, 'offkey': True, 'closing': True, 'receipt': True, 'clasp': True, 'miss': True, 'snap': True, 'product': True, 'melts': True, 'hands': True}
+# ---- v26 (28 Nov): THE TILL MULTIPLIES. Three switches (`--without-product`, `-melts`, `-hands`; all three off is
+# v25 byte for byte).
+#   PRODUCT  every effect here so far ADDS coins: a purse's echoes are sums of threes and fives. A ring modulator
+#            MULTIPLIES, and the product of two tones is their difference and their sum: sin 3x sin 5x is half of
+#            cos 2x less cos 8x. So before the seed of bars 5, 9 and 13 of each section, from the drum to home, the
+#            purse's two coins sound together as NOTES: the seed's own note three octaves down, times each coin
+#            (for a seed on B flat 4 and coins 3 and 5: F3 and D4), for as many sixteenths as the two coins make
+#            (3 and 5: eight, half a bar), ending as the seed is sown. Not where the seed is sown off the beat
+#            (the bar before it is left empty on purpose), and 6 dB softer in the break, where it is alone.
+#   MELTS    and as they sound they are multiplied (the engine's ring modulation, each coin by the other): over
+#            the first coin's length the two notes melt into their difference and their sum, which ring for the
+#            second coin's length: 3 x 5 gives 2 and 8: B flat 2, and B flat 4, which is the seed's own note: the
+#            two coins call the seed and the seed answers. Threes and fours give 1 and 7 (the low B flat and the
+#            seventh harmonic, a note no scale here has); fives and sevens give 2 and 12 (a fifth over the seed).
+#   HANDS    the two coins come one from each hand (left and right); their product is the same in both, so it
+#            stands in the middle.
 # ---- v25 (28 Nov): THE PURSE HAS A CLASP. Three switches (`--without-clasp`, `-miss`, `-snap`; all three off is
 # v24 byte for byte).
 #   CLASP  the song had a drum, a bass, a hat and no backbeat. A purse has a clasp: two small metal balls that
@@ -127,6 +143,7 @@ CLASP_PATCH = {'about': "Small Change: the purse's clasp (v25). Two small metal 
                          'env': {'grit': {'a': '0.1ms', 'd': '1.5ms', 's': 0, 'r': '1.5ms'}},
                          'amp': {'a': '0.1ms', 'd': '0s', 's': 1, 'r': '30ms'}},
                'play': {'event_stable': True, 'vel_sens': 0.6}}
+PRODUCT = {'patch': 'sc-product', 'gain': '-38dB', 'sections': (1, 11), 'bars': (4, 8, 12), 'down': -36, 'vel': 0.8, 'hands': 0.5, 'trim': {84: -6, 88: -6, 92: -6, 100: 4, 104: 4, 108: 4, 116: 4, 120: 4, 124: 4}}   # v26: the product: its patches' name (one for each pair of coins) and fader; the sections it plays in (from, to: the drum to home); the bars of a section (from 0) whose seed it leads to; the seed's note to the unit, semitones; touch; HANDS: how far to each side the two coins are; dB on a note by its seed's bar (from 0), SET FROM TWO FINISHED BUILDS, every note read (rms, 50 to 900 Hz): THIS SONG'S MASTER IS A LOUDNESS TARGET ON A SONG OF CLICKS, AND A HELD TONE IS THE LOUDEST THING IN IT: at -16 dB every note came out -6.7 to -9.5 dBFS, 3 to 10 dB OVER the drum and the bass together; at -24 dB it came out only 0.8 to 2.8 dB lower (a line of it -7.3 dBFS finished for -28.9 on the bench: 21.6 dB of lift), and BOTH ENDS OF THE SONG 0.8 dB lower: the fader was turning the rest of the song up, not the tone down. At -38 the tone is 3 to 5 dB under the drum and the bass in its band and both ends are within 0.1 dB of what they were; 6 dB more off where there is no drum (it is alone there), and 4 dB on in the two fullest sections (the drum again and three purses, where it read 8 to 14 dB under). Not where the seed is sown off the beat: there the bar before the seed is empty on purpose (the old music is -33 to -63 dBFS where the product would ring)
 OFFKEY = {'db': -9}                         # v24: dB on a payment's first stroke where the payments begin off the beat (PAID['late']) and no seed is sown with it: read in the finished song (there it came out at -6.5 dBFS, the seed's own level; with a seed it is 8 dB under the seed and is left)
 CLOSING = {'where': ('home',), 'bars': 12}  # v24: the sections where the till closes (a payment to each seed), and for how many of their bars (the coin is spun in home's last four)
 RECEIPT = {'vel': 0.9, 'db': 3}             # v24: the receipt's touch, and dB on it (read in the finished song: at 0 dB it came out 2 to 10 dB under what else is on its bar line from 440 to 2400 Hz)
@@ -738,6 +755,41 @@ def clasp_notes(doc):
     return sorted(out, key=lambda n: n['at']), tell, told
 
 
+def product_patch(x, y):
+    """v26 PRODUCT: the patch for a pair of coins: two sines at x and y times the note; MELTS: each ring-modulated by the other's (a silent copy before it), the blend rising from 0 to 1 over x sixteenths; HANDS: one to each side."""
+    side = PRODUCT['hands'] if ON['hands'] else 0
+    mix = {'value': 0, 'mod': [{'src': 'env.mul', 'amount': 1}]}
+    coin = lambda r, pan, src: {'type': 'osc', 'wave': 'sine', 'ratio': r, 'phase': 0, **({'pan': pan} if pan else {}), **({'ringmod': {'from': src, 'mix': mix}} if ON['melts'] else {})}
+    mute = lambda r: {'type': 'osc', 'wave': 'sine', 'ratio': r, 'phase': 0, 'level': '-140dB'}
+    return {'about': f"Small Change: the till multiplies (v26): the purse's coins {x} and {y} as two plain tones at {x} and {y} times the note" + (f", each ring-modulated by the other over {x} sixteenths: they melt into {abs(x - y)} and {x + y} times the note (the product of two tones is their difference and their sum)" if ON['melts'] else '') + (', one from each side' if side else '') + '.',
+            'synth': {'layers': ([mute(y), coin(x, -side, '0'), mute(x), coin(y, side, '2')] if ON['melts'] else [coin(x, -side, ''), coin(y, side, '')]),
+                      **({'env': {'mul': {'a': f'{x * S16:.0f}ms', 'd': '1ms', 's': 1, 'r': '50ms'}}} if ON['melts'] else {}),
+                      'amp': {'a': '4ms', 'd': '10ms', 's': 1, 'r': '40ms'}},
+            'play': {'event_stable': True, 'vel_sens': 0.3, 'gate': 1}}
+
+
+def product_notes(doc):
+    """v26 PRODUCT: by pair of coins, the notes: before the seed of each of PRODUCT['bars'] in each of its sections, as long as the purse's two coins make, ending as the seed is sown; the note is the seed's three octaves down (home's chord: its key note)."""
+    pairs_of = {**PAIRS, **FLIPPED, **INSIDE}
+    seeds = sorted((n['at'], n['pitch'], t['name'].split('-')[1]) for t in doc['tracks'] if t['name'].split('-')[0] in ('seed', 'long') and t['name'].split('-')[-1] in pairs_of for n in t['notes'])
+    out = {}
+    for i, (name, pairs, every, at16, notes, drum, bass) in enumerate(SECTIONS):
+        if not PRODUCT['sections'][0] <= i < PRODUCT['sections'][1] or at16:   # not off the beat: the gap before that seed is meant
+            continue
+        for b in PRODUCT['bars']:
+            bar = i * SEC + b
+            here = [s for s in seeds if bar * 4 <= s[0] < bar * 4 + 4]
+            if not here:
+                continue
+            at, pitch, k = here[0]
+            if name == 'home' and ON['chord']:
+                at, pitch = bar * 4 + at16 / 4, STANDS['home']
+            x, y = pairs_of[k]
+            db = PRODUCT['trim'].get(bar, 0)
+            out.setdefault((x, y), []).append({'at': round(at - (x + y) / 4, 4), 'len': (x + y) / 4, 'pitch': moved(pitch, PRODUCT['down']), 'vel': PRODUCT['vel'], **({'gain': f'{db:g}dB'} if db else {})})
+    return out
+
+
 def build():
     T = {'kick': [], 'bass': [], 'hat': [], **{f'seed-{k}': [] for k in purses()}, **({'seed-z': []} if ON['zeno'] and ON['roll'] else {}), **({'open': []} if ON['meet'] and ON['owed'] and ON['hat'] else {}), **{f'long-{k}': [] for k in purses()}}
     lifted = []                                                  # v17 LIFT: the bass's moved notes, an octave up
@@ -1002,6 +1054,10 @@ def song():
     if ON['clasp']:                                              # v25 CLASP: the purse's clasp, on the beats the purse can pay
         doc['patches'] = {**doc['patches'], CLASP['patch']: CLASP_PATCH}
         doc['tracks'].append({'name': 'clasp', 'patch': CLASP['patch'], 'gain': CLASP['gain'], 'pan': CLASP['pan'], 'notes': clasp_notes(doc)[0]})
+    if ON['product']:                                            # v26 PRODUCT: the purse's two coins as notes, multiplied, before a seed
+        for (x, y), notes in product_notes(doc).items():
+            doc['patches'] = {**doc['patches'], f"{PRODUCT['patch']}-{x}{y}": product_patch(x, y)}
+            doc['tracks'].append({'name': f'product-{x}{y}', 'patch': f"{PRODUCT['patch']}-{x}{y}", 'gain': PRODUCT['gain'], 'notes': notes})
     return doc
 
 
@@ -1021,7 +1077,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last three off is v24, the last six v23, the last nine v22, the last ten v21, the last twelve v20, the last thirteen v19, the last sixteen v18, the last eighteen v17, the last twenty-two v16, the last twenty-four v15, the last twenty-six v14, the last twenty-seven v13, the last twenty-nine v12, the last thirty-one v11, the last thirty-three v10, the last thirty-six v9, the last thirty-nine v8, the last forty-one v7, the last forty-three v6, the last forty-seven v5, the last forty-eight v4, the last fifty-one v3, the last fifty-five v2, all fifty-eight v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last three off is v25, the last six v24, the last nine v23, the last twelve v22, the last thirteen v21, the last fifteen v20, the last sixteen v19, the last nineteen v18, the last twenty-one v17, the last twenty-five v16, the last twenty-seven v15, the last twenty-nine v14, the last thirty v13, the last thirty-two v12, the last thirty-four v11, the last thirty-six v10, the last thirty-nine v9, the last forty-two v8, the last forty-four v7, the last forty-six v6, the last fifty v5, the last fifty-one v4, the last fifty-four v3, the last fifty-eight v2, all sixty-one v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -1140,6 +1196,11 @@ if __name__ == '__main__':
                   (f", {c_tell['miss']} that do not catch (the first ball only: the purse cannot pay)" if ON['miss'] else '') + f"; it rests on the {c_tell['rest']} beats the drum gives away" +
                   (f"; and the hand that shuts the purse of small change is heard: a snap on the one of bars {' '.join(str(b + 2) for b in sorted(rolls()))}" if ON['snap'] and ON['roll'] else ''))
             print('    what each backbeat owes, by section (its first four bars; ? is a debt): ' + '; '.join(f"{nm}: {' '.join(v[:8])}" for nm, v in c_told.items()))
+        if ON['product']:
+            made = product_notes(song())
+            print(f"    the till multiplies ({PRODUCT['patch']}-..): before the seed of bars {', '.join(str(b + 1) for b in PRODUCT['bars'])} of each section from {SECTIONS[PRODUCT['sections'][0]][0]} to {SECTIONS[PRODUCT['sections'][1] - 1][0]} (not off the beat), the purse's two coins sound as notes, the seed's note three octaves down times each coin, for as many sixteenths as the two make" +
+                  (", and are multiplied as they sound (ring modulation): over the first coin's length they melt into their difference and their sum, which ring for the second's" if ON['melts'] else '') + (', one coin from each side' if ON['hands'] else '') + ': ' +
+                  '; '.join(f"{x} x {y}" + (f" gives {abs(x - y)} and {x + y}" if ON['melts'] else '') + f": {len(v)} (bars {' '.join(str(int(q['at'] // 4) + 1) for q in v)})" for (x, y), v in made.items()) + f"; {sum(len(v) for v in made.values())} notes")
         print(f'{BARS} bars, {BARS * sec:.1f} s; written notes: ' + ', '.join(f'{k} {len(v)}' for k, v in T.items() if v or not k.startswith('long-')))
     else:
         a.out.write_text(dump(song()))
