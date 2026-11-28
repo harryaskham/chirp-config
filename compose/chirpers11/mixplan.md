@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Least Common v24 (01:30): bars 1 to 4 -17.53 dBFS (as they were). THE LAST FOUR BARS, which Standing Room
+  begins under, read -17.4 -17.5 -17.3 -17.0 (were -17.3 -17.3 -17.3 -17.0): a new quarter-second hiss above
+  5 kHz falls on bar 208's line, inside the overlap; 2 s after home -20.1; highest sample -1.49. Inside: 51
+  new strokes on bar lines from bar 121 (a hiss, a wooden bar on G3, a tom on G2).
 - Small Change v23 (01:02): both ends as v22's: bars 1 to 16 by four -22.5 -23.4 -23.6 -20.6 dBFS; the last
   sixteen by four -22.9 -23.8 -23.1 -19.6; bars 185 to 192 -21.03; highest sample -1.30. Inside: a new wooden
   key, bars 49 to 80 and 97 to 160 (466 to 1568 Hz); in bars 129 to 160 its stroke on sixteenth 6 is as loud
