@@ -423,6 +423,12 @@ the stairs something is let go over the rail in every bar (a tap), a flight of e
 steps higher each time. It lands when gravity says and its thud comes back up at the
 speed of sound: the wait is the square root of twice the height over g, and the height
 over 343. The wait says how high you have climbed, and it grows by less each flight.
+
+v32 (28 Nov): THE STAIRWELL RINGS (C11T3_WELL=0 takes it out: v31). Every thud of v31
+rings the column of air between the floor and where you stand. A column one flight high
+has one note: 126.1 Hz. A column n flights high has that note over n and every multiple
+of it: the lowest way falls as you climb (126, 63, 42, 32 ... Hz), the ways crowd
+together, and one flight's own note is among them at every height.
 """
 import json
 import math
@@ -785,6 +791,11 @@ DROP_AT = 0.65625                                      # the beat of the bar it 
 DROP_NOTES = ("Bb2", ((2.0, -3.0),))                   # the thud: the floor at the bottom rings two low tones, Bb2 and its octave 3 dB under (116.5, 233.1 Hz): always the same floor. NOT A2, F3 AND C4, which the first build had: they are harmonics of the bass's own notes (A1, F2, C2), and in their own bands three landings of eight were 11 to 13 dB under the old music. Bb is the one note of the scale no harmonic of the bass in this row comes near
 DROP_TAP = ("C5", -4.0)                                # the tap of letting go: its note, and dB under the thud's track
 DROP_GAIN = os.environ.get("C11T3_DROP_GAIN", "-26dB")   # the thud's track. THE BENCH FIRST (the two tracks alone, the thud's at -20 dB): the first thud's first 100 ms -35.6 dBFS (15.6 under its fader). The first build (three tones, -30 dB) read the first thud at -28.0 dBFS in the whole song's master (a lift of 17.3 dB): aimed at -24 with that lift; read at -26dB (both seeds) BEFORE any score: the first thud -24.4 dBFS, the others 2.8 to 6.5 dB under it (the master evens them: 9.0 written); the nth landing is 10 log n dB under the first (the blow as the height, the way back as one over the height: a rule of this piece)
+WELL = os.environ.get("C11T3_WELL", "1") != "0" and DROP   # v32: THE STAIRWELL RINGS: every thud of v31 rings the column of air between the floor and where you stand. A column one flight high has one note (the speed of sound over twice its height); a column n flights high has that note over n, and every multiple of it: the lowest way falls as you climb and the ways crowd together, and the one flight's own note is among them at every height
+WELL_BAND = (100.0, 260.0)                             # Hz: the ways written (the lower ones are under the drum and the higher ones the floor does not give)
+WELL_NOTE = ("B2", 123.47082531403103)                 # the note written and its frequency; the patches move it to one flight's own note
+WELL_RING = 1.8                                        # seconds a ring takes to die
+WELL_GAIN = os.environ.get("C11T3_WELL_GAIN", "-30dB")   # every ring's track. THE BENCH FIRST (the eight tracks alone at -20 dB): a ring's first 100 ms -31.6 to -33.3 dBFS (12 under its fader: it is dying from the start), then -35, -43, -56; all 48 ways have a peak within 1.5 Hz of the written and there is no other peak. Aimed at -25 dBFS for the first 100 ms with the thud's lift (17.2 dB); that bench was of the first build (a ring of 0.9 s: over the old music in its band in 2 landings of 8); with 1.8 s the bench reads -30.8 to -32.6 then -33, -37, -42, and the song (both seeds, read BEFORE any score) -20.3 to -27.3 dBFS in the first 100 ms (this master lifts it 18.8 / 19.1 dB): over the old music in 4 landings of 8; a ring of m ways has each 10 log m dB under it (the same sound in all, however many)
 AIR_PAN = 0.4                                          # the other ear
 RAIL_VEL = 0.8
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
@@ -1114,6 +1125,12 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def well_ways():
+    """[(flights, the column's lowest way in Hz, [(k, Hz)] the ways written: its kth multiples inside WELL_BAND, the beat the ring begins)]: one for every thud."""
+    one = SOUND / (2 * DROP_STEPS * DROP_RISER)
+    return [(n, one / n, [(k, k * one / n) for k in range(1, 200) if WELL_BAND[0] <= k * one / n <= WELL_BAND[1]], land) for n, _, _, _, _, land, _ in drop_falls()]
 
 
 def drop_row():
@@ -2018,6 +2035,16 @@ def song():
         doc["tracks"].append({"name": "drop-thud", "patch": "sr-thud", "gain": DROP_GAIN, "pan": 0.0, "notes": [{"at": land, "len": 0.2, "pitch": DROP_NOTES[0], "vel": round(10 ** (d / 40), 5)} for _, _, _, _, _, land, d in dr]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v31 something is let go down the stairwell (bars {drop_row() + 1} to {drop_row() + ROW}, the first whole row of the stairs): at a tap in every bar, a flight of {DROP_STEPS} steps ({DROP_STEPS * DROP_RISER:g} m) higher each time; its thud is heard after the fall and the sound's way back up: {', '.join(f'{1000 * (f + u):.0f}' for _, _, f, u, _, _, _ in dr)} ms: the wait grows as the square root of the height. Generated by")
         assert "From v31" in doc["about"]
+    if WELL and drop_row() is not None:
+        import math as wl_math
+        wl = well_ways(); wl_one = SOUND / (2 * DROP_STEPS * DROP_RISER)
+        for wl_n, _, wl_k, wl_at in wl:
+            PATCHES[f"sr-well-{wl_n}"] = {"about": f"Standing Room's stairwell ringing from {wl_n} flight(s) up (chirper-zero, 28 Nov, v32): {len(wl_k)} plain tones, the ways of a column of air {wl_n * DROP_STEPS * DROP_RISER:.2f} m high between {WELL_BAND[0]:g} and {WELL_BAND[1]:g} Hz, each the same; struck and dying in {WELL_RING:g} s; nothing over 600 Hz.",
+                                          "play": {"vel_sens": 0}, "synth": {"layers": [f"sine phase=0 ratio={k / wl_n:.6f} level={-10 * wl_math.log10(len(wl_k)):.2f}dB" for k, _ in wl_k], "pitch": {"value": round(12 * wl_math.log2(wl_one / WELL_NOTE[1]), 7)},
+                                                                              "filters": ["lp cutoff=600"], "amp": {"a": "5ms", "d": f"{WELL_RING:g}s", "s": 0, "r": "50ms"}}}
+            doc["tracks"].append({"name": f"well-{wl_n}", "patch": f"sr-well-{wl_n}", "gain": WELL_GAIN, "pan": 0.0, "notes": [{"at": wl_at, "len": round(WELL_RING * BPM / 60, 5), "pitch": WELL_NOTE[0], "vel": 0.8}]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v32 the stairwell rings (the same bars): every thud rings the column of air between the floor and where you stand: one flight's own note is {wl_one:.1f} Hz; from n flights up the lowest way is that over n ({', '.join(f'{f:.1f}' for _, f, _, _ in wl)} Hz) and every multiple of it rings: {', '.join(str(len(k)) for _, _, k, _ in wl)} ways between {WELL_BAND[0]:g} and {WELL_BAND[1]:g} Hz, {wl_one:.1f} and {2 * wl_one:.1f} Hz among them every time. Generated by")
+        assert "From v32" in doc["about"]
     return doc
 
 
@@ -2073,6 +2100,11 @@ def echoes(a, b, n=16):
 
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
+        if WELL and drop_row() is not None:
+            wl = well_ways()
+            print(f"the stairwell rings ({WELL_GAIN}), bars {drop_row() + 1}-{drop_row() + ROW}: every thud rings the column between the floor and you: one flight's own note {SOUND / (2 * DROP_STEPS * DROP_RISER):.2f} Hz ; the ways written are those from {WELL_BAND[0]:g} to {WELL_BAND[1]:g} Hz ; a ring dies in {WELL_RING:g} s ; {sum(len(k) for _, _, k, _ in wl)} tones in all")
+            for n, low, ks, at in wl:
+                print(f"   {n} flight(s): the lowest way {low:.2f} Hz ; {len(ks)} ways written (each {-10 * __import__('math').log10(len(ks)):.1f} dB): " + " ".join(f"{f:.1f}" for _, f in ks) + f" Hz ; from beat {at - (drop_row() + n - 1) * BEATS:.3f} of bar {drop_row() + n}")
         if drop_row() is not None:
             dr = drop_falls(); dr_sec = BEATS * 60 / BPM
             print(f"a drop down the stairwell ({DROP_GAIN}), bars {drop_row() + 1}-{drop_row() + ROW} ({int(drop_row() * dr_sec) // 60}:{drop_row() * dr_sec % 60:04.1f}): let go on beat {DROP_AT:g} of every bar (a tap, {DROP_TAP[0]}), a flight of {DROP_STEPS} steps ({DROP_STEPS * DROP_RISER:g} m) higher each bar ; the thud {DROP_NOTES[0]} and " + ' and '.join(f"{r:g} times it ({d:g} dB)" for r, d in DROP_NOTES[1]))
