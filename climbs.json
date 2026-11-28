@@ -9529,15 +9529,15 @@
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers11-t8 OUT.wav",
       "best": {
-        "score": 99.862,
-        "version": "v26",
+        "score": 99.859,
+        "version": "v27",
         "commit": "see git log songs/chirpers11-t8.yaml",
         "judged": true
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 26,
+      "rounds": 27,
       "priority": 1.0,
       "genre": "clicky minimal techno",
       "mode": "compose",
@@ -9555,7 +9555,7 @@
         "note": "COMPOSE (closer, 300-540 s): CLOSER. The album's motifs come home: whatever the other seven made (a click, a room, a rule), gathered and let go."
       },
       "last": {
-        "at": "2026-11-28T06:37:40Z",
+        "at": "2026-11-28T08:35:21Z",
         "who": "chirper-one"
       }
     }

@@ -71,6 +71,29 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v27 (28 Nov): THE BIG BROTHER COMES HOME TOO, AND HERE THE TWO AGREE. Three switches on (`--without-elder`,
+`-told`, `-apart`; all three off is v26 byte for byte) and one written and off (`--with-aired`).
+  ELDER   in Least Common (v27) the eleven has a big brother: its wooden bar let ring, 269.5 Hz, on the bar line
+          every eleven BARS; and there the small eleven, counted from another place, is one beat behind it.
+          Here the small one's knock is already at that pitch, and short: 20 dB down in 70 ms: a knock more
+          than a note, so its slow rise to the twelfth harmonic could hardly be heard as a rise. Now the big
+          brother comes home with it (`wd-eleven-big`: the same bar let ring, at the eleven's own pitch, a
+          stroke higher each time): on the bar line every eleven bars from where all are gathered. From there
+          to the last stroke is 88 bars: 8 elevens of bars and 0 over, as it is 32 elevens of beats and 0
+          over: nine strokes, bars 113 124 135 146 157 168 179 190 and the last stroke, each one together
+          with every fourth knock of the small eleven. Away from home the two counts were a beat apart. At
+          home they agree, and the last stroke of both is the album's last stroke, on D over the hour bell.
+  TOLD    the big brother is heard before the eleven comes, as the caught bars say who is coming: two and
+          one elevens of bars early, on the bar lines of bars 91 and 102 (not in a caught bar), 3 dB softer.
+  APART   and there the two are as they were in Least Common: the small eleven's knock one beat behind the
+          big bar, on beat 2 of bars 91 and 102. Twice a beat apart; then, from bar 113, together.
+  AIRED   (off) the big bar sent to the hall (-12 dB). Built and measured: over its first half second it
+          keeps its pitch there (within 8 cents), but then the hall answers at its own: 277 Hz after the
+          strokes written 269.5 to 278.7, and 297 to 298 Hz after those written 287.9 to 294.0 (the last
+          stroke's answer 25 cents sharp, under the bell); and the stroke written nearest the hall's own
+          note (bar 135, 275.6 Hz) rings on for a second, 6 to 18 dB over the others' answers: one stroke
+          in nine has a tail. It cost 0.006 of score too. It is dry, as the small one is.
+
 v26 (28 Nov): THE ELEVEN COMES HOME. Three switches (`--without-eleven`, `-lands`, `-creeps`; all three off is
 v25 byte for byte).
   ELEVEN  in Least Common (v26) a fourth voice counts eleven beats, the next prime after that song's three,
@@ -553,7 +576,7 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True, 'quarters': True, 'hour': True, 'hammer': True, 'one': True, 'sympathy': True, 'groove': True, 'surface': True, 'lift': True, 'leadin': True, 'reveal': True, 'inner': True, 'spiral': False, 'preecho': True, 'nearer': True, 'pallet': True, 'exit': True, 'rumble': True, 'rundown': True, 'limp': True, 'wow': True, 'waver': True, 'tally': True, 'back': True, 'full': True, 'eleven': True, 'lands': True, 'creeps': True}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True, 'quarters': True, 'hour': True, 'hammer': True, 'one': True, 'sympathy': True, 'groove': True, 'surface': True, 'lift': True, 'leadin': True, 'reveal': True, 'inner': True, 'spiral': False, 'preecho': True, 'nearer': True, 'pallet': True, 'exit': True, 'rumble': True, 'rundown': True, 'limp': True, 'wow': True, 'waver': True, 'tally': True, 'back': True, 'full': True, 'eleven': True, 'lands': True, 'creeps': True, 'elder': True, 'told': True, 'apart': True, 'aired': False}
 GROOVE = {'patch': 'wd-groove', 'turn': 1.8, 'after': 1.1, 'turns': 4, 'dust': ((0, 'G2', 1.0, 0), (3, 'D4', .7, -9), (8, 'A3', .6, -14), (15, 'F4', .8, -6)),   # v20: the run-out groove: seconds a turn (33 1/3 a minute); seconds from the last stroke to the first joint; turns; what is in a turn: (sixteenths of a turn after the joint, the chip noise's note: its step rate, how hard, dB)
           'gain': '-28dB', 'pan': 0, 'ms': 4, 'hp': 180, 'lp': 2600, 'rest': 1.5}   # its fader (bench: at -24 dB the joint's highest sample stood 2 to 6 dB over the wall clock's ticks: 4 dB off) and place; a speck's length, ms; its band; seconds of the song after the last joint (the surface goes in them)
 SPIRAL = {'patch': 'wd-spiral', 'gain': '-51dB', 'hp': 700, 'lp': 6000, 'in': 4, 'to': 8, 'out': 4, 'radius': (146.05, 60.3, 53.2), 'lock': 'wd-inner', 'every': 8, 'walls': 2, 'up': 4, 'down': 70}   # v21: the playing groove's surface: its patch, fader (bench, alone: at the run-out's -58 dB the white hiss stood 10 dB under the locked groove's chip noise: -78 dBFS for -68: so 7 dB up, to meet it at the first joint with INNER's 3.8) and band at the first groove (the run-out's, v20); bars over which it comes in; the bar to which it is held, and bars over which it goes, where it does not stay; an LP's first, last and locked groove, mm from the centre; the run-out surface's name when its band has slid; bars between the points of the slide's line; low-pass filters in a row at the band's top (Out of Step's last bars lie over the first eight: nothing over 10 kHz); REVEAL: bars over which it comes up again from the bar the spring runs down; dB it is down in between
@@ -563,6 +586,7 @@ NEARER = {'up': 9, 'lock': 6}   # v22: dB on the playing groove's surface where 
 ELEVEN = {'patch': 'wd-eleven', 'gain': '-12dB', 'pan': -0.3, 'hall': None, 'from': ALL, 'beats': 11, 'of': 24.4997, 'harmonic': (11, 12), 'vel': 0.9, 'len': 1.0, 'last': 4.0,
           'echo': (-4, -7, -10), 'echo_vel': 0.6, 'echo_len': 0.5, 'bare': -9.5,
           'trim': {0: 1.5, 1: 0.8, 2: -1.3, 3: 0.8, 4: -1.2, 5: 1.0, 6: -3.0, 7: 1.9, 8: -0.3, 9: 1.5, 10: -2.1, 11: 1.2, 12: 0.3, 13: -0.1, 14: 0.6, 15: 2.7, 16: 1.0, 17: 2.6, 18: -0.3, 19: 3.5, 20: -1.6, 21: -1.7, 22: -2.1, 23: -1.7, 24: -1.6, 25: 0.2, 26: -1.9, 27: -1.2, 28: -1.4, 29: 0.9, 30: -8.6, 31: -8.6}}   # v26: the eleven: its patch, fader, place, hall (NONE: it is dry: the note is 20 dB down in 80 ms and the hall then answers at its OWN nearest pitch: sent there at -14 dB, the strokes read over 0.3 s gathered at 277, 282, 288 and 299 Hz, up to 43 cents from what was written, and the last, written 294.0, read 299.6: not home); the bar it begins in (from 0); its cycle (beats; its echo's is that many sixteenths); the G an octave under the drum's G1 (Hz) and the harmonics of it the voice begins on and comes home on (269.5 to 294 Hz: an octave under Least Common's: this song is already 5.8 dB over the album's envelope in the band at 547 Hz, and the eleven there, 6 dB under its fader here, put it 0.9 dB past the tolerance; from 250 to 292 Hz the song is 0.5 dB under); touch and length (beats) of a stroke, and of the last; dB, touch and length of its three echoes; dB on an echo that falls in the bare last bars when its stroke did not (the last full bar's stroke has its echoes after the grid has gone: at their written level they came out up to 2.1 dB OVER the two strokes that follow them); dB on a stroke by its number (from 0), and on its echoes, SET FROM A FINISHED BUILD, every stroke read (200 to 350 Hz): at one written level the first 30 came out 6.5 dB apart (-14.1 to -20.6 dBFS with the fader at -16), level with or under what else is in that band; each is written to come out level, the two in the bare last bars (the spring running down) 3 dB under, the last as it falls
+ELDER = {'track': 'eleven-big', 'patch': 'wd-eleven-big', 'gain': '-10dB', 'pan': -0.3, 'hall': '-12dB', 'bars': 11, 'decay': '900ms', 'vel': 0.9, 'len': 1.5, 'told': (2, 1), 'told_db': -3, 'behind': 1, 'knock': {91: -1.9, 102: 3.5}, 'trim': {}}   # v27: the eleven's big brother: its track, patch, fader, place; AIRED: what the hall is sent (the chime's); its cycle, bars; its bar's ring; touch and length (beats); TOLD: how many of its cycles before the eleven comes it is heard, and dB on those; APART: the beats behind it at which the small eleven knocks there, and dB on that knock by its bar (from 1), SET FROM A FINISHED BUILD (200 to 350 Hz, the top of its first 60 ms): at one written level the two came out -13.1 and -18.1 dBFS: each is written to come out at -15 (the eleven's strokes at home are -12.8 to -13.8); dB on a stroke of the big bar by its bar (from 1): NONE: at one written level its eight strokes at home came out within 0.9 dB of each other over their first half second (-21.7 to -22.6 dBFS from 200 to 400 Hz; the tops of their first 60 ms are 3.0 dB apart by what each falls with) and the two told ones 1.6 and 2.7 dB under them for 3 written
 ELEVEN_PATCH = {'about': "Wind Down: the eleven (v26): Least Common's fourth voice (lc-eleven) under this song's name: a low wooden bar, short (benched alone: 20 dB down in 70 ms, 40 in 140), its next mode two octaves up and 13 to 18 dB under. Its notes are written in Hz: harmonics 11 to 12 of the G an octave under the drum's; dry, each reads within 4 cents of what is written.",
                 'synth': {'layers': [{'type': 'modal', 'modes': 'bar', 'decay': '260ms', 'bright': 0.35, 'strike': 0.5}], 'amp': {'a': '0.3ms', 'd': '450ms', 's': 0, 'r': '120ms'}},
                 'play': {'event_stable': True, 'vel_sens': 0.5}}
@@ -918,10 +942,35 @@ def eleven_hz(k, n):
     return ELEVEN['of'] * h
 
 
+def elder_notes():
+    """v27 ELDER: the eleven's big brother: on the bar line every ELDER['bars'] bars from the bar all are gathered to the last stroke: every fourth stroke of the eleven, at that stroke's pitch. TOLD: and on the bar lines that many of its cycles before, at the first stroke's pitch (never in a caught bar)."""
+    first, strokes = ELEVEN['from'], (BARS - ELEVEN['from']) * 4 // ELEVEN['beats']
+    out = []
+    for k in sorted([-x for x in ELDER['told']] if ON['told'] else []) + list(range((BARS - first) // ELDER['bars'] + 1)):
+        bar = first + k * ELDER['bars']
+        if bar < 0 or bar > BARS or (k < 0 and caught(bar)):
+            continue
+        db = ELDER['trim'].get(bar + 1, 0) + (ELDER['told_db'] if k < 0 else 0)
+        out.append({'at': bar * 4, 'len': ELEVEN['last'] if bar == BARS else ELDER['len'], 'pitch': f"{eleven_hz(max(0, k) * ELDER['bars'] * 4 // ELEVEN['beats'], strokes):.2f}hz", 'vel': ELDER['vel'], **({'gain': f'{db:g}dB'} if db else {})})
+    return out
+
+
+def elder_patch():
+    """v27 ELDER: the eleven's bar let ring: Least Common's lc-eleven-big under this song's name, its notes written in Hz."""
+    return {'about': "Wind Down: the eleven's big brother (v27): Least Common's lc-eleven-big under this song's name: the eleven's low wooden bar let ring. Its notes are written in Hz, the eleven's own: harmonics 11 to 12 of the G an octave under the drum's: 269.5 Hz, the pitch it has in Least Common, to 294.0 on the last stroke.",
+            'synth': {'layers': [{'type': 'modal', 'modes': 'bar', 'decay': ELDER['decay'], 'bright': 0.35, 'strike': 0.5}], 'amp': {'a': '0.3ms', 'd': '0s', 's': 1, 'r': '300ms'}},
+            'play': {'event_stable': True, 'vel_sens': 0.5}}
+
+
 def eleven_notes():
     """v26 ELEVEN: a stroke every ELEVEN['beats'] beats from the bar all are gathered to the last stroke, three echoes after each (none after the last)."""
     first, n = ELEVEN['from'] * 4, (BARS - ELEVEN['from']) * 4 // ELEVEN['beats']
     out = []
+    if ON['apart'] and ON['told'] and ON['elder']:              # v27 APART: where the big brother is told, the small one is a beat behind it, as in Least Common
+        for q in elder_notes():
+            if q['at'] < first:
+                db = ELDER['knock'].get(round(q['at'] / 4) + 1, 0)
+                out.append({'at': q['at'] + ELDER['behind'], 'len': ELEVEN['len'], 'pitch': q['pitch'], 'vel': ELEVEN['vel'], **({'gain': f'{db:g}dB'} if db else {})})
     for k in range(n + 1):
         at, pitch = first + k * ELEVEN['beats'], f'{eleven_hz(k, n):.2f}hz'
         if at > BARS * 4:
@@ -1340,6 +1389,9 @@ def song():
     if ON['eleven']:                                           # v26 ELEVEN: Least Common's eleven, from all gathered to the last stroke
         doc['patches'] = {**doc['patches'], ELEVEN['patch']: ELEVEN_PATCH}
         doc['tracks'].append({'name': 'eleven', 'patch': ELEVEN['patch'], 'gain': ELEVEN['gain'], 'pan': ELEVEN['pan'], **({'sends': {'hall': ELEVEN['hall']}} if ELEVEN['hall'] and 'hall' in doc.get('buses', {}) else {}), 'notes': eleven_notes()})
+    if ON['elder'] and ON['eleven']:                            # v27 ELDER: the eleven's big brother, every eleven bars from all gathered to the last stroke
+        doc['patches'] = {**doc['patches'], ELDER['patch']: elder_patch()}
+        doc['tracks'].append({'name': ELDER['track'], 'patch': ELDER['patch'], 'gain': ELDER['gain'], 'pan': ELDER['pan'], **({'sends': {'hall': ELDER['hall']}} if ON['aired'] and 'hall' in doc.get('buses', {}) else {}), 'notes': elder_notes()})
     if ON['preecho'] and ON['catch']:                           # v22 PREECHO: in each caught bar the first turn of the bar after it, a turn early
         turn = GROOVE['turn'] * BPM / 60                        # beats in one turn of the record (the tempo is steady at every catch)
         for t in list(doc['tracks']):
@@ -1383,7 +1435,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v25, the last six v24, the last ten v23, the last thirteen v22, the last fifteen v21, the last eighteen v20, the last twenty-one v19, the last twenty-four v18, the last twenty-six v17, the last twenty-eight v16, the last thirty v15, the last thirty-two v14, the last thirty-four v13, the last thirty-six v12, the last thirty-eight v11, the last forty-one v10, the last forty-four v9, the last forty-seven v8, the last forty-nine v7, the last fifty-two v6, the last fifty-five v5, the last fifty-eight v4, the last sixty-one v3, the last sixty-seven v2, all seventy-three v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v26, the last six v25, the last nine v24, the last thirteen v23, the last sixteen v22, the last eighteen v21, the last twenty-one v20, the last twenty-four v19, the last twenty-seven v18, the last twenty-nine v17, the last thirty-one v16, the last thirty-three v15, the last thirty-five v14, the last thirty-seven v13, the last thirty-nine v12, the last forty-one v11, the last forty-four v10, the last forty-seven v9, the last fifty v8, the last fifty-two v7, the last fifty-five v6, the last fifty-eight v5, the last sixty-one v4, the last sixty-four v3, the last seventy v2, all seventy-six v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -1414,6 +1466,8 @@ if __name__ == '__main__':
                        ([(ELEVEN['from'], f"the eleven comes home: Least Common's fourth voice ({ELEVEN['patch']}) is struck every {ELEVEN['beats']} beats from here, its echo every {ELEVEN['beats']} sixteenths between: from here to the last stroke is {(BARS - ELEVEN['from']) * 4} beats, {(BARS - ELEVEN['from']) * 4 // ELEVEN['beats']} elevens and {(BARS - ELEVEN['from']) * 4 % ELEVEN['beats']} over (in Least Common 210: 19 and 1 over): {(BARS - ELEVEN['from']) * 4 // ELEVEN['beats'] + 1} strokes" +
                          (f"; its note: harmonic {ELEVEN['harmonic'][0]} of the G an octave under the drum's ({eleven_hz(0, 32):.1f} Hz, an octave under Least Common's)" + (f", each stroke a thirty-second of a harmonic nearer the next ({eleven_hz(1, 32) - eleven_hz(0, 32):.2f} Hz a stroke): {' '.join(f'{eleven_hz(k, 32):.1f}' for k in (0, 8, 16, 24, 31))} Hz at strokes 1 9 17 25 32" if ON['creeps'] and ON['lands'] else ''))),
                          (BARS, f"the eleven's last stroke is the last stroke: " + (f"harmonic {ELEVEN['harmonic'][1]}, {eleven_hz(32, 32):.1f} Hz: the fifth, D4, over the hour bell's {ONE['bell']}: in tune" if ON['lands'] else f"still harmonic {ELEVEN['harmonic'][0]}, {eleven_hz(32, 32):.1f} Hz"))] if ON['eleven'] else []) +
+                       ([(ELEVEN['from'], f"the eleven's big brother comes home too ({ELDER['patch']}: Least Common's: the eleven's bar let ring, at the eleven's own pitch): on the bar line every {ELDER['bars']} bars from here: to the last stroke is {BARS - ELEVEN['from']} bars, {(BARS - ELEVEN['from']) // ELDER['bars']} elevens of bars and {(BARS - ELEVEN['from']) % ELDER['bars']} over: bars {' '.join(str(round(q['at'] / 4) + 1) for q in elder_notes() if q['at'] >= ELEVEN['from'] * 4 and q['at'] < BARS * 4)} and the last stroke: with every fourth knock of the eleven: in Least Common the two were a beat apart: here they agree" + (f"; it is heard in the hall ({ELDER['hall']}): it rings long enough to keep its pitch there" if ON['aired'] else ''))] +
+                        ([(round(elder_notes()[0]['at'] / 4), f"the big brother is heard before the eleven comes: on the bar line of bar{'s' if len(ELDER['told']) > 1 else ''} {' and '.join(str(round(q['at'] / 4) + 1) for q in elder_notes() if q['at'] < ELEVEN['from'] * 4)}, {' and '.join(str(x) for x in sorted(ELDER['told'], reverse=True))} elevens of bars early, {-ELDER['told_db']} dB softer" + (f"; and there the two are as they were in Least Common: the eleven's knock {ELDER['behind']} beat behind it, on beat {ELDER['behind'] + 1}" if ON['apart'] else ''))] if ON['told'] and elder_notes()[0]['at'] < ELEVEN['from'] * 4 else []) if ON['elder'] and ON['eleven'] else []) +
                        ([(TALLY['bars'][0], f"somebody keeps the score as they leave: Ring True's notched stick ({TALLY['patch']}): a row of dry clicks a sixty-fourth apart ({60000 / BPM * TALLY['gap']:.0f} ms) on beat {TALLY['at'] // 4 + 1} of every bar, bars {TALLY['bars'][0] + 1} to {TALLY['bars'][1]}, a notch for each of the seven still here: " +
                          ', '.join(f"bars {b + 1}-{b + LEAVE}: {tally_count(b)}" for b in range(TALLY['bars'][0], TALLY['bars'][1], LEAVE)) + '; when only the click is left the stick is put down' +
                          ('; the full house is read once before, in bar ' + str(TALLY['bars'][0]) + ': seven' if ON['full'] else '') +
