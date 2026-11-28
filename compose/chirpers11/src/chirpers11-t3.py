@@ -429,6 +429,11 @@ rings the column of air between the floor and where you stand. A column one flig
 has one note: 126.1 Hz. A column n flights high has that note over n and every multiple
 of it: the lowest way falls as you climb (126, 63, 42, 32 ... Hz), the ways crowd
 together, and one flight's own note is among them at every height.
+
+v33 (28 Nov): THE ROOM HOLDS ITS BREATH (C11T3_KEPT=0 takes it out: v32). One clap in a
+hall in bar 139. Half a beat after it the hall stops dying: its tail hangs as it was for
+six and a half beats, as if time had stopped in the room. On the first beat of bar 141,
+where the applause begins, it lets go, and dies as a hall does.
 """
 import json
 import math
@@ -796,6 +801,13 @@ WELL_BAND = (100.0, 260.0)                             # Hz: the ways written (t
 WELL_NOTE = ("B2", 123.47082531403103)                 # the note written and its frequency; the patches move it to one flight's own note
 WELL_RING = 1.8                                        # seconds a ring takes to die
 WELL_GAIN = os.environ.get("C11T3_WELL_GAIN", "-30dB")   # every ring's track. THE BENCH FIRST (the eight tracks alone at -20 dB): a ring's first 100 ms -31.6 to -33.3 dBFS (12 under its fader: it is dying from the start), then -35, -43, -56; all 48 ways have a peak within 1.5 Hz of the written and there is no other peak. Aimed at -25 dBFS for the first 100 ms with the thud's lift (17.2 dB); that bench was of the first build (a ring of 0.9 s: over the old music in its band in 2 landings of 8); with 1.8 s the bench reads -30.8 to -32.6 then -33, -37, -42, and the song (both seeds, read BEFORE any score) -20.3 to -27.3 dBFS in the first 100 ms (this master lifts it 18.8 / 19.1 dB): over the old music in 4 landings of 8; a ring of m ways has each 10 log m dB under it (the same sound in all, however many)
+KEPT = os.environ.get("C11T3_KEPT", "1") != "0" and WELL   # v33: THE ROOM HOLDS ITS BREATH: one clap in a hall; half a beat after it the hall stops dying: its tail hangs where it was, neither louder nor softer, for six and a half beats: a room in which time has stopped. Then it lets go, on the bar the applause begins, and dies as a hall does
+KEPT_IN = ("standing room", 3)                         # the section and its row (from 0): bars 137 to 144: the people are coming in; the applause begins in bar 141
+KEPT_CLAP = (2, 1.0)                                   # the bar of the row (from 0) and the beat of the clap: bar 139, beat 1: with the song's own clap
+KEPT_FROM = 0.5                                        # beats after the clap at which the hall stops dying
+KEPT_TO = (4, 0.0)                                     # the bar of the row and the beat at which it lets go: bar 141, where the applause begins
+KEPT_HALL = {"kind": "hall", "decay": "1.2s", "mix": 0.6, "low_cut": 120, "high_cut": 5000}   # the engine's hall on this one track: 1.2 s to die when it is let
+KEPT_GAIN = os.environ.get("C11T3_KEPT_GAIN", "-7dB")   # the track. THE FIRST BUILD (-15 dB) WAS UNDER THE MUSIC: read between the strokes in the whole song (the new less the old), the held tail was -31.9 dBFS against the old music's -20.3 in its own band (120 to 5000 Hz), and over it in 3 of 13 windows; in 700 to 2000 Hz, where the tail is strongest, 8.7 dB under. So 8 dB more: the tail -24.3 / -23.8 dBFS (seeds 0 / 11) against -20.3 / -20.7, over it in 3 of 13 still; in 700 to 2000 Hz -25.0 / -24.6 against -23.9 / -24.3, over it in 5 / 6 of 13: level with the music where it is strongest, under it elsewhere. THE BENCH (alone at -20 dB): the held tail -51.4 to -53.4 dBFS by half beat, 2.0 dB down over the 6.5 beats; let go, 60 dB in 1.07 s
 AIR_PAN = 0.4                                          # the other ear
 RAIL_VEL = 0.8
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
@@ -1125,6 +1137,18 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def kept_row():
+    """The first bar (from 0) of the row in which the room holds its breath, or None."""
+    sec = next((x for x in SECS if x[0] == KEPT_IN[0]), None)
+    return sec[1] + ROW * KEPT_IN[1] if KEPT and sec is not None and KEPT_IN[1] * ROW < sec[2] else None
+
+
+def kept_times():
+    """(the beat of the clap, the beat the hall stops dying, the beat it lets go)."""
+    c = (kept_row() + KEPT_CLAP[0]) * BEATS + KEPT_CLAP[1]
+    return c, c + KEPT_FROM, (kept_row() + KEPT_TO[0]) * BEATS + KEPT_TO[1]
 
 
 def well_ways():
@@ -2045,6 +2069,16 @@ def song():
             doc["tracks"].append({"name": f"well-{wl_n}", "patch": f"sr-well-{wl_n}", "gain": WELL_GAIN, "pan": 0.0, "notes": [{"at": wl_at, "len": round(WELL_RING * BPM / 60, 5), "pitch": WELL_NOTE[0], "vel": 0.8}]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v32 the stairwell rings (the same bars): every thud rings the column of air between the floor and where you stand: one flight's own note is {wl_one:.1f} Hz; from n flights up the lowest way is that over n ({', '.join(f'{f:.1f}' for _, f, _, _ in wl)} Hz) and every multiple of it rings: {', '.join(str(len(k)) for _, _, k, _ in wl)} ways between {WELL_BAND[0]:g} and {WELL_BAND[1]:g} Hz, {wl_one:.1f} and {2 * wl_one:.1f} Hz among them every time. Generated by")
         assert "From v32" in doc["about"]
+    if kept_row() is not None:
+        kt_c, kt_f, kt_t = kept_times()
+        PATCHES["sr-kept"] = {"about": "Standing Room's one clap that the hall keeps (chirper-zero, 28 Nov, v33): the engine's machine clap, as the song's own, nothing over 7 kHz. Its track has the engine's hall on it, and a lane (auto.keep) that stops the hall dying while it is 1.",
+                              "play": {"vel_sens": 0}, "synth": {"layers": [{"type": "machine", "machine": {"part": "clap", "bursts": 3, "decay": "140ms"}}], "filters": ["lp cutoff=7000"], "amp": {"a": "0.1ms", "d": "0s", "s": 1, "r": "400ms"}}}
+        doc["tracks"].append({"name": "kept", "patch": "sr-kept", "gain": KEPT_GAIN, "pan": 0.0,
+                              "auto": {"keep": {"points": [["0b", 0], [f"{kt_f - 0.001:g}b", 0], [f"{kt_f:g}b", 1], [f"{kt_t - 0.001:g}b", 1], [f"{kt_t:g}b", 0]], "curve": 0}},
+                              "fx": [{"type": "reverb", **KEPT_HALL, "freeze": {"value": 0, "mod": [{"src": "auto.keep", "amount": 1}]}}],
+                              "notes": [{"at": kt_c, "len": 0.25, "pitch": "C4", "vel": 0.8}]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v33 the room holds its breath (bars {int(kt_c) // BEATS + 1} to {int(kt_t) // BEATS}): one clap in a hall on beat {kt_c % BEATS + 1:g} of bar {int(kt_c) // BEATS + 1}; {KEPT_FROM:g} of a beat after it the hall stops dying and its tail hangs as it was for {kt_t - kt_f:g} beats ({(kt_t - kt_f) * 60 / BPM:.1f} s); on the first beat of bar {int(kt_t) // BEATS + 1}, where the applause begins, it lets go and dies in {KEPT_HALL['decay']}. Generated by")
+        assert "From v33" in doc["about"]
     return doc
 
 
@@ -2100,6 +2134,9 @@ def echoes(a, b, n=16):
 
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
+        if kept_row() is not None:
+            kt_c, kt_f, kt_t = kept_times(); kt_sec = kt_c * 60 / BPM
+            print(f"the room holds its breath ({KEPT_GAIN}), bars {int(kt_c) // BEATS + 1}-{int(kt_t) // BEATS} ({int(kt_sec) // 60}:{kt_sec % 60:04.1f}): one clap in a hall ({KEPT_HALL['kind']}, {KEPT_HALL['decay']} to die, {KEPT_HALL['low_cut']} to {KEPT_HALL['high_cut']} Hz) on beat {kt_c % BEATS:g} of bar {int(kt_c) // BEATS + 1} ; the hall stops dying {KEPT_FROM:g} of a beat ({1000 * KEPT_FROM * 60 / BPM:.0f} ms) after it and holds for {kt_t - kt_f:g} beats ({(kt_t - kt_f) * 60 / BPM:.2f} s) ; it lets go on beat {kt_t % BEATS:g} of bar {int(kt_t) // BEATS + 1}")
         if WELL and drop_row() is not None:
             wl = well_ways()
             print(f"the stairwell rings ({WELL_GAIN}), bars {drop_row() + 1}-{drop_row() + ROW}: every thud rings the column between the floor and you: one flight's own note {SOUND / (2 * DROP_STEPS * DROP_RISER):.2f} Hz ; the ways written are those from {WELL_BAND[0]:g} to {WELL_BAND[1]:g} Hz ; a ring dies in {WELL_RING:g} s ; {sum(len(k) for _, _, k, _ in wl)} tones in all")
