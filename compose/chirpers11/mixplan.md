@@ -94,6 +94,11 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Least Common v26 (05:29): bars 1 to 4 as they were (-17.42 / -17.31 dBFS). The last four bars, a bar each,
+  -17.2 -17.4 -17.2 -17.0 (was -17.2 -17.3 -17.2 -16.8; seed 11 -17.1 -17.2 -17.0 -16.9, was -16.7): the last
+  bar is 0.2 dB lower. In it, inside Standing Room's first bars: one low wooden note at 539 Hz (51 cents over
+  C5: meant, it is the eleventh harmonic of the drum's G), -13 dBFS, at 6:39.5, one beat before home: meant
+  (the eleven misses home by a beat). The 2 s after home -19.8 / -19.9 and the highest sample as they were.
 - Small Change v25 (05:05): the quiet pages 0.06 dB up through the loudness target (the song has a backbeat now,
   bars 25 to 176): bars 1 to 16 by four -22.4 -23.3 -23.5 -20.6 dBFS (was -22.4 -23.4 -23.6 -20.6); the last
   sixteen by four -22.8 -23.7 -23.1 -19.5 (was -22.9 -23.8 -23.1 -19.6); bars 185 to 192 -20.96 / -20.94 (was
