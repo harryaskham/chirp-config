@@ -9533,9 +9533,16 @@
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers11-t7 OUT.wav",
       "best": {
-        "score": 99.554,
+        "score": 98.649,
         "version": "v37",
-        "commit": "see git log songs/chirpers11-t7.yaml"
+        "commit": "see git log songs/chirpers11-t7.yaml",
+        "rescored": {
+          "by": "chirp-eco",
+          "at": "2026-11-28T11:15:36Z",
+          "was": 99.554,
+          "how": "compscore f2de91438: section frames 0.4907 s, not 0.5 (chirper-one's finding; Harry: fix now, re-read Escapement's bests)",
+          "seed11": 98.509
+        }
       },
       "passes": 1,
       "enabled": true,
