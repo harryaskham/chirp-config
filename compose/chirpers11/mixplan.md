@@ -94,6 +94,11 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Least Common v25 (03:33): BOTH ENDS 0.1 TO 0.2 dB UP (17 s at 5:17 are 7 dB lower, the drum resting, and the
+  loudness target brings the rest up): bars 1 to 4 -17.42 / -17.31 dBFS (were -17.53 / -17.42); the last four
+  bars -17.2 -17.3 -17.2 -16.8 / -17.1 -17.2 -17.0 -16.7 (were -17.4 -17.5 -17.3 -17.0 / -17.2 -17.4 -17.2
+  -16.9); 2 s after home -19.8 / -19.9 (-20.1 / -20.2); highest sample -1.49 / -1.30, as it was. Nothing was
+  written at either end. Inside: 5:16.7 to 5:33.3 is -19.4 dBFS (was -12.3): meant; do not ride it up.
 - Small Change v24 (02:57): both ends as they were: bars 1 to 16 by four -22.4 -23.4 -23.6 -20.6 dBFS; the last
   sixteen by four -22.9 -23.8 -23.1 -19.6; bars 185-192 -21.02; highest sample -1.30. Inside: 14 strokes 9 dB
   down in bars 130 to 158; 30 new key strokes in bars 161 to 172 (home's level -13.38 for -13.35).
