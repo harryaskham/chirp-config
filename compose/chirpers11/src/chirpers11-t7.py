@@ -430,6 +430,12 @@ bars 113 to 120 a plain tone, alone and steady for two bars; then a second tone 
 pitch and loudness sounds with it all the time. In step, the two make one tone 6 dB higher;
 a third of a turn out, one exactly as loud as either; half a turn out, nothing. The rhythm
 is the second tone's phase alone.
+
+v35 (28 Nov): A QUARTER OF A TURN AND THE THROB IS GONE (C11T7_THROB=0 takes it out: v34).
+In bars 137 to 144 three plain tones, a middle one and one 4.2 Hz to either side. For two
+bars the middle one is in step with the sides and the three swell and sink twice a beat
+(12 dB). For the next two it is turned a quarter of a turn: the same three tones, as loud,
+and hardly a throb (1.3 dB). And again.
 """
 import json
 import math
@@ -840,6 +846,18 @@ SUM_EDGE = 2                                           # ms a tone takes to come
 SUM_TRIM = (0.0, 0, 0, -4.3, 0, 0, -5.1, 0, 0, -4.9, 0, 0, -1.3, 0, -4.4, 0)   # dB (0 or less) on both tones of a stroke by the sixteenth of the bar it falls on, by velocity (both alike, or they would not cancel). THE FIRST BUILD HAD NONE (-40 dB): in the finished song a stroke a third of a turn out came out, at sixteenths 0 3 6 9 12 14 of the bar, -30.6 -27.2 -25.5 -25.8 -29.3 -26.2 dBFS and one in step -24.7 -19.5 -19.6 -19.7 -23.4 -20.3: 5 dB between the beat and the off beat. These are that reading turned over, for -27 and -21 everywhere
 SUM_HELD = -5.6                                        # dB (0 or less) on the first tone while it is alone: held, the master lifts it 21 dB (the first build: -25.5 to -24.7 dBFS at its tops); a stroke on the beat 15: this brings it to the strokes' -27
 SUM_GAIN = os.environ.get("C11T7_SUM_GAIN", "-36.4dB")   # every track. THE BENCH FIRST (the four tracks alone at -20 dB, no trims): a stroke a third of a turn out -25.5 dBFS at its top; the first build was set for -45.5 on the bench (-40 dB); the second is 3.6 dB up with the trims. THE SECOND BUILD READ (both seeds, before any score): in step -21.1 -20.2 -21.1 -21.0 -21.2 -21.0 dBFS by place, a third out -27.0 -27.9 -27.0 -27.1 -27.0 -27.0, the tone alone -27.5 to -26.7; the silences 35 dB under the lowest stroke
+THROB = os.environ.get("C11T7_THROB", "1") != "0" and SUM   # v35: A QUARTER OF A TURN AND THE THROB IS GONE: three plain tones, a middle one and one 4.2 Hz to either side of it, each side one 0.3 as high. With the middle one in step with the sides, the three are one tone that swells and sinks twice a beat (0.4 to 1.6 of the middle tone's height: 12 dB). Turn the middle one a quarter of a turn and the SAME three tones, as loud as they were, hardly throb at all (1 to 1.17: 1.3 dB, twice as often). v25 pushed one tone's phase to MAKE side tones; here the side tones are given, and only the middle tone's phase says whether the three throb
+THROB_IN = ("one again", 0)                            # the section and its row (from 0): bars 137 to 144. Read on v34 by twelfths of the beat: 932 Hz and 15 Hz to either side is -41 to -54 dBFS in this row (-44.4 over the row)
+THROB_NOTE = "Bb5"                                     # the middle tone (932.3 Hz): the third of the song's G
+THROB_RATE = 2                                         # throbs to the beat: the side tones are this many waves a beat from the middle one (4.2 Hz)
+THROB_DEPTH = 0.6                                      # how far the throb swings (the two side tones together, as a share of the middle one): each side tone is half of this as high
+THROB_TOP = 0.25                                       # the beat the first top falls on: tops on the second and fourth sixteenths of every beat, the troughs on the beat and the half beat
+THROB_TURN = 0.25                                      # turns the middle tone is turned in the bars without the throb
+THROB_BARS = 2                                         # bars each way, by turns, the throb first
+THROB_EDGE = 10                                        # ms a note takes to come and to go
+THROB_FADE = (4, 24)                                   # the last note goes out over this many beats, to this many dB down
+THROB_FLAT = (-1, -1.7, -4.5, -8.1, -10.9, -11, -8.5, -8.6, -12, -14.5, -15.7, -14.7, -11, -9.8, -12.5, -14.4, -15.3, -14, -9.6, -8.4, -12, -14.4, -15.6, -14.5, -8.9, -1.5, -3.6, -7.7, -10.2, -9.9, -7, -7.4, -11.1, -13.7, -15.1, -13.9, -9.4, -7.8, -11.3, -13.8, -14.8, -13.3, -9.4, -9.3, -12.5, -14.6, -15.8, -14.4, -8.3, -0.9, -4.5, -8.6, -11.3, -11.3, -8.5, -8.5, -11.9, -13.7, -13.8, -12.6, -9.7, -9.6, -12.4, -14.5, -15.5, -14.2, -9.5, -8.1, -11.9, -14.3, -15.6, -14.4, -8.5, 0, -3, -7.7, -10.4, -10.4, -7.5, -7.3, -10.9, -13.6, -15, -13.9, -9.3, -7.4, -11.1, -13.7, -14.7, -13.5, -9.7, -9.2, -12.5, -14.7, -15.8, -14.4, -8.3, -0.4, -4.1, -8.3, -11, -11.2, -8.5, -8.5, -12, -14.5, -15.7, -14.7, -11, -9.9, -12.6, -14.6, -15.5, -14.2, -9.7, -8.2, -11.8, -14.3, -15.6, -14.3, -8.6, -0.6, -3.1, -7.5, -10.4, -10.5, -7.6, -7.6, -11.1, -13.1, -14, -13.2, -9.4, -8, -11.3, -13.8, -14.8, -13.3, -9.5, -9.4, -12.5, -14.7, -15.8, -14.4, -8.1, -0.1, -4.2, -8.5, -11.1, -11.2, -8.5, -8.5, -11.8, -13.8, -14.3, -12.9, -9.6, -9.6, -12.5, -14.5, -15.4, -14.1, -9.4, -8.2, -11.9, -14.4, -15.6, -14.3, -8.5, -0.8, -3.7, -8.1, -10.8, -10.7, -7.7, -7.4, -10.9, -13.4, -14.8, -13.7, -9.2, -7.3, -11.1, -13.6, -14.4, -13.1, -9.4, -9.2, -12.5, -14.6, -15.6, -15.2)   # dB on both tracks through every two bars, by twenty-fourth of the beat (192 places): THE MASTER'S OWN THROB TURNED OVER. The first build had none (-40.4 dB), and in the finished song the three tones with the middle one turned, which alone are level within 0.9 dB, read 9.4 dB between their highest and lowest twelfth of the beat: the master's gain on a held tone goes through 15.8 dB in two bars: lowest just after every beat, and 6.9 to 7.7 dB under its highest just after each of the other three sixteenths. This is that reading (bars 139-140, the song's envelope less the bench's, seed 0), 0 at the place the master holds lowest. It is the same in bar 143 within 1.4 dB and under the throb's tops in bars 137-138 and 141-142 within 1.5
+THROB_GAIN = os.environ.get("C11T7_THROB_GAIN", "-26.8dB")   # both tracks. THE BENCH FIRST (the two tracks alone at -20 dB): the middle tone -26.1 dBFS by spectrum; the first build set for -28 in the song with 18.5 dB of lift (a held tone in bars 145 to 152 got 18.0): -40.4 dB. THE LIFT IS NOT ONE NUMBER HERE: 4.9 to 20.7 dB through two bars. The second build is set by the lowest (THROB_FLAT brings every place down to it): -26.8 dB
 SING = os.environ.get("C11T7_SING", "1") != "0" and os.environ.get("C11T7_VERN", "1") != "0" and os.environ.get("C11T7_FIVE", "1") != "0" and JET      # v16: the clicks sing (every phase set to nought)
 SING_IN = ("slips", 24, 32)                                          # the section, and the bars of it: the bare row between the vernier and the hat
 SING_OF = "a-ear"                                                    # whose strokes: A's, as they are in those bars
@@ -1083,6 +1101,33 @@ def swarm_ticks():
 
 
 _HUM_MEMO = {}
+
+
+def throb_row():
+    """The first bar (from 0) of the row in which a quarter of a turn takes the throb away, or None."""
+    sec = next((x for x in SECS if x[0] == THROB_IN[0]), None)
+    return sec[1] + ROW * THROB_IN[1] if THROB and sec is not None and THROB_IN[1] * ROW < sec[2] else None
+
+
+def throb_layers(turn):
+    """The patch's three tones: the middle one turned by turn (turns); the side ones THROB_RATE waves a beat below and above it, set so that the three are in step THROB_TOP of a beat after a note begins."""
+    rr = THROB_RATE * BPM / 60 / hz(THROB_NOTE); ph = (THROB_RATE * THROB_TOP) % 1; lv = 20 * math.log10(THROB_DEPTH / 2)
+    return [f"sine phase={turn:g}", f"sine phase={ph:g} ratio={1 - rr:.8f} level={lv:.2f}dB", f"sine phase={(1 - ph) % 1:g} ratio={1 + rr:.8f} level={lv:.2f}dB"]
+
+
+def throb_lane():
+    """Both tracks' lane (dB): THROB_FLAT through every THROB_BARS bars, a point at the middle of each of its places, a straight line between; and the way out at the end."""
+    b0 = throb_row() * BEATS; end = b0 + ROW * BEATS; n = len(THROB_FLAT) // (THROB_BARS * BEATS); pts = [["0b", THROB_FLAT[0]]]
+    for k in range(ROW * BEATS * n):
+        t = b0 + (k + 0.5) / n
+        pts.append([f"{t:.4f}b", round(THROB_FLAT[k % len(THROB_FLAT)] - THROB_FADE[1] * max(0.0, (t - (end - THROB_FADE[0])) / THROB_FADE[0]), 2)])
+    return pts
+
+
+def throb_spans():
+    """[(beat, beats long, True with the throb)]: by turns through the row."""
+    b0 = throb_row() * BEATS; n = THROB_BARS * BEATS
+    return [(b0 + k * n, n, k % 2 == 0) for k in range(ROW // THROB_BARS)]
 
 
 def sum_row():
@@ -1959,6 +2004,17 @@ def song():
             doc["tracks"].append({"name": nm, "patch": pt, "gain": SUM_GAIN, "pan": 0.0, "notes": [s_note(at, ln, s_vel(pl, stt)) for at, ln, stt, pl in sr_ if stt == stt0]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v34 one and one make two, one, or nothing (bars {sum_row() + 1} to {sum_row() + ROW}): a plain tone ({sum_hz():.1f} Hz) alone and steady for {SUM_ALONE} bars; then a second tone of the same pitch and loudness sounds with it all the time, in step (the two make one twice as high), a third of a turn out (one exactly as loud as either) or half a turn out (nothing): the rhythm is the second tone's phase and nothing else. Generated by")
         assert "From v34" in doc["about"]
+    if throb_row() is not None:
+        ts_ = throb_spans(); t_amp = {"a": f"{THROB_EDGE}ms", "d": "0s", "s": 1, "r": f"{THROB_EDGE}ms"}; t_end = ts_[-1][0] + ts_[-1][1]
+        for nm, tn, what in (("os-throb", 0.0, "the middle one in step with the side ones: the three swell and sink together"), ("os-still", THROB_TURN, f"the middle one turned {THROB_TURN:g} of a turn: the same three tones, and hardly a throb")):
+            PATCHES[nm] = {"about": f"Out of Step's three plain tones for a quarter of a turn (chirper-zero, 28 Nov, v35): a middle one and one {THROB_RATE * BPM / 60:g} Hz to either side, each {THROB_DEPTH / 2:g} as high; {what}.",
+                           "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": throb_layers(tn), "filters": ["lp cutoff=7000"], "amp": t_amp}}
+        t_note = lambda at, ln: {"at": round(at, 6), "len": round(ln, 6), "pitch": THROB_NOTE, "vel": 0.8}
+        for nm, pt, th0 in (("throb", "os-throb", True), ("still", "os-still", False)):
+            doc["tracks"].append({"name": nm, "patch": pt, "gain": THROB_GAIN, "pan": 0.0, "notes": [t_note(at, ln) for at, ln, th in ts_ if th == th0], "auto": {"arch": {"points": throb_lane(), "curve": 0}},
+                                  "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.arch", "amount": 1}]}}]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v35 a quarter of a turn and the throb is gone (bars {throb_row() + 1} to {throb_row() + ROW}): three plain tones, a middle one ({THROB_NOTE}) and one {THROB_RATE * BPM / 60:g} Hz to either side; for {THROB_BARS} bars the middle one is in step with the sides and the three swell and sink {THROB_RATE} times a beat; for the next {THROB_BARS} it is turned a quarter of a turn and the same three tones, as loud, hardly throb; and again. Generated by")
+        assert "From v35" in doc["about"]
     return doc
 
 
@@ -1988,6 +2044,9 @@ def lock(k):
 if __name__ == "__main__":
     if os.environ.get("C11T7_SHOW"):
         sec = 60 / BPM * BEATS
+        if throb_row() is not None:
+            ts_ = throb_spans(); t_sec = throb_row() * BEATS * 60 / BPM; t_m = THROB_DEPTH
+            print(f"a quarter of a turn and the throb is gone ({THROB_GAIN}), bars {throb_row() + 1}-{throb_row() + ROW} ({int(t_sec) // 60}:{t_sec % 60:04.1f}): three plain tones: {THROB_NOTE} ({hz(THROB_NOTE):.1f} Hz) and one {THROB_RATE * BPM / 60:g} Hz to either side, each {20 * math.log10(t_m / 2):.1f} dB under it ; in step (bars " + ", ".join(f"{int(at) // BEATS + 1}-{int(at + ln - 1) // BEATS + 1}" for at, ln, th in ts_ if th) + f"): the three swell and sink {THROB_RATE} times a beat, {1 - t_m:g} to {1 + t_m:g} of the middle tone ({20 * math.log10((1 + t_m) / (1 - t_m)):.1f} dB), the tops on beats {THROB_TOP:g} and {THROB_TOP + 1 / THROB_RATE:g} ; the middle one turned {THROB_TURN:g} of a turn (bars " + ", ".join(f"{int(at) // BEATS + 1}-{int(at + ln - 1) // BEATS + 1}" for at, ln, th in ts_ if not th) + f"): 1 to {(1 + t_m ** 2) ** 0.5:.3f} ({10 * math.log10(1 + t_m ** 2):.1f} dB), {2 * THROB_RATE} times a beat ; the last note goes out over {THROB_FADE[0]} beats ; both tracks' gain follows one lane: the master's own throb turned over, {len(THROB_FLAT)} places through every {THROB_BARS} bars, {min(THROB_FLAT):g} to {max(THROB_FLAT):g} dB")
         if sum_row() is not None:
             sr_ = sum_runs(); s_sec = sum_row() * BEATS * 60 / BPM; s_n = {k: sum(1 for q in sr_ if q[2] == k) for k in "IT."}
             print(f"one and one make two, one, or nothing ({SUM_GAIN}), bars {sum_row() + 1}-{sum_row() + ROW} ({int(s_sec) // 60}:{s_sec % 60:04.1f}): two plain tones at {sum_hz():.1f} Hz ({SUM_WAVES} waves to the sixteenth; {SUM_NOTE} {1200 * math.log2(sum_hz() / hz(SUM_NOTE)):+.1f} cents), one loudness ; the first alone for {SUM_ALONE} bars ; then the second by sixteenth, bar and bar about: {' | '.join(SUM_BARS)} (I in step: the two make {20 * math.log10(abs(2 * math.cos(math.pi * SUM_TURN['I']))):+.2f} dB ; T a third of a turn out: {20 * math.log10(abs(2 * math.cos(math.pi * SUM_TURN['T']))):+.2f} dB ; . half a turn out: nothing) ; {s_n['I']} strokes in step, {s_n['T']} a third out, {s_n['.']} silences ; both tones sound for {sum(q[1] for q in sr_):g} beats and are silent together for {sum(q[1] for q in sr_ if q[2] == '.'):g} of them ; trims by sixteenth of the bar (dB): " + " ".join(f"{t:g}" for t in SUM_TRIM) + f" ; alone {SUM_HELD:g}")
