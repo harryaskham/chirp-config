@@ -386,6 +386,13 @@ out: v32). In bars 9 to 16 the song's tune of eight notes is played to a rhythm 
 notes a bar (3 3 4 3 3 sixteenths). The rhythm goes round 8 times and the tune 5 times in
 40 notes; they begin together only at the row's two ends. No bar is like another; every
 note of the tune is heard once in each of the bar's five places.
+
+v34 (28 Nov): ONE RHYTHM AT THREE SPEEDS, AND THEY NEVER DISAGREE (C11T1_FAIR=0 takes it
+out: v33). The fair way to take turns (give, take, take, give, take, give, give, take: Thue
+and Morse's sequence) as a rhythm on the sixteenths of bars 113 to 120. Every second place
+of it is the same rhythm at half the speed, every fourth at a quarter: three voices play it
+at the three speeds, the slower the lower, and a slower one never strikes where a faster
+one rests.
 """
 import json
 import math
@@ -618,6 +625,22 @@ def arrow_lane(n):
     for e in arrow_ends():
         pts += [[f"{e - LIFE_EVERY + 0.001:g}b", low], [f"{e:g}b", 0.0]]
     return {"points": pts + [[f"{BARS * BEATS}b", 0.0]], "curve": 0}
+
+
+def fair_row():
+    """The first bar (from 0) of the row in which one rhythm goes at three speeds, or None."""
+    sec = next((x for x in SECS if x[0] == FAIR_IN[0]), None)
+    return sec[1] + ROW * FAIR_IN[1] if FAIR and sec is not None and FAIR_IN[1] * ROW < sec[2] else None
+
+
+def fair_struck(n):
+    """Is place n struck: has n, written in twos, an even number of ones?"""
+    return bin(n).count("1") % 2 == 0
+
+
+def fair_strokes():
+    """[(beat, voice (from 0), the voice's place n, the sixteenth of the bar)]: every voice plays the one rhythm at its own speed through the row."""
+    return [(fair_row() * BEATS + n * st / 4, j, n, n * st % (4 * BEATS)) for j, st in enumerate(FAIR_STEPS) for n in range(ROW * BEATS * 4 // st) if fair_struck(n)]
 
 
 def talea_row():
@@ -1029,6 +1052,13 @@ TALEA_STEPS = (3, 3, 4, 3, 3)                          # the rhythm, in sixteent
 TALEA_TUNE = ("G3", "Bb3", "D4", "C4", "F4", "G4", "Bb4", "D5")   # the tune of give or take a note (bars 73 to 80), whole, before it is given and taken
 TALEA_GAIN = os.environ.get("C11T1_TALEA_GAIN", "-32dB")   # the track, before the trims. THE BENCH FIRST (the track alone at -20 dB, no trims): all 40 tops -26.3 to -25.8 dBFS
 TALEA_EVEN = (8.3, -1.2, 5.8, 6.3, 2.7)                # dB each of the bar's five places is raised, so that the tune comes out at one height. THE FIRST BUILD HAD NONE AND THE MASTER GAVE THE RHYTHM AN ACCENT OF ITS OWN: read in the whole song (the new less the old) the tops were -33.3 dBFS on the beat (under the drum), -23.8 at beat 0.75, -30.8 and -31.3 on the two half beats (under the tick) and -27.7 at beat 3.25: 9.5 dB between the places, so every note of the tune came out at five heights. These bring each to -25 dBFS: read in the whole song's master BEFORE any score (seeds 0 / 11): -25.0, -25.0, -24.9, -25.0, -25.0 / -24.9, -25.0, -24.7, -25.1, -25.0 by place; all 40 tops -26.4 to -22.4 / -26.2 to -23.7
+FAIR = os.environ.get("C11T1_FAIR", "1") != "0" and TALEA   # v34: ONE RHYTHM AT THREE SPEEDS, AND THEY NEVER DISAGREE (Thue and Morse's sequence: the fair way to take turns: give, take, take, give, take, give, give, take ...). Number the sixteenths of the row from 0; strike number n if n written in twos has an even number of ones. Take every second stroke-place of that rhythm and you have the same rhythm at half the speed; every fourth, at a quarter. So three voices play it on the sixteenths, the eighths and the beats, and a slower voice never strikes where a faster one rests. The bars go by the same rule: a bar is the pattern or its opposite
+FAIR_IN = ("locked", 0)                                # the section and its row (from 0): bars 113 to 120: the two decks are locked. Read on v33 by twelfths of the beat: 1400 to 1750 Hz is -34 to -52 dBFS here, 1050 to 1300 Hz -36 to -48
+FAIR_STEPS = (1, 2, 4)                                 # sixteenths from one place of a voice to its next: the three speeds
+FAIR_NOTES = ("G6", "D6", "G5")                        # each voice's note: 1568, 1175, 784 Hz: the slower, the lower
+FAIR_MS = 45                                           # ms a stroke is held: a plain pip
+FAIR_TRIM = (-0.3, -5.9, -3.6, -4.7, -0.5, -5.9, -5.8, -8.9, -0.5, -6.0, -3.4, -5.4, 0.0, -5.8, -4.7, -8.3)   # dB (0 or less) on a stroke by the sixteenth of the bar it falls on, by its velocity. THE FIRST BUILD HAD NONE (-32.3 dB): in the finished song G6's strokes came out, by sixteenth of the bar (the middle of four), -33.6 -28.0 -30.3 -29.2 -33.4 -28.0 -28.1 -25.0 -33.4 -27.9 -30.5 -28.5 -33.9 -28.1 -29.2 -25.6 dBFS: 8.9 dB between the beat and the sixteenth before the next. These are that reading turned over, for -27 everywhere
+FAIR_GAIN = os.environ.get("C11T1_FAIR_GAIN", "-25.4dB")   # every voice's track. THE BENCH FIRST (the three tracks alone at -20 dB, no trims): G6's tops -25.7 dBFS (the middle); the first build was set for -38 on the bench (-32.3 dB); the second is 6.9 dB up with the trims. THE SECOND BUILD READ (both seeds, before any score): G6 by sixteenth of the bar -27.1 to -27.0 / -27.5 to -26.4 dBFS; D6 -27.6 to -26.8 / -27.9 to -26.3; G5 -28.5 to -27.4 / -28.5 to -27.6
 assert sum(fu_b for _, fu_b in FUSE_STEPS) % BEATS == 0
 BASSB_MODE = os.environ.get("C11T1_BASSB_MODE", "swap")                        # swap: it is heard where deck A's bass is out ; full: wherever deck B's record plays from "no ruler" on
 BASSB_IN = {"swap": ("no ruler", "the stretch", "out"), "full": ("no ruler", "both", "the stretch", "the nudge", "locked", "out")}[BASSB_MODE]
@@ -1811,6 +1841,14 @@ def song():
         doc["tracks"].append({"name": "talea", "patch": "gt-talea", "gain": f"{float(TALEA_GAIN[:-2]) + max(TALEA_EVEN):g}dB", "pan": 0.0, "notes": [note(at, p, ln, 10 ** ((TALEA_EVEN[pl] - max(TALEA_EVEN)) / 40)) for at, ln, p, pl, _ in tn]})   # the patch's loudness goes as the square of the velocity: 40 dB for ten times
         doc["about"] = doc["about"].replace(" Generated by", f" From v33 the tune and its rhythm go round at different speeds (bars {talea_row() + 1} to {talea_row() + ROW}): a rhythm of {len(TALEA_STEPS)} notes to the bar ({' '.join(str(x) for x in TALEA_STEPS)} sixteenths) and the tune of {len(TALEA_TUNE)} notes ({' '.join(TALEA_TUNE)}): in {len(tn)} notes the rhythm goes round {len(tn) // len(TALEA_STEPS)} times and the tune {len(tn) // len(TALEA_TUNE)}; they begin together only at the row's two ends. Generated by")
         assert "From v33" in doc["about"]
+    if fair_row() is not None:
+        fs = fair_strokes(); f_len = round(FAIR_MS / 1000 * BPM / 60, 7)
+        PATCHES["gt-fair"] = {"about": f"Give or Take's pip for the rhythm at three speeds (chirper-zero, 28 Nov, v34): a plain tone, {FAIR_MS} ms; nothing over 2 kHz is played on it. Its loudness goes as the square of the velocity.",
+                              "play": {"vel_sens": 1, "gate": 1}, "synth": {"layers": ["sine phase=0"], "filters": ["lp cutoff=7000"], "amp": {"a": "3ms", "d": "0s", "s": 1, "r": "15ms"}}}
+        for j, st in enumerate(FAIR_STEPS):
+            doc["tracks"].append({"name": f"fair-{st}", "patch": "gt-fair", "gain": FAIR_GAIN, "pan": 0.0, "notes": [{"at": round(at, 7), "len": f_len, "pitch": FAIR_NOTES[j], "vel": round(10 ** (FAIR_TRIM[pl] / 40), 5)} for at, v, _, pl in fs if v == j]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v34 one rhythm goes at three speeds and they never disagree (bars {fair_row() + 1} to {fair_row() + ROW}): the fair way to take turns (strike place n if n written in twos has an even number of ones) played on the sixteenths, on the eighths and on the beats at once, each speed on its own note; every second place of the rhythm is the same rhythm at half the speed, so a slower voice never strikes where a faster one rests. Generated by")
+        assert "From v34" in doc["about"]
     return doc
 
 
@@ -1827,6 +1865,9 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if fair_row() is not None:
+            fs = fair_strokes(); f_sec = fair_row() * BEATS * 60 / BPM; f_set = [{round(at, 6) for at, v, _, _ in fs if v == j} for j in range(len(FAIR_STEPS))]
+            print(f"one rhythm at three speeds, and they never disagree ({FAIR_GAIN}), bars {fair_row() + 1}-{fair_row() + ROW} ({int(f_sec) // 60}:{f_sec % 60:04.1f}): place n is struck if n written in twos has an even number of ones: " + " ".join("".join("x" if fair_struck(4 * q + r) else "." for r in range(4)) for q in range(8)) + " ... ; " + " ; ".join(f"every {st} sixteenth(s) on {FAIR_NOTES[j]}: {len(f_set[j])} strokes of {ROW * BEATS * 4 // st} places" for j, st in enumerate(FAIR_STEPS)) + " ; " + " ; ".join(f"{len(f_set[j] & f_set[j - 1])} of the {len(f_set[j])} strokes on {FAIR_NOTES[j]} fall on a stroke on {FAIR_NOTES[j - 1]}" for j in range(1, len(FAIR_STEPS))) + f" ; the bars that begin with a stroke: {' '.join(str(fair_row() + b + 1) for b in range(ROW) if fair_struck(b))} (the same rule) ; {FAIR_MS} ms a stroke ; trims by sixteenth of the bar (dB): " + " ".join(f"{t:g}" for t in FAIR_TRIM))
         if talea_row() is not None:
             tn = talea_notes(); tl_sec = talea_row() * BEATS * 60 / BPM
             print(f"the tune and its rhythm go round ({TALEA_GAIN}), bars {talea_row() + 1}-{talea_row() + ROW} ({int(tl_sec) // 60}:{tl_sec % 60:04.1f}): the rhythm {' '.join(str(x) for x in TALEA_STEPS)} sixteenths ({len(TALEA_STEPS)} notes a bar, on beats {' '.join(f'{(t[0] - talea_row() * BEATS):g}' for t in tn[:len(TALEA_STEPS)])}) ; the tune {' '.join(TALEA_TUNE)} ({len(TALEA_TUNE)} notes) ; {len(tn)} notes: the rhythm {len(tn) // len(TALEA_STEPS)} times, the tune {len(tn) // len(TALEA_TUNE)} times ; bar by bar: " + " | ".join(" ".join(t[2] for t in tn[b * len(TALEA_STEPS):(b + 1) * len(TALEA_STEPS)]) for b in range(ROW)) + f" ; raised by place (dB): {' '.join(f'{x:+g}' for x in TALEA_EVEN)} ; each note of the tune in each place of the bar once: {sorted({(t[3], t[4]) for t in tn}) == [(i, j) for i in range(len(TALEA_STEPS)) for j in range(len(TALEA_TUNE))]}")
