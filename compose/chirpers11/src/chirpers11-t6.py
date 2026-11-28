@@ -58,7 +58,23 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True, 'spun': True, 'lands': True, 'metal': True, 'damped': True, 'flick': True, 'tally': True, 'reckon': True, 'linger': True, 'rounded': True, 'paid': True, 'cannot': True, 'late': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True, 'spun': True, 'lands': True, 'metal': True, 'damped': True, 'flick': True, 'tally': True, 'reckon': True, 'linger': True, 'rounded': True, 'paid': True, 'cannot': True, 'late': True, 'offkey': True, 'closing': True, 'receipt': True}
+# ---- v24 (28 Nov): THE TILL CLOSES AT HOME, AND GIVES A RECEIPT. Three switches (`--without-offkey`, `-closing`,
+# `-receipt`; all three off is v23 byte for byte).
+#   OFFKEY   v23's fault, measured after it was out: off the beat (bars 129 to 160) a payment's first stroke falls
+#            on sixteenth 6, and in every second bar no seed is sown there: it is the first sound after half a
+#            bar of nothing in its band, and this master brought it up to the seed's own level (-6.5 dBFS; the
+#            payment's other strokes -12 to -20). In those bars it is OFFKEY['db'] dB down; with a seed it is
+#            8 dB under the seed already and is left.
+#   CLOSING  the key rested at home. Now the till closes there: a payment to each seed (bars 161, 163 ... 171),
+#            and coins of 3 and 5 pay sixteen in six orders: six seeds, six orders, each once more, before the
+#            coin is spun on the counter (bars 173 to 176).
+#   RECEIPT  a coin moves the key's note as it moves the purse's change: a 3 up a fifth, a 5 down a fourth. Two
+#            of each is a major third up whatever the order they come in: adding does not mind the order. That
+#            last move was never heard: the key plays where a coin BEGINS. At home the till gives a receipt: on
+#            the bar line where the payment ends, one stroke on the note the four coins come to: D6 every
+#            time, home's own fifth, after six different ways there.
+#
 # ---- v23 (28 Nov): THE BAR IS PAID. Three switches (`--without-paid`, `-cannot`, `-late`; all three off is v22
 # byte for byte). The purses have paid the seeds' change; nothing has paid the BAR. A bar is sixteen sixteenths,
 # and a till that has only threes and fives pays sixteen as 3 3 5 5, in six orders. A wooden key (`sc-key`, the
@@ -87,6 +103,9 @@ ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, '
 # the two answer each other, one exact, one rounded worse each time. At home nothing is rounded.
 PAID = {'patch': 'sc-key', 'gain': '-20dB', 'pan': -0.15, 'octave': 12, 'fold': (-7, 12), 'vel': (0.9, 0.75), 'len': 0.2, 'steps': (7, -5), 'long': 24,
         'where': ('threes and fours', 'both purses', 'three purses'), 'cannot': ('the drum again',), 'late': ('off the beat', 'off the beat, up')}   # v23: the key: its patch, fader (bench, raw, bars 49 to 56: at -12 dB its strokes stood 9 to 13 dB over the purse's echoes from 160 to 560 Hz: a lead; -18 is beside them; but an octave under the seed its strokes on the beat were 10 to 15 dB under the drum there: at the seed's own octave its first two strokes were the seed and the purse's first echo over again, 12 to 21 dB under them: it is an octave over the seed), place, semitones from the seed's note, the span its notes are folded into (semitones from its first), touch (a payment's first stroke, the rest), length (beats), what the first and the second coin do to its note (as in the purses), the amount a purse pays when it cannot pay a bar, and the sections
+OFFKEY = {'db': -9}                         # v24: dB on a payment's first stroke where the payments begin off the beat (PAID['late']) and no seed is sown with it: read in the finished song (there it came out at -6.5 dBFS, the seed's own level; with a seed it is 8 dB under the seed and is left)
+CLOSING = {'where': ('home',), 'bars': 12}  # v24: the sections where the till closes (a payment to each seed), and for how many of their bars (the coin is spun in home's last four)
+RECEIPT = {'vel': 0.9, 'db': 3}             # v24: the receipt's touch, and dB on it (read in the finished song: at 0 dB it came out 2 to 10 dB under what else is on its bar line from 440 to 2400 Hz)
 KEY = {'about': "Small Change: the till's key (v23): a short dry wooden bar, pressed once for each coin as the bar is paid.",
        'synth': {'layers': [{'type': 'modal', 'modes': 'bar', 'decay': '70ms', 'bright': 0.4, 'strike': 0.45}], 'amp': {'a': '0.2ms', 'd': '0s', 's': 1, 'r': '120ms'}},
        'play': {'event_stable': True, 'vel_sens': 0.7}}
@@ -621,30 +640,38 @@ def paid():
             cycle = [(k, PAID['long']) for k in pairs]
         elif name in PAID['late'] and ON['paid'] and ON['late']:
             cycle = [('d' if 'd' in purse else k, BAR) for k in pairs]
+        elif name in CLOSING['where'] and ON['paid'] and ON['closing']:   # v24 CLOSING: the till closes: a payment to each seed
+            cycle = [(k, BAR) for k in pairs if ways(*purse[k], BAR)]
         else:
             continue
         pos, end, k = i * SEC * BAR + at16, (i + 1) * SEC * BAR, 0
+        step = every * BAR if name in CLOSING['where'] else 0   # v24: from seed to seed there; elsewhere from payment to payment
+        end = i * SEC * BAR + CLOSING['bars'] * BAR if name in CLOSING['where'] else end
         while pos + cycle[k % len(cycle)][1] <= end:
             key, amount = cycle[k % len(cycle)]
             orders = ways(*purse[key], amount)
             out.append((name, pos, key, orders[turn.get(key, 0) % len(orders)], moved(notes[k % len(notes)], PAID['octave'])))
             turn[key] = turn.get(key, 0) + 1
-            pos, k = pos + amount, k + 1
+            pos, k = pos + (step or amount), k + 1
     return out
 
 
 def key_notes():
     """v23 PAID: the key's strokes: one for each coin, where the coin begins; the coin moves the note as it moves the purse's change, folded into PAID['fold']."""
     out, purse = [], purses()
+    sown = {x[0]: (i * SEC * BAR + x[3], x[2] * BAR) for i, x in enumerate(SECTIONS)}   # v24 OFFKEY: each section's first seed (sixteenth) and the sixteenths from seed to seed
     for name, pos, key, order, first in paid():
         semis = 0
+        bare = ON['offkey'] and name in PAID['late'] and (pos - sown[name][0]) % sown[name][1] != 0   # v24 OFFKEY: a payment that begins off the beat where no seed is sown
         for j, c in enumerate(order):
-            out.append({'at': pos / 4, 'len': PAID['len'], 'pitch': moved(first, semis), 'vel': PAID['vel'][0 if j == 0 else 1]})
+            out.append({'at': pos / 4, 'len': PAID['len'], 'pitch': moved(first, semis), 'vel': PAID['vel'][0 if j == 0 else 1], **({'gain': f"{OFFKEY['db']}dB"} if bare and j == 0 else {})})
             pos, semis = pos + c, semis + PAID['steps'][0 if c == purse[key][0] else 1]
             while semis > PAID['fold'][1]:
                 semis -= 12
             while semis < PAID['fold'][0]:
                 semis += 12
+        if ON['receipt'] and name in CLOSING['where']:          # v24 RECEIPT: where the payment ends, the note its coins come to
+            out.append({'at': pos / 4, 'len': PAID['len'], 'pitch': moved(first, semis), 'vel': RECEIPT['vel'], **({'gain': f"{RECEIPT['db']}dB"} if RECEIPT['db'] else {})})
     return out
 
 
@@ -928,7 +955,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last three off is v22, the last four v21, the last six v20, the last seven v19, the last ten v18, the last twelve v17, the last sixteen v16, the last eighteen v15, the last twenty v14, the last twenty-one v13, the last twenty-three v12, the last twenty-five v11, the last twenty-seven v10, the last thirty v9, the last thirty-three v8, the last thirty-five v7, the last thirty-seven v6, the last forty-one v5, the last forty-two v4, the last forty-five v3, the last forty-nine v2, all fifty-two v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last three off is v23, the last six v22, the last seven v21, the last nine v20, the last ten v19, the last thirteen v18, the last fifteen v17, the last nineteen v16, the last twenty-one v15, the last twenty-three v14, the last twenty-four v13, the last twenty-six v12, the last twenty-eight v11, the last thirty v10, the last thirty-three v9, the last thirty-six v8, the last thirty-eight v7, the last forty v6, the last forty-four v5, the last forty-five v4, the last forty-eight v3, the last fifty-two v2, all fifty-five v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -1019,6 +1046,13 @@ if __name__ == '__main__':
             for nm, pos, key, order, first in pays:
                 by.setdefault(nm, []).append(pos)
             print('    the key plays in: ' + '; '.join(f"{nm} (bars {v[0] // BAR + 1}-{(v[-1] + next(sum(x[3]) for x in pays if x[1] == v[-1]) - 1) // BAR + 1}, {len(v)} payments" + (f", from sixteenth {v[0] % BAR}" if v[0] % BAR else '') + ')' for nm, v in by.items()))
+            if ON['offkey'] and any(x[0] in PAID['late'] for x in pays):
+                print(f"    off the beat a payment's first stroke (sixteenth {next(x[1] for x in pays if x[0] in PAID['late']) % BAR}) is {-OFFKEY['db']} dB down where no seed is sown with it: {sum(1 for n in key_notes() if n.get('gain') == str(OFFKEY['db']) + 'dB')} strokes")
+            if ON['closing'] and any(x[0] in CLOSING['where'] for x in pays):
+                home = [x for x in pays if x[0] in CLOSING['where']]
+                ends = [n['pitch'] for n in key_notes() if any(n['at'] * 4 == x[1] + sum(x[3]) for x in home)]
+                print(f"    the till closes at home: a payment to each seed, bars {' '.join(str(x[1] // BAR + 1) for x in home)}: the {len(home)} orders of {' '.join(str(c) for c in sorted(home[0][3]))}, each once more: {', '.join(' '.join(str(c) for c in x[3]) for x in home)}" +
+                      (f"; and after each its receipt, on the bar line where it ends: the note its coins come to, whatever their order: {' '.join(ends)}" if ON['receipt'] else ''))
             if ON['cannot'] and any(sum(x[3]) != BAR for x in pays):
                 rest = [j * SEC + SEC for j, sct in enumerate(SECTIONS) if sct[0] in PAID['cannot']]
                 print(f"    fives and sevens cannot make sixteen: the key pays {PAID['long']} (a bar and a half), three payments to two bars; bar {' '.join(str(b) for b in rest)} is left over, sixteen, which that till cannot pay: the key rests")
