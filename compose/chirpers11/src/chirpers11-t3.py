@@ -417,6 +417,12 @@ is nine echoes a second: you can count them. Halve the width and they come twice
 fast: a rattle, a buzz; at the corridor's own 2.33 m they are its note, D2; at arm's
 length, D4. Bar by bar the walls close in and come back out to the corridor's own
 (its last row). Rhythm and pitch are one thing: the width of the room says which.
+
+v31 (28 Nov): A DROP DOWN THE STAIRWELL (C11T3_DROP=0 takes it out: v30). On the way up
+the stairs something is let go over the rail in every bar (a tap), a flight of eight
+steps higher each time. It lands when gravity says and its thud comes back up at the
+speed of sound: the wait is the square root of twice the height over g, and the height
+over 343. The wait says how high you have climbed, and it grows by less each flight.
 """
 import json
 import math
@@ -770,6 +776,15 @@ CLOSE_SHARE = 3.0                                      # dB taken from every ech
 CLOSE_NOTE = "D3"                                      # what an echo is: one soft thud, about two waves of D3 with its octave as loud (with D3 alone the nearest walls' train, 294 to the second, was 10 dB under the others on the bench: a train only keeps what is in step with it)
 CLOSE_LEN = 0.05                                       # beats an echo is written (24 ms; its own fall ends it in 12)
 CLOSE_GAIN = os.environ.get("C11T3_CLOSE_GAIN", "-16dB")   # the track. Set from readings in the whole song's master, before any score was opened: with the knocks on beats 0.125 and 2.125 at -22dB (both seeds) a train's first 450 ms was -35.4 to -37.9 dBFS (2.5 dB between the quietest and the loudest of the 16) and stood 17.5 dB under the old music at 100 to 600 Hz in the middle: too far under: 6 dB up. An eighth of a beat after the drum THE MASTER LIFTS A KNOCK 13.1 dB (bench at the same fader -45.3). The first build (D3 alone; knocks on beats 0.25 and 2.25), read in the whole song's master at -20dB and -26dB (seed 0) BEFORE any score: a train's first 100 ms -27.9 dBFS for -47.3 on the bench at the same fader: THE MASTER LIFTS A KNOCK ON SIXTEENTH 1 19.4 dB; the trains on sixteenth 1 stood 11 to 19 dB under the old music at 100 to 600 Hz
+DROP = os.environ.get("C11T3_DROP", "1") != "0" and CLOSE   # v31: A DROP DOWN THE STAIRWELL: on the way up the stairs something is let go over the rail in every bar, a flight higher each time. It lands when gravity says (the square root of twice the height over g) and its thud comes back up at the speed of sound: the wait says how high you have climbed, and it grows as the square root, by less each flight
+DROP_IN = ("the stairwell", 1)                         # the section and its row (from 0): bars 57 to 64, the first whole row of the stairs
+DROP_STEPS = 8                                         # steps in a flight
+DROP_RISER = 0.17                                      # metres a step: a flight is 1.36 m
+DROP_G = 9.81                                          # metres a second a second
+DROP_AT = 0.65625                                      # the beat of the bar it is let go on (a tap): found by a search of v30's notes over flights of 6 to 18 steps and every thirty-second of a beat: the tap and all eight landings are 40 ms or more from every stroke of the drum, the bass, the click, the tock and the clap, and 81 ms or more after a drum
+DROP_NOTES = ("Bb2", ((2.0, -3.0),))                   # the thud: the floor at the bottom rings two low tones, Bb2 and its octave 3 dB under (116.5, 233.1 Hz): always the same floor. NOT A2, F3 AND C4, which the first build had: they are harmonics of the bass's own notes (A1, F2, C2), and in their own bands three landings of eight were 11 to 13 dB under the old music. Bb is the one note of the scale no harmonic of the bass in this row comes near
+DROP_TAP = ("C5", -4.0)                                # the tap of letting go: its note, and dB under the thud's track
+DROP_GAIN = os.environ.get("C11T3_DROP_GAIN", "-26dB")   # the thud's track. THE BENCH FIRST (the two tracks alone, the thud's at -20 dB): the first thud's first 100 ms -35.6 dBFS (15.6 under its fader). The first build (three tones, -30 dB) read the first thud at -28.0 dBFS in the whole song's master (a lift of 17.3 dB): aimed at -24 with that lift; read at -26dB (both seeds) BEFORE any score: the first thud -24.4 dBFS, the others 2.8 to 6.5 dB under it (the master evens them: 9.0 written); the nth landing is 10 log n dB under the first (the blow as the height, the way back as one over the height: a rule of this piece)
 AIR_PAN = 0.4                                          # the other ear
 RAIL_VEL = 0.8
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
@@ -1099,6 +1114,22 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def drop_row():
+    """The first bar (from 0) of the row in which something is let go down the stairwell, or None."""
+    sec = next((x for x in SECS if x[0] == DROP_IN[0]), None)
+    return sec[1] + ROW * DROP_IN[1] if DROP and sec is not None and DROP_IN[1] * ROW < sec[2] else None
+
+
+def drop_falls():
+    """[(flights, metres, seconds of fall, seconds of the sound's way up, beat let go, beat heard to land, dB)]: one a bar, a flight higher each bar."""
+    import math
+    out = []
+    for n in range(1, ROW + 1):
+        h = n * DROP_STEPS * DROP_RISER; fall = math.sqrt(2 * h / DROP_G); up = h / SOUND; at = (drop_row() + n - 1) * BEATS + DROP_AT
+        out.append((n, h, fall, up, at, round(at + (fall + up) * BPM / 60, 7), -10 * math.log10(n)))
+    return out
 
 
 def close_row():
@@ -1977,6 +2008,16 @@ def song():
         doc["tracks"].append({"name": "close", "patch": "sr-close", "gain": CLOSE_GAIN, "pan": 0.0, "notes": [{"at": t, "len": CLOSE_LEN, "pitch": CLOSE_NOTE, "vel": round(10 ** (d / 40), 5)} for _, _, _, _, es in cl for t, d in es]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v30 the walls close in (bars {close_row() + 1} to {close_row() + ROW}, the corridor's last row): a knock twice a bar comes back between two walls, once for every time across and back; bar by bar the walls are {', '.join(f'{SOUND * CLOSE_NEAR * 2 ** st / CLOSE_RATE / 2:.2f}' for st in CLOSE_STEPS)} m apart: the echoes come {', '.join(f'{CLOSE_RATE / (CLOSE_NEAR * 2 ** st):.1f}' for st in CLOSE_STEPS)} times a second: far walls are echoes to count, near walls a note ({sum(len(es) for _, _, _, _, es in cl)} thuds in {len(cl)} trains). Generated by")
         assert "From v30" in doc["about"]
+    if drop_row() is not None:
+        dr = drop_falls(); dr_g = float(DROP_GAIN.replace("dB", ""))
+        PATCHES["sr-thud"] = {"about": "Standing Room's thud at the bottom of the stairwell (chirper-zero, 28 Nov, v31): a low plain tone and its octave struck together and gone in a tenth of a second, nothing over 600 Hz; how hard it is struck is how loud it is.",
+                              "play": {"vel_sens": 1}, "synth": {"layers": ["sine phase=0"] + [f"sine phase=0 ratio={r:.6f} level={d:g}dB" for r, d in DROP_NOTES[1]], "filters": ["lp cutoff=600"], "amp": {"a": "1ms", "d": "110ms", "s": 0, "r": "30ms"}}}
+        PATCHES["sr-tap"] = {"about": "Standing Room's tap of letting go (chirper-zero, 28 Nov, v31): one short plain tone.",
+                             "play": {"vel_sens": 0}, "synth": {"layers": ["sine phase=0"], "filters": ["lp cutoff=7000"], "amp": {"a": "0.5ms", "d": "25ms", "s": 0, "r": "10ms"}}}
+        doc["tracks"].append({"name": "drop-tap", "patch": "sr-tap", "gain": f"{dr_g + DROP_TAP[1]:g}dB", "pan": 0.0, "notes": [{"at": at, "len": 0.05, "pitch": DROP_TAP[0], "vel": 0.8} for _, _, _, _, at, _, _ in dr]})
+        doc["tracks"].append({"name": "drop-thud", "patch": "sr-thud", "gain": DROP_GAIN, "pan": 0.0, "notes": [{"at": land, "len": 0.2, "pitch": DROP_NOTES[0], "vel": round(10 ** (d / 40), 5)} for _, _, _, _, _, land, d in dr]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v31 something is let go down the stairwell (bars {drop_row() + 1} to {drop_row() + ROW}, the first whole row of the stairs): at a tap in every bar, a flight of {DROP_STEPS} steps ({DROP_STEPS * DROP_RISER:g} m) higher each time; its thud is heard after the fall and the sound's way back up: {', '.join(f'{1000 * (f + u):.0f}' for _, _, f, u, _, _, _ in dr)} ms: the wait grows as the square root of the height. Generated by")
+        assert "From v31" in doc["about"]
     return doc
 
 
@@ -2032,6 +2073,11 @@ def echoes(a, b, n=16):
 
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
+        if drop_row() is not None:
+            dr = drop_falls(); dr_sec = BEATS * 60 / BPM
+            print(f"a drop down the stairwell ({DROP_GAIN}), bars {drop_row() + 1}-{drop_row() + ROW} ({int(drop_row() * dr_sec) // 60}:{drop_row() * dr_sec % 60:04.1f}): let go on beat {DROP_AT:g} of every bar (a tap, {DROP_TAP[0]}), a flight of {DROP_STEPS} steps ({DROP_STEPS * DROP_RISER:g} m) higher each bar ; the thud {DROP_NOTES[0]} and " + ' and '.join(f"{r:g} times it ({d:g} dB)" for r, d in DROP_NOTES[1]))
+            for n, h, fall, up, at, land, d in dr:
+                print(f"   bar {drop_row() + n}: {n} flight(s), {h:.2f} m: falls {1000 * fall:.1f} ms, the sound comes up in {1000 * up:.1f} ms: heard {1000 * (fall + up):.1f} ms after the tap, on beat {land - (drop_row() + n - 1) * BEATS:.3f} ; {d:+.1f} dB")
         if close_row() is not None:
             cl = close_trains(); cl_sec = BEATS * 60 / BPM
             print(f"the walls close in ({CLOSE_GAIN}), bars {close_row() + 1}-{close_row() + ROW} ({int(close_row() * cl_sec) // 60}:{close_row() * cl_sec % 60:04.1f}): a knock on beats {' and '.join(f'{x:g}' for x in CLOSE_AT)} of every bar and its echoes between two walls ; every train falls {CLOSE_FALL:g} dB a second and is let go {CLOSE_END:g} dB down ; {CLOSE_SHARE:g} dB off every echo for each halving of the width ; {sum(len(es) for _, _, _, _, es in cl)} thuds in {len(cl)} trains")
