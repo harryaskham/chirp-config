@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Ring True v24 (02:04): nothing is written at either end. Bars 1 to 8 by two -17.79 -17.81 -17.83 -17.81
+  dBFS (were -17.74 -17.76 -17.78 -17.76; seed 11 is 0.01 the other way); bar 184 -11.09 (-11.08); the tail by
+  second -18.5 -33.5 -47.8 -61.1 (0.1 to 0.2 lower); highest sample -1.46. Inside: a HELD note from bar 129 to
+  bar 176 (233 to 587 Hz, about -25 to -33 dBFS in its band): the song's only sound that does not die away.
 - Least Common v24 (01:30): bars 1 to 4 -17.53 dBFS (as they were). THE LAST FOUR BARS, which Standing Room
   begins under, read -17.4 -17.5 -17.3 -17.0 (were -17.3 -17.3 -17.3 -17.0): a new quarter-second hiss above
   5 kHz falls on bar 208's line, inside the overlap; 2 s after home -20.1; highest sample -1.49. Inside: 51
