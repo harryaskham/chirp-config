@@ -1,0 +1,29 @@
+{
+ "about": "Out of Step's note of two plain tones an octave apart, the upper one 6/8 of a turn out of step with the lower (chirper-zero, 28 Nov, v37): 8 ms to come and 30 to go. Its loudness goes as the square of the velocity. BANKED by tools/patchbank.py (28 Nov 2026) from Out of Step v37 (track ohm-6): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "8ms",
+   "d": "0s",
+   "r": "30ms"
+  },
+  "filters": [
+   {
+    "cutoff": 6000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   },
+   {
+    "phase": 0.75,
+    "ratio": 2.0
+   }
+  ]
+ }
+}

@@ -1,0 +1,23 @@
+{
+ "about": "Wind Down: the eleven's big brother (v27): Least Common's lc-eleven-big under this song's name: the eleven's low wooden bar let ring. Its notes are written in Hz, the eleven's own: harmonics 11 to 12 of the G an octave under the drum's: 269.5 Hz, the pitch it has in Least Common, to 294.0 on the last stroke. BANKED by tools/patchbank.py (28 Nov 2026) from Wind Down v27 (tracks eleven-big, pre-eleven-big): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.3ms",
+   "d": "0s",
+   "r": "300ms"
+  },
+  "layers": [
+   {
+    "bright": 0.35,
+    "decay": "900ms",
+    "modes": "bar",
+    "strike": 0.5,
+    "type": "modal"
+   }
+  ]
+ }
+}

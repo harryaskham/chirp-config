@@ -1,0 +1,25 @@
+{
+ "about": "Hearing Things' plain note for the odd one out (chirper-zero, 28 Nov, v38): one sine, 10 ms to come and 10 to go. Its loudness goes as the square of the velocity. BANKED by tools/patchbank.py (28 Nov 2026) from Hearing Things v38 (track odd): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "10ms",
+   "d": "0s",
+   "r": "10ms"
+  },
+  "filters": [
+   {
+    "cutoff": 6000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ]
+ }
+}

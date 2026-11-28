@@ -1,0 +1,26 @@
+{
+ "about": "Standing Room's low knock with its top taken (chirper-zero, 28 Nov, v38): a saw that dies in 90 ms, through a low-pass at 2828 Hz (1.5 octaves under 8000 Hz). Its loudness goes as the square of the velocity. BANKED by tools/patchbank.py (28 Nov 2026) from Standing Room v38 (track dull-3): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "90ms",
+   "r": "20ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 2828
+   }
+  ],
+  "layers": [
+   {
+    "wave": "saw"
+   }
+  ]
+ }
+}
