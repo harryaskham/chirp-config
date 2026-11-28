@@ -1,0 +1,23 @@
+{
+ "about": "Least Common: the seven's big brother (v24): where the seven is the drum machine's rim, this is its tom, an octave down (G2): struck every 7 bars. BANKED by tools/patchbank.py (28 Nov 2026) from Least Common v24 (tracks big-seven, big-seven-met): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "0s",
+   "r": "200ms"
+  },
+  "layers": [
+   {
+    "machine": {
+     "decay": "600ms",
+     "part": "tom"
+    },
+    "type": "machine"
+   }
+  ]
+ }
+}

@@ -1,0 +1,32 @@
+{
+ "about": "Standing Room's stairwell ringing from 1 flight(s) up (chirper-zero, 28 Nov, v32): 2 plain tones, the ways of a column of air 1.36 m high between 100 and 260 Hz, each the same; struck and dying in 1.8 s; nothing over 600 Hz. BANKED by tools/patchbank.py (28 Nov 2026) from Standing Room v32 (track well-1): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "5ms",
+   "d": "1.8s",
+   "r": "50ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 600
+   }
+  ],
+  "layers": [
+   {
+    "level": "-3.01dB",
+    "phase": 0.0
+   },
+   {
+    "level": "-3.01dB",
+    "phase": 0.0,
+    "ratio": 2.0
+   }
+  ],
+  "pitch": 0.3651808
+ }
+}

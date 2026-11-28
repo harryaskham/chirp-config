@@ -1,0 +1,50 @@
+{
+ "about": "Ring True: the glass (v24): the eighth thing, the only one that is not struck: a finger goes round its rim, and it sings only while the hand is on it. A sine and a twin a few cents over (a glass's two near modes beat), its second partial 2.32 times up; the level rocks as the finger comes round, two turns to three beats; half a second to speak, a second to stop. BANKED by tools/patchbank.py (28 Nov 2026) from Ring True v24 (track glass): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "500ms",
+   "d": "0s",
+   "r": "1s"
+  },
+  "layers": [
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 3.0,
+       "src": "lfo.rub"
+      }
+     ],
+     "value": "-3dB"
+    }
+   },
+   {
+    "detune": 4,
+    "level": {
+     "mod": [
+      {
+       "amount": 3.0,
+       "src": "lfo.rub"
+      }
+     ],
+     "value": "-11dB"
+    }
+   },
+   {
+    "level": "-20dB",
+    "semi": 14.57
+   }
+  ],
+  "lfo": {
+   "rub": {
+    "rate": "3/8",
+    "retrig": true
+   }
+  }
+ }
+}

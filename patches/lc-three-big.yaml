@@ -1,0 +1,32 @@
+{
+ "about": "Least Common: the three's big brother (v24): the tick's noise above 5 kHz, a quarter of a second long: struck every 3 bars. BANKED by tools/patchbank.py (28 Nov 2026) from Least Common v24 (tracks big-three, big-three-met): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "260ms",
+   "r": "80ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 5000,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 8500,
+    "gain": "8dB",
+    "kind": "peak",
+    "q": 2
+   }
+  ],
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}

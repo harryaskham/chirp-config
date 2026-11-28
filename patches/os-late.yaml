@@ -1,0 +1,26 @@
+{
+ "about": "Out of Step's two tones that are louder or softer by how late one is (chirper-zero, 28 Nov, v31): one plain held tone, no coming and no going, moved to a whole number of waves to the beat. Two tracks of it at one level: together they are twice the cosine of half the turn between them. BANKED by tools/patchbank.py (28 Nov 2026) from Out of Step v31 (tracks late-held, late-again): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "0ms",
+   "d": "0s",
+   "r": "0ms"
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ],
+  "pitch": 0.1566144
+ }
+}
