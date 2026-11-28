@@ -417,6 +417,13 @@ bars 17 to 24 sixteen tones of one low note (the 5th to the 20th of G1) are stru
 off beats, all at one level. Begun together they are in step once every wave of the note
 and tick there. Begun each a different part of its own wave late, the same tones at the
 same levels never meet, and there is no tick. Nothing differs but where each wave begins.
+
+v33 (28 Nov): FIVE OUT OF STEP MAKE A STAIR WITHOUT END (C11T7_POLE=0 takes it out: v32).
+In bars 25 to 32 the drum's note (G1) is held with all its overtones and heard through
+five narrow windows an octave apart, all climbing an octave every four bars, each coming
+in at the bottom and going out at the top (the engine's barber's pole). The overtones are
+picked out one after another, always upward; every four bars the same chord stands there
+again.
 """
 import json
 import math
@@ -805,6 +812,17 @@ BUZZ_TONES = (5, 20)                                   # its tones written: the 
 BUZZ_PAIRS = (2, 2, 2, 2, 2, 2, 1, 1)                  # pairs a bar: one stab in step and one out of step, on the off beats, the order turned round every other pair (so each kind falls in both halves of the bar: read on v31, the old music is 8 dB louder after beats 0 and 2 than after 1 and 3); it thins in the last two bars
 BUZZ_LEN = 0.45                                        # beats a stab is held
 BUZZ_GAIN = os.environ.get("C11T7_BUZZ_GAIN", "-40dB")   # each track. THE BENCH FIRST (the two tracks alone at -20 dB): in step -28.7 dBFS with its highest sample -15.3 (13.4 dB over); out of step -29.1 and -23.9 (5.2 dB over); tone by tone the same to 0.0 dB. Aimed at -28 dBFS. The first build (-36dB, a lift of 17 dB guessed) read -24.3 in the song: the lift here is 20.4 dB, and its ticks reached -8.8 dBFS. Read at -40dB in the whole song's master (both seeds) BEFORE any score: in step -28.3 dBFS (highest sample -12.8), out of step -28.5 (-21.6)
+POLE = os.environ.get("C11T7_POLE", "1") != "0" and BUZZ   # v33: FIVE OUT OF STEP MAKE A STAIR WITHOUT END (the barber's pole): one low note with all its overtones, held, heard through five narrow windows an octave apart that all climb an octave every four bars. Each window is a fifth of the way round behind the next; each comes in at the bottom and goes out at the top. So the overtones are picked out one after another, always upward, and every four bars the same chord stands there again, though every window has climbed an octave
+POLE_IN = ("slips", 0)                                 # the section and its row (from 0): bars 25 to 32: the two clicks, the drum and the vernier
+POLE_BARS = (0, 8)                                     # the bars of the row (from 0) it sounds in: bars 25 to 32: two turns. It comes in slowly under the first slip (bars 25 and 26)
+POLE_NOTE = ("G1", 48.9994)                            # the note: the drum's own: a sawtooth, nothing over 3 kHz
+POLE_LOW = 98                                          # Hz: the lowest window's lowest place: G2, the note's second overtone
+POLE_BANDS = 5                                         # windows: G2 to G7 (98 to 3136 Hz)
+POLE_SPACING = 1.0                                     # octaves from one window to the next
+POLE_Q = 6.0                                           # how narrow a window is: a sixth of its own frequency: under 300 Hz it holds one overtone at a time
+POLE_CYCLE = 4                                         # bars a window takes to climb to where the next one was (the engine keeps it on the song's clock: bar 25 begins a turn). THE FIRST BUILD HAD 2 (bars 27 to 32, three turns) and the scorer counted its steps as strokes in a thin stretch (the spread of the sections' densities 0.20 to 0.19: variety 99.54 to 97.89 / 99.39 to 97.52). At 4 the lowest window's steps come one a bar (overtones 4 5 6 7), the next one's two a bar, the next four: slow enough to follow
+POLE_FADE = (8, 4, 24)                                 # beats it takes to come, beats to go, and from how many dB down
+POLE_GAIN = os.environ.get("C11T7_POLE_GAIN", "-35dB")   # the track. THE BENCH FIRST (the track alone at -20 dB): -33.8 dBFS at full height; with 17.5 dB of lift for a held part in a drum row, aimed at -31. Read in the whole song's master BEFORE any score (both seeds): -31.5 to -30.7 dBFS; between the strokes 7.6 dB over the old music in 150 to 800 Hz (80 of 80 windows) and 3.0 under it in 800 to 3200 Hz
 SING = os.environ.get("C11T7_SING", "1") != "0" and os.environ.get("C11T7_VERN", "1") != "0" and os.environ.get("C11T7_FIVE", "1") != "0" and JET      # v16: the clicks sing (every phase set to nought)
 SING_IN = ("slips", 24, 32)                                          # the section, and the bars of it: the bare row between the vernier and the hat
 SING_OF = "a-ear"                                                    # whose strokes: A's, as they are in those bars
@@ -1048,6 +1066,17 @@ def swarm_ticks():
 
 
 _HUM_MEMO = {}
+
+
+def pole_row():
+    """The first bar (from 0) of the row with the stair without end, or None."""
+    sec = next((x for x in SECS if x[0] == POLE_IN[0]), None)
+    return sec[1] + ROW * POLE_IN[1] if POLE and sec is not None and POLE_IN[1] * ROW < sec[2] else None
+
+
+def pole_span():
+    """(the beat it begins, the beat it ends)."""
+    return (pole_row() + POLE_BARS[0]) * BEATS, (pole_row() + POLE_BARS[1]) * BEATS
 
 
 def buzz_row():
@@ -1869,6 +1898,16 @@ def song():
             doc["tracks"].append({"name": f"buzz-{bz_kind}", "patch": f"os-buzz-{bz_kind}", "gain": BUZZ_GAIN, "pan": 0.0, "notes": [{"at": t, "len": BUZZ_LEN, "pitch": BUZZ_NOTE[0], "vel": 0.8} for t, kd in bz if kd == bz_kind]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v32 in step, a click; out of step, a hum (bars {buzz_row() + 1} to {buzz_row() + len(BUZZ_PAIRS)}): the {BUZZ_TONES[0]}th to the {BUZZ_TONES[1]}th tones of {BUZZ_NOTE[0]} ({BUZZ_TONES[0] * BUZZ_NOTE[1]:.0f} to {BUZZ_TONES[1] * BUZZ_NOTE[1]:.0f} Hz), all at one level, struck on the off beats in pairs: one with every tone begun together (in step once every wave of the note: a tick {BUZZ_NOTE[1]:.0f} times a second) and one with each begun a different part of its own wave late (the same tones at the same levels, and no tick), the order turned round every other pair: {len(bz) // 2} of each. Generated by")
         assert "From v32" in doc["about"]
+    if pole_row() is not None:
+        pl0, pl1 = pole_span(); assert (pl0 // BEATS) % POLE_CYCLE == 0
+        PATCHES["os-pole"] = {"about": "Out of Step's one low note with all its overtones (chirper-zero, 28 Nov, v33): a sawtooth, nothing over 3 kHz, held. Its track carries the engine's barber's pole (five narrow windows an octave apart, all climbing) and a lane that brings it in and takes it out.",
+                              "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": ["saw phase=0"], "filters": ["lp cutoff=3000"], "amp": {"a": "20ms", "d": "0s", "s": 1, "r": "50ms"}}}
+        doc["tracks"].append({"name": "pole", "patch": "os-pole", "gain": POLE_GAIN, "pan": 0.0,
+                              "auto": {"arch": {"points": [["0b", -90], [f"{pl0 - 0.001:g}b", -90], [f"{pl0:g}b", -POLE_FADE[2]], [f"{pl0 + POLE_FADE[0]:g}b", 0], [f"{pl1 - POLE_FADE[1]:g}b", 0], [f"{pl1:g}b", -POLE_FADE[2]], [f"{pl1 + 0.001:g}b", -90]], "curve": 0}},
+                              "fx": [{"type": "barberpole", "low": POLE_LOW, "bands": POLE_BANDS, "spacing": POLE_SPACING, "q": POLE_Q, "cycle": f"{POLE_CYCLE}bar", "mix": 1}, {"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.arch", "amount": 1}]}}],
+                              "notes": [note(pl0, POLE_NOTE[0], pl1 - pl0, 0.8)]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v33 five out of step make a stair without end (bars {pl0 // BEATS + 1} to {pl1 // BEATS}): {POLE_NOTE[0]} with all its overtones, held, through {POLE_BANDS} narrow windows {POLE_SPACING:g} octave apart ({POLE_LOW} Hz and up) that all climb an octave every {POLE_CYCLE} bars, each coming in at the bottom and going out at the top: the overtones are picked out one after another, always upward, and every {POLE_CYCLE} bars the same chord stands there again. Generated by")
+        assert "From v33" in doc["about"]
     return doc
 
 
@@ -1898,6 +1937,9 @@ def lock(k):
 if __name__ == "__main__":
     if os.environ.get("C11T7_SHOW"):
         sec = 60 / BPM * BEATS
+        if pole_row() is not None:
+            pl0, pl1 = pole_span(); pl_sec = pl0 * 60 / BPM
+            print(f"five out of step make a stair without end ({POLE_GAIN}), bars {pl0 // BEATS + 1}-{pl1 // BEATS} ({int(pl_sec) // 60}:{pl_sec % 60:04.1f}): {POLE_NOTE[0]} ({POLE_NOTE[1]:.2f} Hz) held {pl1 - pl0} beats, a sawtooth under 3 kHz ; {POLE_BANDS} windows {POLE_SPACING:g} octave apart from {POLE_LOW} Hz ({POLE_LOW} to {POLE_LOW * 2 ** (POLE_BANDS * POLE_SPACING):.0f} Hz), each a {POLE_Q:g}th of its frequency wide, climbing an octave every {POLE_CYCLE} bars: {(pl1 - pl0) // (BEATS * POLE_CYCLE)} turns ; in over {POLE_FADE[0]} beats and out over {POLE_FADE[1]}, from {POLE_FADE[2]} dB down ; the window that begins a turn at {POLE_LOW * 2:.0f} Hz stands on overtone, beat by beat: " + " ".join(f"{POLE_LOW * 2 * 2 ** (k / (BEATS * POLE_CYCLE)) / POLE_NOTE[1]:.1f}" for k in range(BEATS * POLE_CYCLE)))
         if buzz_row() is not None:
             bz = buzz_stabs(); bz_sec = buzz_row() * BEATS * 60 / BPM; bz_n = BUZZ_TONES[1] - BUZZ_TONES[0] + 1
             print(f"in step, a click; out of step, a hum ({BUZZ_GAIN} each), bars {buzz_row() + 1}-{buzz_row() + len(BUZZ_PAIRS)} ({int(bz_sec) // 60}:{bz_sec % 60:04.1f}): the tones {BUZZ_TONES[0]} to {BUZZ_TONES[1]} of {BUZZ_NOTE[0]} ({BUZZ_NOTE[1]:.2f} Hz: {BUZZ_TONES[0] * BUZZ_NOTE[1]:.0f} to {BUZZ_TONES[1] * BUZZ_NOTE[1]:.0f} Hz), {bz_n} of them at one level ; a stab of {BUZZ_LEN:g} beats on the off beats, in pairs: one in step (every tone begun together: a tick every {1000 / BUZZ_NOTE[1]:.1f} ms) and one out of step (each begun this part of its own wave late: " + " ".join(f"{buzz_late(k):g}" for k in range(BUZZ_TONES[0], BUZZ_TONES[1] + 1)) + ") ; the order turned round every other pair ; pairs a bar: " + " ".join(str(p) for p in BUZZ_PAIRS) + f" ; {len(bz) // 2} of each")
