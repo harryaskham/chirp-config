@@ -436,6 +436,12 @@ In bars 137 to 144 three plain tones, a middle one and one 4.2 Hz to either side
 bars the middle one is in step with the sides and the three swell and sink twice a beat
 (12 dB). For the next two it is turned a quarter of a turn: the same three tones, as loud,
 and hardly a throb (1.3 dB). And again.
+
+v36 (28 Nov): THE WAVE SLIPS UNDER ITS OWN BEAT (C11T7_UNDER=0 takes it out: v35). In bars
+43 to 48 a short note whose beat is G3's (196 a second, the click's own wave) and whose
+tones are 4 to 11 times that. At each step every tone is moved up by the same 24.5 Hz: the
+beat inside the note does not change, the wave under it is an eighth of a turn further on
+at every beat. After eight steps every tone stands where its neighbour stood: the first note.
 """
 import json
 import math
@@ -858,6 +864,17 @@ THROB_EDGE = 10                                        # ms a note takes to come
 THROB_FADE = (4, 24)                                   # the last note goes out over this many beats, to this many dB down
 THROB_FLAT = (-1, -1.7, -4.5, -8.1, -10.9, -11, -8.5, -8.6, -12, -14.5, -15.7, -14.7, -11, -9.8, -12.5, -14.4, -15.3, -14, -9.6, -8.4, -12, -14.4, -15.6, -14.5, -8.9, -1.5, -3.6, -7.7, -10.2, -9.9, -7, -7.4, -11.1, -13.7, -15.1, -13.9, -9.4, -7.8, -11.3, -13.8, -14.8, -13.3, -9.4, -9.3, -12.5, -14.6, -15.8, -14.4, -8.3, -0.9, -4.5, -8.6, -11.3, -11.3, -8.5, -8.5, -11.9, -13.7, -13.8, -12.6, -9.7, -9.6, -12.4, -14.5, -15.5, -14.2, -9.5, -8.1, -11.9, -14.3, -15.6, -14.4, -8.5, 0, -3, -7.7, -10.4, -10.4, -7.5, -7.3, -10.9, -13.6, -15, -13.9, -9.3, -7.4, -11.1, -13.7, -14.7, -13.5, -9.7, -9.2, -12.5, -14.7, -15.8, -14.4, -8.3, -0.4, -4.1, -8.3, -11, -11.2, -8.5, -8.5, -12, -14.5, -15.7, -14.7, -11, -9.9, -12.6, -14.6, -15.5, -14.2, -9.7, -8.2, -11.8, -14.3, -15.6, -14.3, -8.6, -0.6, -3.1, -7.5, -10.4, -10.5, -7.6, -7.6, -11.1, -13.1, -14, -13.2, -9.4, -8, -11.3, -13.8, -14.8, -13.3, -9.5, -9.4, -12.5, -14.7, -15.8, -14.4, -8.1, -0.1, -4.2, -8.5, -11.1, -11.2, -8.5, -8.5, -11.8, -13.8, -14.3, -12.9, -9.6, -9.6, -12.5, -14.5, -15.4, -14.1, -9.4, -8.2, -11.9, -14.4, -15.6, -14.3, -8.5, -0.8, -3.7, -8.1, -10.8, -10.7, -7.7, -7.4, -10.9, -13.4, -14.8, -13.7, -9.2, -7.3, -11.1, -13.6, -14.4, -13.1, -9.4, -9.2, -12.5, -14.6, -15.6, -15.2)   # dB on both tracks through every two bars, by twenty-fourth of the beat (192 places): THE MASTER'S OWN THROB TURNED OVER. The first build had none (-40.4 dB), and in the finished song the three tones with the middle one turned, which alone are level within 0.9 dB, read 9.4 dB between their highest and lowest twelfth of the beat: the master's gain on a held tone goes through 15.8 dB in two bars: lowest just after every beat, and 6.9 to 7.7 dB under its highest just after each of the other three sixteenths. This is that reading (bars 139-140, the song's envelope less the bench's, seed 0), 0 at the place the master holds lowest. It is the same in bar 143 within 1.4 dB and under the throb's tops in bars 137-138 and 141-142 within 1.5
 THROB_GAIN = os.environ.get("C11T7_THROB_GAIN", "-26.8dB")   # both tracks. THE BENCH FIRST (the two tracks alone at -20 dB): the middle tone -26.1 dBFS by spectrum; the first build set for -28 in the song with 18.5 dB of lift (a held tone in bars 145 to 152 got 18.0): -40.4 dB. THE LIFT IS NOT ONE NUMBER HERE: 4.9 to 20.7 dB through two bars. The second build is set by the lowest (THROB_FLAT brings every place down to it): -26.8 dB
+UNDER = os.environ.get("C11T7_UNDER", "1") != "0" and THROB   # v36: THE WAVE SLIPS UNDER ITS OWN BEAT: a short note is a beat (G3: 196 a second, the click's own wave) with a wave inside it (plain tones from 4 to 11 times 196 Hz under one window). Move EVERY tone up by the same number of Hz and the beat inside the note is not changed at all, but the wave under it is that much of a turn further on at every beat. The note is said to go sharp by about a seventh of what was added, and sour (de Boer, 1956; Schouten, Ritsma and Cardozo, 1962). After a whole turn (196 Hz) every tone stands where its neighbour stood: it is the first note again. In "slips", where the two clicks slip against each other
+UNDER_IN = ("slips", 2)                                # the section and its row (from 0): bars 41 to 48
+UNDER_FROM = 2                                         # bars into the row it begins: bar 43 (bars 37 to 41 are a short section that carries a form term: nothing is written on its line)
+UNDER_NOTE = "G3"                                      # the beat inside the note: 196.0 a second
+UNDER_RANKS = (4, 11)                                  # the window: from 4 to 11 times the note (784 to 2156 Hz), a sine squared: a tone is as high as the window is where it stands, so the tones add to the same at every step
+UNDER_STEPS = 8                                        # steps to a whole turn: a step moves every tone up by an eighth of 196 Hz (24.5 Hz)
+UNDER_AT = (0.25, 1.75, 2.25, 3.75)                    # beats of the bar a note begins on. Read on v35 FIRST (b/oldat.py: 784 to 2156 Hz over a note's own 0.3 of a beat, from every sixteenth of bars 43 to 48): these four are the quietest (-34.1 to -32.4 dBFS; the loudest sixteenth -28.1)
+UNDER_LEN = 0.3                                        # beats a note lasts (143 ms: 28 beats of the note)
+UNDER_EDGE = (4, 12)                                   # ms it takes to come and to go
+UNDER_TRIM = (2.4, -0.9, 2.9, -0.9, 2.4, -0.9, 3, -0.9, 2.4, -0.9, 3, -0.9, 2.5, -0.9, 3.2, -0.9, 2.5, -0.9, 3.1, -0.9, 2.4, -0.9, 3, -0.9)   # dB on a note, by note: THE FIRST BUILD READ TURNED OVER. With no trims (-38.2 dB) the master put the notes three sixteenths after a beat at -21.7 dBFS, those a sixteenth after the first beat at -24.7 to -24.6 and those a sixteenth after the third at -25.3 to -25.1, the same on both seeds: each note's level less -22.5, turned over, 1.15 times as deep; the largest is taken off all of them and given to the fader
+UNDER_GAIN = os.environ.get("C11T7_UNDER_GAIN", "-35dB")   # every track. THE BENCH FIRST (the eight steps alone at -20 dB): every step -24.8 dBFS, one loudness; the first build set for -23 in the song with 20 dB of lift: -38.2 dB: it read -25.3 to -21.7 (a lift of 21.3 dB three sixteenths after a beat, 18.3 to 18.4 and 17.7 to 17.9 a sixteenth after the first and the third). The second build is set for -22.5 with the trims: -35 dB
 SING = os.environ.get("C11T7_SING", "1") != "0" and os.environ.get("C11T7_VERN", "1") != "0" and os.environ.get("C11T7_FIVE", "1") != "0" and JET      # v16: the clicks sing (every phase set to nought)
 SING_IN = ("slips", 24, 32)                                          # the section, and the bars of it: the bare row between the vernier and the hat
 SING_OF = "a-ear"                                                    # whose strokes: A's, as they are in those bars
@@ -1101,6 +1118,37 @@ def swarm_ticks():
 
 
 _HUM_MEMO = {}
+
+
+def under_row():
+    """The first bar (from 0) of the row in which the wave slips under its own beat, or None."""
+    sec = next((x for x in SECS if x[0] == UNDER_IN[0]), None)
+    return sec[1] + ROW * UNDER_IN[1] if UNDER and sec is not None and UNDER_IN[1] * ROW < sec[2] else None
+
+
+def under_tones(k):
+    """Step k's tones: [(times the note, how high 0 to 1)]: rank n + k / UNDER_STEPS for every whole n in the window, as high as the window (a sine squared from UNDER_RANKS[0] to UNDER_RANKS[1]) is there."""
+    lo, hi = UNDER_RANKS; out = [(n + k / UNDER_STEPS, math.sin(math.pi * (n + k / UNDER_STEPS - lo) / (hi - lo)) ** 2) for n in range(lo, hi)]
+    return [(r, w) for r, w in out if w > 1e-9]
+
+
+def under_layers(k):
+    """The patch's layers for step k: every tone begins at nought, so the beat inside the note is the same at every step."""
+    return [f"sine phase=0 ratio={r:g} level={20 * math.log10(w):.2f}dB" for r, w in under_tones(k)]
+
+
+def under_like(k):
+    """Hz: one over the delay (near one beat of the note) after which step k's wave is most like itself, and the next best if it is nearly as good: [(Hz, likeness 0 to 1)]."""
+    f0 = hz(UNDER_NOTE); tt = under_tones(k); tot = sum(w * w for _, w in tt); r = lambda x: sum(w * w * math.cos(2 * math.pi * rk * f0 / x) for rk, w in tt) / tot
+    xs = [f0 * (0.86 + 0.28 * j / 28000) for j in range(28001)]; rs = [r(x) for x in xs]
+    tops = sorted(((rs[j], xs[j]) for j in range(1, 28000) if rs[j] >= rs[j - 1] and rs[j] > rs[j + 1]), reverse=True)
+    return [(x, v) for v, x in tops[:2] if v >= tops[0][0] - 0.02]
+
+
+def under_notes():
+    """[(note from 0, beat of the song, step)]: UNDER_AT in every bar from bar UNDER_FROM of the row; the first three notes and the last seven are step 0, and between them a step every two notes: the two notes half a beat apart are always the same step."""
+    b0 = (under_row() + UNDER_FROM) * BEATS; n = (ROW - UNDER_FROM) * len(UNDER_AT)
+    return [(i, b0 + (i // len(UNDER_AT)) * BEATS + UNDER_AT[i % len(UNDER_AT)], min(max((i - 1) // 2, 0), UNDER_STEPS) % UNDER_STEPS) for i in range(n)]
 
 
 def throb_row():
@@ -2015,6 +2063,15 @@ def song():
                                   "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.arch", "amount": 1}]}}]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v35 a quarter of a turn and the throb is gone (bars {throb_row() + 1} to {throb_row() + ROW}): three plain tones, a middle one ({THROB_NOTE}) and one {THROB_RATE * BPM / 60:g} Hz to either side; for {THROB_BARS} bars the middle one is in step with the sides and the three swell and sink {THROB_RATE} times a beat; for the next {THROB_BARS} it is turned a quarter of a turn and the same three tones, as loud, hardly throb; and again. Generated by")
         assert "From v35" in doc["about"]
+    if under_row() is not None:
+        un_ = under_notes(); u_top = max(UNDER_TRIM, default=0.0)
+        assert [(round(r, 9), round(w, 9)) for r, w in under_tones(UNDER_STEPS)] == [(round(r, 9), round(w, 9)) for r, w in under_tones(0)]      # a whole turn on, every tone stands where its neighbour stood
+        for k in sorted({q[2] for q in un_}):
+            PATCHES[f"os-under-{k}"] = {"about": f"Out of Step's note for the wave that slips under its own beat (chirper-zero, 28 Nov, v36), step {k} of {UNDER_STEPS}: plain tones at {' '.join(f'{r:g}' for r, _ in under_tones(k))} times the note, under one window; every one {k}/{UNDER_STEPS} of the note higher than a harmonic. Its loudness goes as the square of the velocity.",
+                                        "play": {"vel_sens": 1, "gate": 1}, "synth": {"layers": under_layers(k), "filters": ["lp cutoff=9000"], "amp": {"a": f"{UNDER_EDGE[0]}ms", "d": "0s", "s": 1, "r": f"{UNDER_EDGE[1]}ms"}}}
+            doc["tracks"].append({"name": f"under-{k}", "patch": f"os-under-{k}", "gain": UNDER_GAIN, "pan": 0.0, "notes": [{"at": round(t, 6), "len": UNDER_LEN, "pitch": UNDER_NOTE, "vel": round(10 ** (((UNDER_TRIM[i] if UNDER_TRIM else 0.0) - u_top) / 40), 5)} for i, t, kk in un_ if kk == k]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v36 the wave slips under its own beat (bars {under_row() + UNDER_FROM + 1} to {under_row() + ROW}): a short note whose beat is {UNDER_NOTE}'s and whose every tone is moved up by the same eighth of that at each step: the beat inside the note never changes, the wave under it is an eighth of a turn further on, and after {UNDER_STEPS} steps it is the first note again. Generated by")
+        assert "From v36" in doc["about"]
     return doc
 
 
@@ -2044,6 +2101,9 @@ def lock(k):
 if __name__ == "__main__":
     if os.environ.get("C11T7_SHOW"):
         sec = 60 / BPM * BEATS
+        if under_row() is not None:
+            un_ = under_notes(); u_sec = (under_row() + UNDER_FROM) * BEATS * 60 / BPM; u_f = hz(UNDER_NOTE); u_c = lambda x: 1200 * math.log2(x / u_f)
+            print(f"the wave slips under its own beat ({UNDER_GAIN}), bars {under_row() + UNDER_FROM + 1}-{under_row() + ROW} ({int(u_sec) // 60}:{u_sec % 60:04.1f}): a note of {UNDER_LEN} beats ({UNDER_LEN * 60000 / BPM:.0f} ms) whose beat is {UNDER_NOTE}'s ({u_f:.2f} a second): {len(under_tones(1))} plain tones from {UNDER_RANKS[0]} to {UNDER_RANKS[1]} times it ({UNDER_RANKS[0] * u_f:.0f} to {UNDER_RANKS[1] * u_f:.0f} Hz) under one window ; a step moves every tone up {u_f / UNDER_STEPS:.2f} Hz ; {len(un_)} notes on beats {' '.join(f'{x:g}' for x in UNDER_AT)} of every bar ; steps by note: {' '.join(str(k) for _, _, k in un_)} ; the wave is most like itself after one over (Hz, cents from the note), by step: " + " ; ".join(f"{k}: " + " or ".join(f"{x:.1f} ({u_c(x):+.0f})" for x, _ in under_like(k)) for k in range(UNDER_STEPS)) + (f" ; trims {min(UNDER_TRIM):+.1f} to {max(UNDER_TRIM):+.1f} dB" if UNDER_TRIM else " ; no trims"))
         if throb_row() is not None:
             ts_ = throb_spans(); t_sec = throb_row() * BEATS * 60 / BPM; t_m = THROB_DEPTH
             print(f"a quarter of a turn and the throb is gone ({THROB_GAIN}), bars {throb_row() + 1}-{throb_row() + ROW} ({int(t_sec) // 60}:{t_sec % 60:04.1f}): three plain tones: {THROB_NOTE} ({hz(THROB_NOTE):.1f} Hz) and one {THROB_RATE * BPM / 60:g} Hz to either side, each {20 * math.log10(t_m / 2):.1f} dB under it ; in step (bars " + ", ".join(f"{int(at) // BEATS + 1}-{int(at + ln - 1) // BEATS + 1}" for at, ln, th in ts_ if th) + f"): the three swell and sink {THROB_RATE} times a beat, {1 - t_m:g} to {1 + t_m:g} of the middle tone ({20 * math.log10((1 + t_m) / (1 - t_m)):.1f} dB), the tops on beats {THROB_TOP:g} and {THROB_TOP + 1 / THROB_RATE:g} ; the middle one turned {THROB_TURN:g} of a turn (bars " + ", ".join(f"{int(at) // BEATS + 1}-{int(at + ln - 1) // BEATS + 1}" for at, ln, th in ts_ if not th) + f"): 1 to {(1 + t_m ** 2) ** 0.5:.3f} ({10 * math.log10(1 + t_m ** 2):.1f} dB), {2 * THROB_RATE} times a beat ; the last note goes out over {THROB_FADE[0]} beats ; both tracks' gain follows one lane: the master's own throb turned over, {len(THROB_FLAT)} places through every {THROB_BARS} bars, {min(THROB_FLAT):g} to {max(THROB_FLAT):g} dB")
