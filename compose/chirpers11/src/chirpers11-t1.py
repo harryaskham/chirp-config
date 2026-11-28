@@ -380,6 +380,12 @@ v32 (28 Nov): A BEAT BECOMES A NOTE (C11T1_FUSE=0 takes it out: v31). In bars 89
 one wave of a low tone sounds once a beat; then twice, 4, 8, 16 and 32 times a beat.
 At 32 a beat the waves stand end to end and are one held note: 66.13 Hz, the tempo
 times 32. Then it comes apart the same way. Nothing changes but how often.
+
+v33 (28 Nov): THE TUNE AND ITS RHYTHM GO ROUND AT DIFFERENT SPEEDS (C11T1_TALEA=0 takes it
+out: v32). In bars 9 to 16 the song's tune of eight notes is played to a rhythm of five
+notes a bar (3 3 4 3 3 sixteenths). The rhythm goes round 8 times and the tune 5 times in
+40 notes; they begin together only at the row's two ends. No bar is like another; every
+note of the tune is heard once in each of the bar's five places.
 """
 import json
 import math
@@ -612,6 +618,22 @@ def arrow_lane(n):
     for e in arrow_ends():
         pts += [[f"{e - LIFE_EVERY + 0.001:g}b", low], [f"{e:g}b", 0.0]]
     return {"points": pts + [[f"{BARS * BEATS}b", 0.0]], "curve": 0}
+
+
+def talea_row():
+    """The first bar (from 0) of the row in which the tune and its rhythm go round, or None."""
+    sec = next((x for x in SECS if x[0] == TALEA_IN[0]), None)
+    return sec[1] + ROW * TALEA_IN[1] if TALEA and sec is not None and TALEA_IN[1] * ROW < sec[2] else None
+
+
+def talea_notes():
+    """[(beat it begins, beats to the next, note, place in the rhythm (from 0), place in the tune (from 0))]: ROW bars of the rhythm."""
+    assert sum(TALEA_STEPS) == 4 * BEATS
+    out = []; at = 0
+    for k in range(ROW * len(TALEA_STEPS)):
+        st = TALEA_STEPS[k % len(TALEA_STEPS)]
+        out.append((talea_row() * BEATS + at / 4, st / 4, TALEA_TUNE[k % len(TALEA_TUNE)], k % len(TALEA_STEPS), k % len(TALEA_TUNE))); at += st
+    return out
 
 
 def fuse_row():
@@ -1001,6 +1023,12 @@ FUSE_WAVES = 32                                        # waves of the tone to th
 FUSE_STEPS = ((1, 1), (2, 1), (4, 1), (8, 1), (16, 2), (32, 4), (16, 2), (8, 1), (4, 1), (2, 1), (1, 1))   # (waves a beat, for how many beats): 16 beats, 222 waves
 FUSE_NOTE = ("C2", 65.40639132514966)                  # the note written and its frequency; the patch moves it to the tone
 FUSE_GAIN = os.environ.get("C11T1_FUSE_GAIN", "-30dB")   # the track. THE BENCH FIRST (the track alone at -20 dB): every wave's top -26.0 dBFS; the note -29.0 dBFS; each halving of how many 3.0 dB less. Aimed at -24 to -27 dBFS for the note (the lifts read in bars 94 to 96: 12.4 to 15.1 dB). Read in the whole song's master (both seeds) BEFORE any score: the note -24.7 dBFS (lifted 14.3 dB), the waves' tops -20.4 to -21.1 on most beats
+TALEA = os.environ.get("C11T1_TALEA", "1") != "0" and FUSE   # v33: THE TUNE AND ITS RHYTHM GO ROUND AT DIFFERENT SPEEDS (isorhythm: the talea and the color of the old motets): a rhythm of five notes to the bar and the song's tune of eight notes, each going round and round: the rhythm 8 times and the tune 5 times in the row's 40 notes, and only at the row's two ends do they begin together. No bar is like another, and every note of the tune is heard once in each of the bar's five places
+TALEA_IN = ("the grid", 1)                             # the section and its row (from 0): bars 9 to 16: the drum, the hat and the tick alone. Read on v32 by twelfths of the beat: between the beats 196 to 588 Hz is -32 to -55 dBFS and 98 to 294 Hz -30 to -69
+TALEA_STEPS = (3, 3, 4, 3, 3)                          # the rhythm, in sixteenths from each note to the next: five notes spread as evenly as sixteen sixteenths allow; one bar
+TALEA_TUNE = ("G3", "Bb3", "D4", "C4", "F4", "G4", "Bb4", "D5")   # the tune of give or take a note (bars 73 to 80), whole, before it is given and taken
+TALEA_GAIN = os.environ.get("C11T1_TALEA_GAIN", "-32dB")   # the track, before the trims. THE BENCH FIRST (the track alone at -20 dB, no trims): all 40 tops -26.3 to -25.8 dBFS
+TALEA_EVEN = (8.3, -1.2, 5.8, 6.3, 2.7)                # dB each of the bar's five places is raised, so that the tune comes out at one height. THE FIRST BUILD HAD NONE AND THE MASTER GAVE THE RHYTHM AN ACCENT OF ITS OWN: read in the whole song (the new less the old) the tops were -33.3 dBFS on the beat (under the drum), -23.8 at beat 0.75, -30.8 and -31.3 on the two half beats (under the tick) and -27.7 at beat 3.25: 9.5 dB between the places, so every note of the tune came out at five heights. These bring each to -25 dBFS: read in the whole song's master BEFORE any score (seeds 0 / 11): -25.0, -25.0, -24.9, -25.0, -25.0 / -24.9, -25.0, -24.7, -25.1, -25.0 by place; all 40 tops -26.4 to -22.4 / -26.2 to -23.7
 assert sum(fu_b for _, fu_b in FUSE_STEPS) % BEATS == 0
 BASSB_MODE = os.environ.get("C11T1_BASSB_MODE", "swap")                        # swap: it is heard where deck A's bass is out ; full: wherever deck B's record plays from "no ruler" on
 BASSB_IN = {"swap": ("no ruler", "the stretch", "out"), "full": ("no ruler", "both", "the stretch", "the nudge", "locked", "out")}[BASSB_MODE]
@@ -1776,6 +1804,13 @@ def song():
         doc["tracks"].append({"name": "fuse", "patch": "gt-fuse", "gain": FUSE_GAIN, "pan": 0.0, "notes": [{"at": round(t, 7), "len": round(1 / FUSE_WAVES, 7), "pitch": FUSE_NOTE[0], "vel": 0.8} for t, _ in fu]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v32 a beat becomes a note (bars {fuse_row() + 1} to {fuse_row() + fu_n // BEATS}): one wave of a low tone ({fu_hz:.1f} Hz: {FUSE_WAVES} waves to the beat) once a beat, then {', '.join(str(r) for r, _ in FUSE_STEPS[1:[r for r, _ in FUSE_STEPS].index(FUSE_WAVES)])} and {FUSE_WAVES} times a beat: at {FUSE_WAVES} the waves stand end to end and are one held note of {fu_h} beats, whose pitch is the tempo; then it comes apart the same way. {len(fu)} waves, all alike. Generated by")
         assert "From v32" in doc["about"]
+    if talea_row() is not None:
+        tn = talea_notes()
+        PATCHES["gt-talea"] = {"about": "Give or Take's tune on a soft hammer (chirper-zero, 28 Nov, v33): a plain tone with its octave (-9 dB) and its twelfth (-15 dB), struck and gone in 200 ms; nothing over 7 kHz. Its loudness goes as the square of the velocity.",
+                               "play": {"vel_sens": 1}, "synth": {"layers": ["sine phase=0", "sine phase=0 ratio=2 level=-9dB", "sine phase=0 ratio=3 level=-15dB"], "filters": ["lp cutoff=7000"], "amp": {"a": "1ms", "d": "200ms", "s": 0, "r": "60ms", "curve": 3}}}
+        doc["tracks"].append({"name": "talea", "patch": "gt-talea", "gain": f"{float(TALEA_GAIN[:-2]) + max(TALEA_EVEN):g}dB", "pan": 0.0, "notes": [note(at, p, ln, 10 ** ((TALEA_EVEN[pl] - max(TALEA_EVEN)) / 40)) for at, ln, p, pl, _ in tn]})   # the patch's loudness goes as the square of the velocity: 40 dB for ten times
+        doc["about"] = doc["about"].replace(" Generated by", f" From v33 the tune and its rhythm go round at different speeds (bars {talea_row() + 1} to {talea_row() + ROW}): a rhythm of {len(TALEA_STEPS)} notes to the bar ({' '.join(str(x) for x in TALEA_STEPS)} sixteenths) and the tune of {len(TALEA_TUNE)} notes ({' '.join(TALEA_TUNE)}): in {len(tn)} notes the rhythm goes round {len(tn) // len(TALEA_STEPS)} times and the tune {len(tn) // len(TALEA_TUNE)}; they begin together only at the row's two ends. Generated by")
+        assert "From v33" in doc["about"]
     return doc
 
 
@@ -1792,6 +1827,9 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if talea_row() is not None:
+            tn = talea_notes(); tl_sec = talea_row() * BEATS * 60 / BPM
+            print(f"the tune and its rhythm go round ({TALEA_GAIN}), bars {talea_row() + 1}-{talea_row() + ROW} ({int(tl_sec) // 60}:{tl_sec % 60:04.1f}): the rhythm {' '.join(str(x) for x in TALEA_STEPS)} sixteenths ({len(TALEA_STEPS)} notes a bar, on beats {' '.join(f'{(t[0] - talea_row() * BEATS):g}' for t in tn[:len(TALEA_STEPS)])}) ; the tune {' '.join(TALEA_TUNE)} ({len(TALEA_TUNE)} notes) ; {len(tn)} notes: the rhythm {len(tn) // len(TALEA_STEPS)} times, the tune {len(tn) // len(TALEA_TUNE)} times ; bar by bar: " + " | ".join(" ".join(t[2] for t in tn[b * len(TALEA_STEPS):(b + 1) * len(TALEA_STEPS)]) for b in range(ROW)) + f" ; raised by place (dB): {' '.join(f'{x:+g}' for x in TALEA_EVEN)} ; each note of the tune in each place of the bar once: {sorted({(t[3], t[4]) for t in tn}) == [(i, j) for i in range(len(TALEA_STEPS)) for j in range(len(TALEA_TUNE))]}")
         if fuse_row() is not None:
             fu = fuse_waves(); fu_n = sum(b for _, b in FUSE_STEPS); fu_hz = BPM / 60 * FUSE_WAVES; fu_h = next(b for r, b in FUSE_STEPS if r == FUSE_WAVES)
             print(f"a beat becomes a note ({FUSE_GAIN}), bars {fuse_row() + 1}-{fuse_row() + fu_n // BEATS} ({int(fuse_row() * BEATS * 60 / BPM) // 60}:{fuse_row() * BEATS * 60 / BPM % 60:04.1f}): one wave of {fu_hz:.2f} Hz ({FUSE_WAVES} waves to the beat: {FUSE_NOTE[0]} {1200 * math.log2(fu_hz / FUSE_NOTE[1]):+.0f} cents ; {1000 / fu_hz:.2f} ms), all alike ; waves a beat, beat by beat: " + " ".join(str(r) for r, b in FUSE_STEPS for _ in range(b)) + f" ; {len(fu)} waves ; at {FUSE_WAVES} a beat they stand end to end: one held note of {fu_h} beats ({fu_h * 60 / BPM:.2f} s)")
