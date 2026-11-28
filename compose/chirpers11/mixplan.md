@@ -94,6 +94,12 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Wind Down v26 (06:37): both ends as they were to 0.1 dB: bars 1 to 8 by two -30.0 -30.2 -30.0 -30.1 dBFS;
+  from the last stroke by second -10.4 -21.1 -33.5 -40.7 -42.9 -44.8 -43.1 -45.0 -35.6; highest sample -1.30
+  (seed 11: -30.1 -30.2 -30.0 -30.0; -9.8 -19.9 -32.8 -40.4 -43.0 -44.9 -43.2 -45.0 -35.6). Inside: a dry low
+  wooden knock every eleven beats from bar 113 (3:37), 269.5 Hz rising to 294 Hz, -13 dBFS from 200 to 350 Hz;
+  its 33rd is ON the album's last stroke, with the hour bell (-12.0 dBFS there for about a seventh of a second):
+  meant (Least Common's eleven, which misses that song's home by a beat, comes home here).
 - Ring True v26 (06:04): both ends 0.12 dB lower through the loudness target (the song has a tune now, bars 37
   to 165; nothing written before bar 37 or after bar 166): bars 1 to 8 by two -17.90 -17.92 -17.94 -17.92 dBFS
   (was -17.78 -17.79 -17.82 -17.80); bars 169-176 -17.03 (was -16.88); bars 177-183 -17.67 (was -17.55); bar 184
