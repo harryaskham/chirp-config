@@ -436,6 +436,10 @@ v37 (28 Nov): THE WIDER, THE LOUDER (C11T5_SPREAD=0 takes it out: v36). In bars 
 pips that read the same on a meter: one plain tone (E5), and four plain tones (A4 E5 A5 E6)
 each a quarter of its power. The ear adds loudness band by band, so the spread one is said
 to sound louder. Two bars alike on the meter; then the spread one is really 3 dB down, then 6.
+
+v38 (28 Nov): THE ODD ONE OUT SEEMS LONGER (C11T5_ODD=0 takes it out: v37). In bars 185 to
+192 a plain note on every beat, every one held the same 300 ms. Every seventh is another
+note. Nothing else about it is different.
 """
 import json
 import math
@@ -758,6 +762,18 @@ def para_tones(p):
         if level >= PARA_FLOOR:
             out.append((PARA_APART ** k, f, level))
     return out
+
+
+def odd_row():
+    """The first bar (from 0) of the row in which the odd one out seems longer, or None."""
+    sec = next((x for x in SECS if x[0] == ODD_IN[0]), None)
+    return sec[1] + ROW * ODD_IN[1] if ODD and sec is not None and ODD_IN[1] * ROW < sec[2] else None
+
+
+def odd_notes():
+    """[(note from 0, beat of the song, True if it is the odd one)]: a note a beat for ROW bars."""
+    b0 = odd_row() * BEATS; n = ROW * BEATS; assert len(ODD_TRIM) == n and ODD_AT + ODD_LEN < 1
+    return [(i, b0 + i + ODD_AT, i >= ODD_FIRST and (i - ODD_FIRST) % ODD_EVERY == 0) for i in range(n)]
 
 
 def spread_row():
@@ -1327,6 +1343,17 @@ SPREAD_EDGE = (4, 10)                                  # ms it takes to come and
 SPREAD_DOWN = (0, 3, 6)                                # dB the spread pip is really turned down, 2 bars each
 SPREAD_TRIM = (4.8, 3.7, 4.5, 2.9, 2.3, 2.3, 3.2, 4.2, 2.9, 4.7, 3.4, 2.2)   # dB on a pip, by pip: THE FIRST BUILD READ TURNED OVER. With no trims (-28.5 dB) the master delivered the one tone at -22.1 to -19.9 dBFS and the spread pip against it at +0.9, -1.5, -3.1, -2.2, -7.6 and -7.1 dB bar by bar where 0, 0, -3, -3, -6 and -6 are written, the same on both seeds: each pip's level less what it should read (-18, less what it is written down), turned over, 1.15 times as deep
 SPREAD_GAIN = os.environ.get("C11T5_SPREAD_GAIN", "-23.7dB")   # both tracks. THE BENCH FIRST (the two pips alone at -20 dB): each -29.0 dBFS on the meter (the spread one's highest sample 4.9 dB over the one tone's); the first build set for -18 in the song with 19.5 dB of lift: -28.5 dB: it read -22.1 to -19.9 (a lift of 15.4 to 17.6 dB). The second build is set for -18 with the trims: -23.7 dB
+ODD = os.environ.get("C11T5_ODD", "1") != "0" and SPREAD   # v38: THE ODD ONE OUT SEEMS LONGER: a plain note on every beat, every one held the same 300 ms; every seventh is another note. The one that is not like its fellows is said to seem longer than they are (the oddball effect: Tse, Intriligator, Rivest and Cavanagh, 2004)
+ODD_IN = ("out", 0)                                    # the section and its row (from 0): bars 185 to 192, the last row with the drum; nothing is written after bar 192
+ODD_AT = 0.25                                          # beat of every beat a note begins on: a sixteenth after the drum
+ODD_LEN = 0.625                                        # beats a note is held (300 ms)
+ODD_NOTE = "C5"                                        # the note that repeats. IT WAS FIRST B4 (493.9 Hz): the scorer's band at 468 Hz stood at +6.0, on its edge, and B4 took it to +6.5 (charged 0.5); and B4 with G flat is not in the song's key. C5 is in the next band (547 Hz, +3.3) and in the key
+ODD_OTHER = "G4"                                       # the odd one: a fourth below (first G flat 4, under B4)
+ODD_FIRST = 5                                          # the first odd one (notes from 0)
+ODD_EVERY = 7                                          # and every this many after it: never twice in the same place of the bar
+ODD_EDGE = (10, 10)                                    # ms a note takes to come and to go
+ODD_TRIM = (-2, -2.1, -1.9, -1.6, -1.1, 0.6, -0.9, -1.9, -1.2, -0.8, -1.1, 0.8, -1, -0.3, -0.7, 1.2, -0.2, -1.8, -0.8, 0.4, -1.8, 0.4, -1.8, 0.5, -1.3, -1.3, 1.7, -0.6, -1.3, -1.9, -1.7, -2)   # dB on a note, note by note. MEASURED, NOT REASONED: with no trims (-26 dB) the master gave the 32 notes -21.5 to -18.1 dBFS, the odd ones 1.4 to 2.3 dB under their neighbours but for one 1.1 over (the two seeds within 0.02 dB): each note's level less -20, turned over and written 1.15 times as deep
+ODD_GAIN = os.environ.get("C11T5_ODD_GAIN", "-28.3dB")   # THE BENCH FIRST (the track alone at -20 dB): every note -29.0 dBFS and 297.7 ms long (between the points 6 dB under its level), the odd ones as their fellows; the first build set for -20 in the song with 15 dB of lift; the second build: the trims' top (1.7) added to the first build's -26 dB; THE THIRD BUILD: 4 dB lower (the second raised its own row 0.37 dB and turned every other row down by up to 0.1), and the notes a semitone up; the trims are the second build's, fitted on B4 and G flat 4
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1926,6 +1953,13 @@ def song():
             doc["tracks"].append({"name": f"spread-{nm}", "patch": f"ht-spread-{nm}", "gain": SPREAD_GAIN, "pan": 0.0, "notes": [{"at": round(t, 6), "len": SPREAD_LEN, "pitch": SPREAD_NOTE, "vel": round(10 ** ((s_lv[i] - s_top) / 40), 5)} for i, t, wide, _ in sp_ if wide == w0]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v37 the wider, the louder (bars {spread_row() + SPREAD_FROM + 1} to {spread_row() + ROW}): two pips that read the same on a meter, one a single plain tone and one of {len(SPREAD_TONES)} tones spread over an octave and a half; then the spread one is really turned down, {' and '.join(str(d) for d in SPREAD_DOWN[1:])} dB. Generated by")
         assert "From v37" in doc["about"]
+    if odd_row() is not None:
+        od_ = odd_notes(); d_top = max(ODD_TRIM)
+        PATCHES["ht-odd"] = {"about": f"Hearing Things' plain note for the odd one out (chirper-zero, 28 Nov, v38): one sine, {ODD_EDGE[0]} ms to come and {ODD_EDGE[1]} to go. Its loudness goes as the square of the velocity.",
+                             "play": {"vel_sens": 1, "gate": 1}, "synth": {"layers": ["sine phase=0"], "filters": ["lp cutoff=6000"], "amp": {"a": f"{ODD_EDGE[0]}ms", "d": "0s", "s": 1, "r": f"{ODD_EDGE[1]}ms"}}}
+        doc["tracks"].append({"name": "odd", "patch": "ht-odd", "gain": ODD_GAIN, "pan": 0.0, "notes": [{"at": round(t, 6), "len": ODD_LEN, "pitch": ODD_OTHER if odd else ODD_NOTE, "vel": round(10 ** ((ODD_TRIM[i] - d_top) / 40), 5)} for i, t, odd in od_]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v38 the odd one out seems longer (bars {odd_row() + 1} to {odd_row() + ROW}): a plain note on every beat, every one held the same {ODD_LEN * 60000 / BPM:.0f} ms; every seventh is another note, and is said to seem longer than its fellows. Generated by")
+        assert "From v38" in doc["about"]
     return doc
 
 
@@ -1942,6 +1976,9 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T5_SHOW"):
+        if odd_row() is not None:
+            od_ = odd_notes(); d_sec = odd_row() * BEATS * 60 / BPM
+            print(f"the odd one out seems longer ({ODD_GAIN}), bars {odd_row() + 1}-{odd_row() + ROW} ({int(d_sec) // 60}:{d_sec % 60:04.1f}): {len(od_)} plain notes, one on beat {ODD_AT:g} of every beat, every one held {ODD_LEN:g} of a beat ({ODD_LEN * 60000 / BPM:.0f} ms) ; {ODD_NOTE} ({hz(ODD_NOTE):.1f} Hz), but notes " + " ".join(str(i + 1) for i, _, odd in od_ if odd) + f" are {ODD_OTHER} ({hz(ODD_OTHER):.1f} Hz): bar and beat " + " ".join(f"{int(t) // BEATS + 1}.{int(t) % BEATS + 1}" for _, t, odd in od_ if odd) + (f" ; trims {min(ODD_TRIM):+.1f} to {max(ODD_TRIM):+.1f} dB" if any(ODD_TRIM) else " ; no trims"))
         sec = 60 / BPM * BEATS
         if spread_row() is not None:
             sp_ = spread_pips(); s_sec = (spread_row() + SPREAD_FROM) * BEATS * 60 / BPM; s_f = hz(SPREAD_NOTE)
