@@ -452,6 +452,11 @@ Outside the door (bars 153 to 160) one plain pip a beat, always in the middle, t
 both ears and nearly as loud, comes down sixteen notes from D7 to D4 and climbs them again. A note is
 said to seem to come from higher up the higher its pitch, wherever it really comes from
 (Pratt, 1930; Roffler and Butler, 1968). Nothing but the note changes.
+
+v37 (28 Nov): THE PIPE NARROWS: A CLOUD BECOMES A POINT (C11T3_CLOUD=0 takes it out: v36).
+In bars 73 to 79 a short hiss a sixteenth after every beat, written as loud in each ear all the way.
+At first each ear has a hiss of its own: a cloud. Bar by bar more of it is one hiss given to
+both ears, and in the last two bars it is all one hiss: a point. Nothing is panned.
 """
 import json
 import math
@@ -858,6 +863,16 @@ RUNG_MS = 90                                           # ms a pip lasts
 RUNG_EDGE = 8                                          # ms it takes to come and to go
 RUNG_TRIM = (-1.2,) * 16 + (0.0,) + (-1.2,) * 15       # dB off each pip in turn (by velocity). In the first build every pip a sixteenth after its beat read -28.1 dBFS but the first of bar 157, which read -29.3 (the thing going past is closest there and the master gives way): that one is left whole and the others taken down to it
 RUNG_GAIN = os.environ.get("C11T3_RUNG_GAIN", "-40.7dB")   # THE BENCH FIRST (the track alone at -20 dB): every pip -26.0 dBFS, the same in both ears; the first build set for -30 in the song with 20 dB of lift (a pip a third after the beat in bars 146 to 152 got 19.2 to 22.4): -44 dB: it got 21.9 and read -28.1. The second build is set for -26: -40.7 dB with the trims
+CLOUD = os.environ.get("C11T3_CLOUD", "1") != "0" and RUNG   # v37: THE PIPE NARROWS: A CLOUD BECOMES A POINT. A short hiss a sixteenth after every beat of the pipes. Each ear gets a hiss as loud as before, bar after bar; the only thing that changes is how alike the two ears' hisses are. Two different hisses, one to an ear, are a cloud that fills the head; the same hiss in both is a point in the middle (the same signal in both ears is one source). In between, part of each: the cloud draws in. Nothing is panned and nothing is turned up or down
+CLOUD_IN = ("the pipes", 0)                            # the section and its row (from 0): bars 73 to 80
+CLOUD_BARS = 7                                         # bars it lasts: bars 73 to 79 (bar 80 is left empty before the door shuts on bar 81)
+CLOUD_AT = (0.25, 1.25, 2.25, 3.25)                    # beats of the bar a hiss begins on: a sixteenth after the beat. Read on v36 FIRST (b/rowband2.py: 2000 to 7000 Hz under a stroke of a quarter of a beat, row by row and sixteenth by sixteenth): of the rows outside the first and the last section the pipes have the least under a stroke a sixteenth after the beat (the middle of its 32 beats -46.4 dBFS, the next row's -43.9; the loudest of the 32 -29.1)
+CLOUD_LIKE = (0, 0, 0.25, 0.5, 0.75, 1, 1)             # how alike the two ears' hisses are, bar by bar: the share of each ear's power that is the hiss both ears have
+CLOUD_LEN = 0.25                                       # beats a hiss lasts (119 ms)
+CLOUD_BAND = (3000, 7000)                              # Hz: v36's bands from 4213 to 7895 Hz read 0.1 to 3.8 dB under the album; the hiss's power over 10 kHz is 37.4 dB under all of it
+CLOUD_EDGE = (3, 12)                                   # ms it takes to come and to go
+CLOUD_TRIM = (0.0, 0.0, 0.0, 0.0)                      # dB on a hiss, by beat of the bar: none
+CLOUD_GAIN = os.environ.get("C11T3_CLOUD_GAIN", "-26.3dB")   # the three tracks. THE BENCH FIRST (the three alone at -20 dB): an ear's level -44.4 to -43.3 dBFS (the middle -43.7: every hiss is a new one); the one build set for -30 in the song with 20 dB of lift: it came out -28.1 / -28.4 (seeds 0 / 11: a lift of 21.9 / 21.6) and was left
 AIR_PAN = 0.4                                          # the other ear
 RAIL_VEL = 0.8
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
@@ -1187,6 +1202,18 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def cloud_row():
+    """The first bar (from 0) of the row in which a cloud becomes a point, or None."""
+    sec = next((x for x in SECS if x[0] == CLOUD_IN[0]), None)
+    return sec[1] + ROW * CLOUD_IN[1] if CLOUD and sec is not None and CLOUD_IN[1] * ROW < sec[2] else None
+
+
+def cloud_bursts():
+    """[(hiss from 0, beat of the song, how alike the two ears are 0 to 1, beat of the bar's place in CLOUD_AT)]: CLOUD_AT in each of CLOUD_BARS bars."""
+    b0 = cloud_row() * BEATS; n = len(CLOUD_AT); assert len(CLOUD_LIKE) == CLOUD_BARS <= ROW
+    return [(i, b0 + (i // n) * BEATS + CLOUD_AT[i % n], CLOUD_LIKE[i // n], i % n) for i in range(CLOUD_BARS * n)]
 
 
 def rung_row():
@@ -2203,6 +2230,14 @@ def song():
         doc["tracks"].append({"name": "rung", "patch": "sr-rung", "gain": RUNG_GAIN, "pan": 0.0, "notes": [{"at": at, "len": round(RUNG_MS / 1000 * BPM / 60, 6), "pitch": rung_note(k), "vel": v} for at, k, v in rung_pips()]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v36 the higher the note, the higher it hangs (bars {rung_row() + 1} to {rung_row() + ROW}): one plain pip a beat, always in the middle and the same in both ears, comes down {RUNG_N} notes from {rung_note(RUNG_N - 1)} to {rung_note(0)} and climbs them again; nothing but its note changes, and a higher note is said to seem to come from higher up (Pratt, 1930). Generated by")
         assert "From v36" in doc["about"]
+    if cloud_row() is not None:
+        cb_ = cloud_bursts(); c_top = max(CLOUD_TRIM); c_vel = lambda share, q: round(share ** 0.25 * 10 ** ((CLOUD_TRIM[q] - c_top) / 40), 5)
+        PATCHES["sr-cloud"] = {"about": f"Standing Room's short hiss for the cloud that becomes a point (chirper-zero, 28 Nov, v37): the engine's white noise from {CLOUD_BAND[0]} to {CLOUD_BAND[1]} Hz, {CLOUD_EDGE[0]} ms to come and {CLOUD_EDGE[1]} to go. Every note of it is a new hiss, and two tracks of it are two different hisses. Its loudness goes as the square of the velocity.",
+                               "play": {"vel_sens": 1, "gate": 1}, "synth": {"layers": ["white"], "filters": [f"hp cutoff={CLOUD_BAND[0]}"] * 2 + [f"lp cutoff={CLOUD_BAND[1]}"] * 4, "amp": {"a": f"{CLOUD_EDGE[0]}ms", "d": "0s", "s": 1, "r": f"{CLOUD_EDGE[1]}ms"}}}
+        for nm, pan, mid in (("cloud-c", 0.0, True), ("cloud-l", -1.0, False), ("cloud-r", 1.0, False)):
+            doc["tracks"].append({"name": nm, "patch": "sr-cloud", "gain": CLOUD_GAIN, "pan": pan, "notes": [{"at": round(t, 6), "len": CLOUD_LEN, "pitch": "A4", "vel": c_vel(like if mid else 1 - like, q)} for _, t, like, q in cb_ if (like if mid else 1 - like) > 0]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v37 the pipe narrows (bars {cloud_row() + 1} to {cloud_row() + CLOUD_BARS}): a short hiss a sixteenth after every beat, written as loud in each ear all the way; first each ear has a hiss of its own (a cloud), then more and more of it is the same hiss in both, and at the end it is one hiss (a point). Generated by")
+        assert "From v37" in doc["about"]
     return doc
 
 
@@ -2258,6 +2293,9 @@ def echoes(a, b, n=16):
 
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
+        if cloud_row() is not None:
+            cb_ = cloud_bursts(); c_sec = cloud_row() * BEATS * 60 / BPM
+            print(f"the pipe narrows: a cloud becomes a point ({CLOUD_GAIN}), bars {cloud_row() + 1}-{cloud_row() + CLOUD_BARS} ({int(c_sec) // 60}:{c_sec % 60:04.1f}): {len(cb_)} hisses of {CLOUD_LEN} of a beat ({CLOUD_LEN * 60000 / BPM:.0f} ms), {CLOUD_BAND[0]} to {CLOUD_BAND[1]} Hz, on beats {' '.join(f'{x:g}' for x in CLOUD_AT)} of every bar ; three tracks of one patch: one in the middle (the same hiss to both ears) and one to each ear alone (two different hisses) ; how alike the two ears are, bar by bar: {' '.join(f'{x:g}' for x in CLOUD_LIKE)} ; each ear's power the same throughout: the middle track's share of it is that number" + (f" ; trims by beat of the bar {' '.join(f'{x:+.1f}' for x in CLOUD_TRIM)} dB" if any(CLOUD_TRIM) else " ; no trims"))
         if rung_row() is not None:
             rp_ = rung_pips(); r_sec = rung_row() * BEATS * 60 / BPM
             print(f"the higher the note, the higher it hangs ({RUNG_GAIN}), bars {rung_row() + 1}-{rung_row() + ROW} ({int(r_sec) // 60}:{r_sec % 60:04.1f}): a plain pip ({RUNG_MS} ms) on beats " + ", ".join(f"{q + x:g}" for q, x in enumerate(RUNG_AT)) + f" of every bar, in the middle, no room ; {RUNG_N} rungs down ({rung_note(RUNG_N - 1)} {hz(rung_note(RUNG_N - 1)):.1f} Hz to {rung_note(0)} {hz(rung_note(0)):.1f} Hz: " + " ".join(rung_note(k) for k in range(RUNG_N - 1, -1, -1)) + f") and the same {RUNG_N} up ; {len(rp_)} pips ; velocities {min(v for _, _, v in rp_):g} to {max(v for _, _, v in rp_):g}" + (f" (trims {min(RUNG_TRIM):g} to {max(RUNG_TRIM):g} dB)" if RUNG_TRIM else " (no trims)"))
