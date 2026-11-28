@@ -393,6 +393,12 @@ and Morse's sequence) as a rhythm on the sixteenths of bars 113 to 120. Every se
 of it is the same rhythm at half the speed, every fourth at a quarter: three voices play it
 at the three speeds, the slower the lower, and a slower one never strikes where a faster
 one rests.
+
+v35 (28 Nov): THE BEAT THAT SPEEDS UP FOR EVER (C11T1_FASTER=0 takes it out: v34). In bars
+121 to 128 a pip is struck faster and faster: twice as fast after every two bars, and after
+every two bars exactly where it began. Four beats at once, each twice as fast as the one
+below, all speeding up alike; the fastest fades out and a new slowest fades in under it
+(Risset's rhythm: the stair without end, made of time).
 """
 import json
 import math
@@ -625,6 +631,26 @@ def arrow_lane(n):
     for e in arrow_ends():
         pts += [[f"{e - LIFE_EVERY + 0.001:g}b", low], [f"{e:g}b", 0.0]]
     return {"points": pts + [[f"{BARS * BEATS}b", 0.0]], "curve": 0}
+
+
+def faster_row():
+    """The first bar (from 0) of the row in which a beat speeds up for ever, or None."""
+    sec = next((x for x in SECS if x[0] == FASTER_IN[0]), None)
+    return sec[1] + ROW * FASTER_IN[1] if FASTER and sec is not None and FASTER_IN[1] * ROW < sec[2] else None
+
+
+def faster_strokes():
+    """[(turn, stroke of the fastest beat (from 0), beat of the song, loudness 0 to 1, the beats it is a stroke of (0 the slowest))].
+    Through a turn of T beats the kth beat's speed is r 2^(k + t/T) strokes a beat, with r T = FASTER_N ln 2, so its jth stroke falls at T log2(1 + j / (FASTER_N 2^k)).
+    A beat's loudness is half of 1 less the cosine of a whole turn over all the beats: nothing at the slowest speed of the slowest and the fastest of the fastest, and they add to the same at every moment."""
+    out = []; M = FASTER_N * 2 ** (FASTER_LAYERS - 1)
+    for turn in range(ROW * BEATS // FASTER_TURN):
+        for j in range(M):
+            x = math.log2(1 + j / M); ks = tuple(k for k in range(FASTER_LAYERS) if j % 2 ** (FASTER_LAYERS - 1 - k) == 0)
+            amp = sum(0.5 * (1 - math.cos(2 * math.pi * (k + x) / FASTER_LAYERS)) for k in ks) / (FASTER_LAYERS / 2)
+            if amp > 0 and 20 * math.log10(amp) >= FASTER_FLOOR:
+                out.append((turn, j, faster_row() * BEATS + FASTER_FROM + (turn + x) * FASTER_TURN, amp, ks))
+    return out
 
 
 def fair_row():
@@ -1059,6 +1085,17 @@ FAIR_NOTES = ("G6", "D6", "G5")                        # each voice's note: 1568
 FAIR_MS = 45                                           # ms a stroke is held: a plain pip
 FAIR_TRIM = (-0.3, -5.9, -3.6, -4.7, -0.5, -5.9, -5.8, -8.9, -0.5, -6.0, -3.4, -5.4, 0.0, -5.8, -4.7, -8.3)   # dB (0 or less) on a stroke by the sixteenth of the bar it falls on, by its velocity. THE FIRST BUILD HAD NONE (-32.3 dB): in the finished song G6's strokes came out, by sixteenth of the bar (the middle of four), -33.6 -28.0 -30.3 -29.2 -33.4 -28.0 -28.1 -25.0 -33.4 -27.9 -30.5 -28.5 -33.9 -28.1 -29.2 -25.6 dBFS: 8.9 dB between the beat and the sixteenth before the next. These are that reading turned over, for -27 everywhere
 FAIR_GAIN = os.environ.get("C11T1_FAIR_GAIN", "-25.4dB")   # every voice's track. THE BENCH FIRST (the three tracks alone at -20 dB, no trims): G6's tops -25.7 dBFS (the middle); the first build was set for -38 on the bench (-32.3 dB); the second is 6.9 dB up with the trims. THE SECOND BUILD READ (both seeds, before any score): G6 by sixteenth of the bar -27.1 to -27.0 / -27.5 to -26.4 dBFS; D6 -27.6 to -26.8 / -27.9 to -26.3; G5 -28.5 to -27.4 / -28.5 to -27.6
+FASTER = os.environ.get("C11T1_FASTER", "1") != "0" and FAIR   # v35: THE BEAT THAT SPEEDS UP FOR EVER (Risset's rhythm: the stair without end, made of time): a pip is struck faster and faster, twice as fast after every two bars, and two bars later it is exactly where it began. It is several beats at once, each twice as fast as the one below and every one of them speeding up alike; the fastest fades out as it goes and a new slowest fades in under it, so that after a turn each has become the next and the whole is what it was
+FASTER_IN = ("locked", 1)                              # the section and its row (from 0): bars 121 to 128: everything else is on the grid here. Read on v34: 1000 and 1300 Hz are -39 to -50 dBFS through the beat in this row
+FASTER_TURN = 8                                        # beats in a turn: every beat of it doubles its speed in this time (2 bars)
+FASTER_N = 4                                           # strokes of the slowest beat in a turn; the next has twice as many, and so on
+FASTER_LAYERS = 4                                      # beats at once: 4, 8, 16 and 32 strokes a turn. A stroke of a slower beat is always a stroke of every faster one
+FASTER_FROM = 0.25                                     # the beat of the bar a turn begins on: a sixteenth after the line, off the drum
+FASTER_NOTE = "D6"                                     # the pip (1174.7 Hz)
+FASTER_MS = 25                                         # ms a pip lasts
+FASTER_EDGE = 3                                        # ms it takes to come and to go
+FASTER_FLOOR = -30.0                                   # dB under the loudest: a stroke written lower than this is left out
+FASTER_GAIN = os.environ.get("C11T1_FASTER_GAIN", "-28.3dB")   # the track. THE BENCH FIRST (the track alone at -20 dB): a stroke of all the beats -25.7 dBFS at its top; set for -24 in the song with the 10 dB the master gave a pip a sixteenth after the beat in bars 113 to 120. THE BUILD READ (both seeds, before any score): the strokes of all the beats -27.4 to -22.9 dBFS (the middle -24.4); a stroke written -6 dB or more is off what is written by -3.0 to +4.4 dB: the master, stroke by stroke (not by where in the beat it falls: by sixteenth the middles are within 1.0 dB). LEFT AS IT IS: a table of 104 trims would mend it
 assert sum(fu_b for _, fu_b in FUSE_STEPS) % BEATS == 0
 BASSB_MODE = os.environ.get("C11T1_BASSB_MODE", "swap")                        # swap: it is heard where deck A's bass is out ; full: wherever deck B's record plays from "no ruler" on
 BASSB_IN = {"swap": ("no ruler", "the stretch", "out"), "full": ("no ruler", "both", "the stretch", "the nudge", "locked", "out")}[BASSB_MODE]
@@ -1849,6 +1886,13 @@ def song():
             doc["tracks"].append({"name": f"fair-{st}", "patch": "gt-fair", "gain": FAIR_GAIN, "pan": 0.0, "notes": [{"at": round(at, 7), "len": f_len, "pitch": FAIR_NOTES[j], "vel": round(10 ** (FAIR_TRIM[pl] / 40), 5)} for at, v, _, pl in fs if v == j]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v34 one rhythm goes at three speeds and they never disagree (bars {fair_row() + 1} to {fair_row() + ROW}): the fair way to take turns (strike place n if n written in twos has an even number of ones) played on the sixteenths, on the eighths and on the beats at once, each speed on its own note; every second place of the rhythm is the same rhythm at half the speed, so a slower voice never strikes where a faster one rests. Generated by")
         assert "From v34" in doc["about"]
+    if faster_row() is not None:
+        fs_ = faster_strokes()
+        PATCHES["gt-faster"] = {"about": f"Give or Take's pip for the beat that speeds up for ever (chirper-zero, 28 Nov, v35): a plain tone, {FASTER_MS} ms, {FASTER_EDGE} ms to come and to go. Its loudness goes as the square of the velocity.",
+                                "play": {"vel_sens": 1, "gate": 1}, "synth": {"layers": ["sine phase=0"], "filters": ["lp cutoff=7000"], "amp": {"a": f"{FASTER_EDGE}ms", "d": "0s", "s": 1, "r": f"{FASTER_EDGE}ms"}}}
+        doc["tracks"].append({"name": "faster", "patch": "gt-faster", "gain": FASTER_GAIN, "pan": 0.0, "notes": [{"at": round(t, 6), "len": round(FASTER_MS / 1000 * BPM / 60, 6), "pitch": FASTER_NOTE, "vel": round(amp ** 0.5, 5)} for _, _, t, amp, _ in fs_]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v35 a beat speeds up for ever (bars {faster_row() + 1} to {faster_row() + ROW}): a pip struck faster and faster, twice as fast after every {FASTER_TURN // BEATS} bars, and after every {FASTER_TURN // BEATS} bars exactly where it began: {FASTER_LAYERS} beats at once, each twice as fast as the one below, all speeding up alike, the fastest fading out and a new slowest fading in (Risset's rhythm). Generated by")
+        assert "From v35" in doc["about"]
     return doc
 
 
@@ -1865,6 +1909,9 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if faster_row() is not None:
+            fs_ = faster_strokes(); f_sec = faster_row() * BEATS * 60 / BPM; f_ms = 60000 / BPM; f_t = [q for q in fs_ if q[0] == 0]
+            print(f"the beat that speeds up for ever ({FASTER_GAIN}), bars {faster_row() + 1}-{faster_row() + ROW} ({int(f_sec) // 60}:{f_sec % 60:04.1f}): a pip ({FASTER_NOTE}, {FASTER_MS} ms) ; a turn is {FASTER_TURN} beats, from beat {FASTER_FROM:g} of every {FASTER_TURN // BEATS} bars ; {FASTER_LAYERS} beats at once of {', '.join(str(FASTER_N * 2 ** k) for k in range(FASTER_LAYERS))} strokes a turn ; each one's first gap and last gap in a turn (ms): " + " ; ".join(f"{FASTER_TURN * math.log2(1 + 1 / (FASTER_N * 2 ** k)) * f_ms:.0f} to {FASTER_TURN * (1 - math.log2(2 - 1 / (FASTER_N * 2 ** k))) * f_ms:.0f}" for k in range(FASTER_LAYERS)) + f" ; {len(f_t)} strokes a turn, {len(fs_)} in all (those under {FASTER_FLOOR:g} dB left out) ; a stroke of all {FASTER_LAYERS} beats is written 0.0 dB, one of the fastest alone " + " to ".join(f"{20 * math.log10(q[3]):.1f}" for q in (min((q for q in f_t if len(q[4]) == 1), key=lambda q: q[1]), max((q for q in f_t if len(q[4]) == 1), key=lambda q: q[1]))) + " dB")
         if fair_row() is not None:
             fs = fair_strokes(); f_sec = fair_row() * BEATS * 60 / BPM; f_set = [{round(at, 6) for at, v, _, _ in fs if v == j} for j in range(len(FAIR_STEPS))]
             print(f"one rhythm at three speeds, and they never disagree ({FAIR_GAIN}), bars {fair_row() + 1}-{fair_row() + ROW} ({int(f_sec) // 60}:{f_sec % 60:04.1f}): place n is struck if n written in twos has an even number of ones: " + " ".join("".join("x" if fair_struck(4 * q + r) else "." for r in range(4)) for q in range(8)) + " ... ; " + " ; ".join(f"every {st} sixteenth(s) on {FAIR_NOTES[j]}: {len(f_set[j])} strokes of {ROW * BEATS * 4 // st} places" for j, st in enumerate(FAIR_STEPS)) + " ; " + " ; ".join(f"{len(f_set[j] & f_set[j - 1])} of the {len(f_set[j])} strokes on {FAIR_NOTES[j]} fall on a stroke on {FAIR_NOTES[j - 1]}" for j in range(1, len(FAIR_STEPS))) + f" ; the bars that begin with a stroke: {' '.join(str(fair_row() + b + 1) for b in range(ROW) if fair_struck(b))} (the same rule) ; {FAIR_MS} ms a stroke ; trims by sixteenth of the bar (dB): " + " ".join(f"{t:g}" for t in FAIR_TRIM))
