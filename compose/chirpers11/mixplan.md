@@ -94,6 +94,12 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Ring True v27 (08:04): both ends within 0.04 dB (no note written before bar 57 or after bar 138; the loudness
+  target moves the rest): bars 1 to 8 by two -17.92 -17.94 -17.96 -17.95 dBFS (was -17.90 -17.92 -17.94 -17.92;
+  seed 11 -17.99 -17.95 -18.05 -18.03, 0.03 higher than it was); bars 177-183 -17.69 / -17.71; bar 184 -11.13 /
+  -10.95; the tail by second -18.9 -34.0 -48.3 -61.6; highest sample -1.46 / -1.40. Inside: the low tune of
+  bars 57 to 130 has its notes in a new order in most bars, and one of them (B flat 3) 3 dB up: meant (the comb
+  rings the changes).
 - Least Common v27 (07:31): both ends as they were to 0.01 dB (nothing written before bar 139 or after bar 205):
   bars 1 to 4 -17.43 / -17.32 dBFS (was -17.42 / -17.31); the last four bars -17.2 -17.4 -17.2 -17.1; the 2 s
   after home -19.8 / -19.9; highest sample -1.49 / -1.30. Inside: five low wooden notes that ring (269.5 Hz,
