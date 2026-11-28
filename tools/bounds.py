@@ -45,7 +45,8 @@ def main(argv=None):
         cells = []
         for q in pk:
             edge = "*" if any(abs(nov[q] - t) < 0.01 for t in ths) else ""
-            cells.append(f"{int(q / 2) // 60}:{int(q / 2) % 60:02d}={nov[q]:.3f}{edge}")
+            s = int(C.frame_s(q))
+            cells.append(f"{s // 60}:{s % 60:02d}={nov[q]:.3f}{edge}")
         print(os.path.basename(p))
         print("   " + "  ".join(cells))
         print("   sections per threshold: " + "  ".join(f"{t:g}:{1 + sum(nov[q] >= t for q in pk)}" for t in ths))

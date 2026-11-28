@@ -191,10 +191,28 @@ NOVELTY = 0.15            # normalised checkerboard novelty a section boundary m
                           # songs give 6-12 boundaries at 0.16, a looped bar none: its peak is 0.10)
 
 
+FRAME_HOP = int(L.FPS / 2)     # onset frames in one section frame: 23 at FPS 46.875 ...
+FRAME_S = FRAME_HOP / L.FPS    # ... so a section frame is 0.4907 s, NOT 0.5. Until 28 Nov frame p was read as second
+                               # p / 2, and every section's audio was read 1.9% late (6 s at 5 minutes: variety's
+                               # level, density, profile and chroma; the frame-indexed vec was right). Found by
+                               # chirper-one on Least Common v25; Harry: "Fix now, re-read Escapement's bests".
+
+
+def frame_s(p):
+    """Seconds at the start of section frame P."""
+    return p * FRAME_S
+
+
+def frame_at(t):
+    """The section frame that holds second T (a cut at frame_s(p) is frame p, not p - 1 by rounding)."""
+    return int(t / FRAME_S + 1e-6)
+
+
 def frames(F):
-    """Per 0.5 s: z-scored spectral shape, chroma and level, each block weighted equally. Metal changes section by
-    riff and level more than by spectrum (The Abysmal Eye's spectral novelty never passed 0.013)."""
-    hop = int(L.FPS / 2)
+    """Per section frame (FRAME_S, about 0.49 s): z-scored spectral shape, chroma and level, each block weighted
+    equally. Metal changes section by riff and level more than by spectrum (The Abysmal Eye's spectral novelty never
+    passed 0.013)."""
+    hop = FRAME_HOP
     n = max(1, (F.n - hop) // hop)
     spec = np.stack([F.logb[:, i * hop:(i + 1) * hop].mean(1) for i in range(n)])
     spec = spec - spec.mean(1, keepdims=True)
@@ -228,7 +246,7 @@ def section_bounds(F, dur, X=None, thr=None, nov=None):
         X = frames(F) if X is None else X
         nov = novelty(X)
     pk, _ = signal.find_peaks(nov, height=NOVELTY if thr is None else thr, distance=16)
-    cuts = [p / 2 for p in pk if 0 < p / 2 < dur]
+    cuts = [frame_s(p) for p in pk if 0 < frame_s(p) < dur]
     edges = [0.0] + cuts + [dur]
     return [(a, b) for a, b in zip(edges[:-1], edges[1:]) if b - a >= 1.0]
 
@@ -307,7 +325,7 @@ def section_feats(F, x, bounds, X=None):
         thr = np.percentile(F.onset, 75)
         dens = float(((on[1:-1] > on[:-2]) & (on[1:-1] >= on[2:]) & (on[1:-1] > thr)).sum()) / max(b - a, 1e-6)
         ch = F.chroma[:, i0:i1].mean(1)
-        v = X[int(a * 2):max(int(a * 2) + 1, int(b * 2))].mean(0)
+        v = X[frame_at(a):max(frame_at(a) + 1, frame_at(b))].mean(0)
         out.append({"a": a, "b": b, "level": lvl, "profile": profile(F, i0, i1), "density": dens, "chroma": ch,
                     "vec": v})
     return out

@@ -30,6 +30,16 @@ def test_section_bounds_cut_and_precomputed_novelty():
     assert cnt(None) == cnt(C.NOVELTY)             # the default cut is NOVELTY
 
 
+def test_section_frames_are_their_own_length_not_half_a_second():
+    # chirper-one, 28 Nov: a frame is int(FPS / 2) onset frames (0.4907 s at FPS 46.875); reading frame p as second
+    # p / 2 put every section's audio 1.9% late.
+    assert C.FRAME_S == C.FRAME_HOP / C.L.FPS and abs(C.FRAME_S - 0.5) > 0.005
+    nov = _nov()
+    cuts = [a for a, _ in C.section_bounds(None, 200.0, thr=0.15, nov=nov)][1:]
+    assert cuts == [C.frame_s(p) for p in (60, 220, 300)]
+    assert all(C.frame_at(C.frame_s(p)) == p for p in range(0, 2000))
+
+
 def test_ensemble_averages_form_terms_and_reports_cuts():
     sets = [[1, 2, 3], [1, 2, 3, 4], [1, 2, 3, 4, 5]]
     ctx = {"section_sets": sets, "novelty_thresholds": [0.14, 0.15, 0.16], "sections": sets[1]}

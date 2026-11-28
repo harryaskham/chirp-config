@@ -385,7 +385,7 @@ def analyse(wav, song, window_s=30.0, x=None, sref=None, info=None):
         prof = np.asarray(f["profile"], float)
         wgt = np.maximum(prof - (prof.max() - 60.0), 0.0)   # dB above a 60 dB floor: the bands you hear, not the bass's power
         bright = float(np.exp((wgt * np.log(BAND_HZ)).sum() / (wgt.sum() + 1e-12)))
-        lo, hi = int(ta * 2), max(int(ta * 2) + 1, int(tb * 2))
+        lo, hi = CS.frame_at(ta), max(CS.frame_at(ta) + 1, CS.frame_at(tb))
         motion = float(np.mean(nov[lo:hi])) if hi <= len(nov) and hi > lo else 0.0
         r = {"n": i + 1, "beats": [ba, bb], "time": [round(ta, 2), round(tb, 2)], "level": round(f["level"], 1),
              "bright_hz": round(bright), "density": round(f["density"], 2), "motion": round(motion, 4),
