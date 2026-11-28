@@ -392,6 +392,13 @@ bars and comes down for two, twice (the middle row of "not there"). A line that 
 judged to be speeding up, and one that falls to be slowing down, though its notes are
 evenly spaced (Boltz 2011). Nothing in the time changes: only the pitch. The drum beside
 it is a ruler: the ear can check.
+
+v31 (28 Nov): THE LOUDER, THE LOWER (C11T5_HEAVY=0 takes it out: v30). In the first row
+of "not there" one plain low note (E2) is played loud and soft by turns, twelve dB
+apart, for four bars; then it is held for four, swelling twelve dB and sinking back.
+Its frequency never moves. A plain low note is said to be heard lower the louder it is
+(Stevens 1935): if it is, the turns are a tune of two notes and the swell is a bend,
+and neither is written.
 """
 import json
 import math
@@ -714,6 +721,19 @@ def para_tones(p):
         if level >= PARA_FLOOR:
             out.append((PARA_APART ** k, f, level))
     return out
+
+
+def heavy_row():
+    """The first bar (from 0) of the row with the note that is loud and soft, or None."""
+    sec = next((x for x in SECS if x[0] == HEAVY_IN[0]), None)
+    return sec[1] + ROW * HEAVY_IN[1] if HEAVY and sec is not None and HEAVY_IN[1] * ROW < sec[2] else None
+
+
+def heavy_notes():
+    """The turns: (beat, beats held, "loud" or "soft"); and the swell: (beat, beats held)."""
+    b0 = heavy_row() * BEATS
+    turns = [(b0 + k * HEAVY_EVERY, HEAVY_LEN, ("loud", "soft")[k % 2]) for k in range(HEAVY_TURNS * BEATS // HEAVY_EVERY)]
+    return turns, (b0 + HEAVY_TURNS * BEATS, (ROW - HEAVY_TURNS) * BEATS - (HEAVY_EVERY - HEAVY_LEN))
 
 
 def hurry_row():
@@ -1105,6 +1125,14 @@ HURRY_AT = 0.125                                       # the beat of the row its
 HURRY_LEN = 0.5                                        # beats a note is written
 HURRY_TRIM = (0.0, 0.0, 0.0)                           # dB for each of the three places in the beat (a track each), so that every note comes out of the master alike
 HURRY_GAIN = os.environ.get("C11T5_HURRY_GAIN", "-28dB")   # the three tracks, before their trims. The bench (the row alone at -20 dB): a note's first 100 ms -33.6 dBFS. Read in the whole song's master at -34dB and -40dB (seed 0), BEFORE any score: -32.2 and -38.2 dBFS (the master lifts it 15.4 dB: between the strokes, in a row with the drum); the three places in the beat 0.9 dB apart: no trims; nine in ten within 3.5 dB. At -34dB the notes were 16.4 dB under the old music at 60 to 1500 Hz (the drum, the bass and the sub are in that band): too far under for low notes. -28dB is meant to bring a note to -26.2 dBFS
+HEAVY = os.environ.get("C11T5_HEAVY", "1") != "0" and HURRY   # v31: THE LOUDER, THE LOWER: one plain low note, loud and soft by turns, then swelling and sinking back. Its frequency never moves. A plain low note is said to be heard lower the louder it is (Stevens 1935): if it is, the turns are a tune of two notes and the swell is a bend, and neither is written
+HEAVY_IN = ("not there", 0)                            # the section and its row (from 0): bars 81 to 88: no drum; nothing else below 400 Hz but the bass, which is weak there; the row before the stair, which starts on the same note
+HEAVY_NOTE = "E2"                                      # 82.41 Hz: the note the stair of v30 starts on, eight bars later
+HEAVY_STEP = 12.0                                      # dB between the loud and the soft
+HEAVY_TURNS = 4                                        # bars of turns: a note every HEAVY_EVERY beats, loud, soft, loud, soft ; then one note held to the end of the row, from soft up to loud at its middle and back, a straight line in dB each way
+HEAVY_EVERY = 2                                        # beats from note to note in the turns
+HEAVY_LEN = 1.75                                       # beats a note of the turns is held (it is gone before the next comes)
+HEAVY_GAIN = os.environ.get("C11T5_HEAVY_GAIN", "-28dB")   # the loud; the soft is HEAVY_STEP under. The bench (the three tracks alone, the loud at -20 dB): the loud -29.0 dBFS, the soft -41.0. Read in the whole song's master at -28dB (both seeds) BEFORE any score: the loud -19.5 dBFS (the master lifts it 17.5 dB in this row, which has no drum), the soft -31.1, 12.9 dB over the old music in its band: I had aimed at -16 for the loud; kept
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1636,6 +1664,19 @@ def song():
             doc["tracks"].append({"name": f"hurry-{hu_k + 1}", "patch": "ht-hurry", "gain": f"{hu_g + HURRY_TRIM[hu_k]:g}dB", "pan": 0.0, "notes": [{"at": t, "len": HURRY_LEN, "pitch": p, "vel": 0.8} for t, p, _, pl in hu if pl == hu_k]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v30 there is a hurry that is not there (bars {hurry_row() + 1} to {hurry_row() + ROW}, the middle row of 'not there'): a stair of low notes ({HURRY_LADDER[0]} to {HURRY_LADDER[-1]}), three to every two beats and exactly even in time, climbs for two bars and comes down for two, twice ({len(hu)} notes, {60000 / BPM * HURRY_STEP:.0f} ms apart, every one): a line that rises is judged to be speeding up and one that falls to be slowing down; nothing in its time changes. Generated by")
         assert "From v30" in doc["about"]
+    if heavy_row() is not None:
+        hv_turns, hv_swell = heavy_notes(); hv_g = float(HEAVY_GAIN.replace("dB", "")); hv_end = (SECS[-1][1] + SECS[-1][2]) * BEATS
+        PATCHES["ht-heavy"] = {"about": "Hearing Things' note that is loud and soft (chirper-zero, 28 Nov, v31): one plain low tone, 40 ms to come and 100 ms to go, always the same frequency; how loud it is, is its track's fader (and, on the swell's track, a lane in dB).",
+                               "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": ["sine phase=0"], "filters": ["lp cutoff=7000"], "amp": {"a": "40ms", "d": "0s", "s": 1, "r": "100ms"}}}
+        for hv_name, hv_how, hv_db in (("heavy-loud", "loud", 0.0), ("heavy-soft", "soft", -HEAVY_STEP)):
+            doc["tracks"].append({"name": hv_name, "patch": "ht-heavy", "gain": f"{hv_g + hv_db:g}dB", "pan": 0.0, "notes": [{"at": t, "len": ln, "pitch": HEAVY_NOTE, "vel": 0.8} for t, ln, how in hv_turns if how == hv_how]})
+        hv_mid = hv_swell[0] + (ROW - HEAVY_TURNS) * BEATS / 2
+        doc["tracks"].append({"name": "heavy-swell", "patch": "ht-heavy", "gain": f"{hv_g:g}dB", "pan": 0.0,
+                              "auto": {"heavy": {"points": [["0b", -HEAVY_STEP], [f"{hv_swell[0]:g}b", -HEAVY_STEP], [f"{hv_mid:g}b", 0.0], [f"{hv_swell[0] + (ROW - HEAVY_TURNS) * BEATS:g}b", -HEAVY_STEP], [f"{hv_end}b", -HEAVY_STEP]], "curve": 0}},
+                              "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.heavy", "amount": 1}]}}],
+                              "notes": [{"at": hv_swell[0], "len": hv_swell[1], "pitch": HEAVY_NOTE, "vel": 0.8}]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v31 the louder is the lower (bars {heavy_row() + 1} to {heavy_row() + ROW}, the first row of 'not there'): one plain low note ({HEAVY_NOTE}), loud and soft by turns ({HEAVY_STEP:g} dB apart, a note every {HEAVY_EVERY} beats) for {HEAVY_TURNS} bars, then held for {ROW - HEAVY_TURNS}, swelling {HEAVY_STEP:g} dB and sinking back: its frequency never moves; a plain low note is said to be heard lower the louder it is. Generated by")
+        assert "From v31" in doc["about"]
     return doc
 
 
@@ -1653,6 +1694,9 @@ def dump(doc):
 if __name__ == "__main__":
     if os.environ.get("C11T5_SHOW"):
         sec = 60 / BPM * BEATS
+        if heavy_row() is not None:
+            hv_turns, hv_swell = heavy_notes(); hv_b = heavy_row()
+            print(f"the louder, the lower ({HEAVY_GAIN}), bars {hv_b + 1}-{hv_b + ROW} ({int(hv_b * sec) // 60}:{hv_b * sec % 60:04.1f}): one plain note, {HEAVY_NOTE} ; bars {hv_b + 1}-{hv_b + HEAVY_TURNS}: {len(hv_turns)} notes, one every {HEAVY_EVERY} beats, held {HEAVY_LEN:g}: " + ' '.join(how for _, _, how in hv_turns) + f" (the soft {HEAVY_STEP:g} dB under the loud) ; bars {hv_b + HEAVY_TURNS + 1}-{hv_b + ROW}: one note held {hv_swell[1]:g} beats, from soft up to loud at bar {hv_b + HEAVY_TURNS + (ROW - HEAVY_TURNS) // 2 + 1} and back, {HEAVY_STEP / ((ROW - HEAVY_TURNS) / 2):g} dB a bar")
         if hurry_row() is not None:
             hu = hurry_notes(); hu_b = hurry_row()
             print(f"the hurry that is not there ({HURRY_GAIN}, trims {' '.join(f'{x:+g}' for x in HURRY_TRIM)} dB), bars {hu_b + 1}-{hu_b + ROW} ({int(hu_b * sec) // 60}:{hu_b * sec % 60:04.1f}): {len(hu)} notes, one every {HURRY_STEP:.4f} beat ({60000 / BPM * HURRY_STEP:.1f} ms) from beat {HURRY_AT:g}: three to two beats ; {HURRY_RUN} up ({hu[0][1]} to {hu[HURRY_RUN - 1][1]}: {hz(hu[0][1]):.0f} to {hz(hu[HURRY_RUN - 1][1]):.0f} Hz), {HURRY_RUN} down ({hu[HURRY_RUN][1]} to {hu[2 * HURRY_RUN - 1][1]}), {len(hu) // (2 * HURRY_RUN)} times ; places in the beat: {' '.join(f'{(t - hu_b * BEATS) % 1:.3f}' for t, _, _, _ in hu[:3])}")
