@@ -413,6 +413,12 @@ early and late side by side.
 v38 (28 Nov): CHANCE COMES IN CLUMPS (C11T1_CHANCE=0 takes it out: v37). In bars 57 to 64
 eight pips to two bars, on the sixteenths, four times: spread by the golden ratio, thrown
 by chance, spread, thrown. The throw's seed was written before the throw was seen.
+
+v39 (28 Nov): FIVE AGAINST SEVEN (C11T1_POLY=0 takes it out: v38). In bars 17 to 24 a wooden
+stroke five times a bar, evenly, and another seven times a bar, evenly: the five alone for two
+bars, both for four, the seven alone for two. They agree on the first beat and nowhere else;
+twice a bar they are a thirty-fifth of a bar apart; and a bar's strokes read the same
+backwards. The song's own five, the tock's, is on the grid: it is this five rounded down.
 """
 import json
 import math
@@ -665,6 +671,27 @@ def faster_strokes():
             if amp > 0 and 20 * math.log10(amp) >= FASTER_FLOOR:
                 out.append((turn, j, faster_row() * BEATS + FASTER_FROM + (turn + x) * FASTER_TURN, amp, ks))
     return out
+
+
+def poly_row():
+    """The first bar (from 0) of the row of five against seven, or None."""
+    sec = next((x for x in SECS if x[0] == POLY_IN[0]), None)
+    return sec[1] + ROW * POLY_IN[1] if POLY and sec is not None and POLY_IN[1] * ROW < sec[2] else None
+
+
+def poly_hz(p):
+    """Hz of a note name (A4 = 440)."""
+    n = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}[p[0]] + (1 if "#" in p else -1 if "b" in p[1:] else 0)
+    return 440.0 * 2 ** ((n + 12 * (int(p[-1]) + 1) - 69) / 12)
+
+
+def poly_strokes():
+    """[(voice 0 the five / 1 the seven, bar of the row from 0, place in the bar from 0, beat of the song, dB it is turned down)]."""
+    from fractions import Fraction as Fr
+    b0 = poly_row() * BEATS; both = {Fr(k, POLY_N[0]) for k in range(POLY_N[0])} | {Fr(k, POLY_N[1]) for k in range(POLY_N[1])}
+    assert {(1 - t) % 1 for t in both} == both and len(both) == sum(POLY_N) - 1          # read backwards from the next bar line the bar is the same; they agree once
+    assert [16 * k // POLY_N[0] for k in range(POLY_N[0])] == FIVE and all(len(POLY_TRIM[v]) == POLY_N[v] for v in (0, 1))   # the song's five is the even five rounded down to the grid
+    return [(v, j, k, b0 + j * BEATS + k * BEATS / POLY_N[v], POLY_FALL * k if j == ROW - 1 else 0.0) for v in (0, 1) for j in range(*POLY_BARS[v]) for k in range(POLY_N[v])]
 
 
 def chance_row():
@@ -1201,6 +1228,16 @@ CHANCE_LEN = 0.125                                     # beats a pip is held (60
 CHANCE_EDGE = (3, 15)                                  # ms a pip takes to come and to go
 CHANCE_TRIM = (7.8, -5, 3.5, -3, -1.9, -2.1, -4, 2.7, -2.5, -5.1, -2.9, -4.4, 5.8, 6.9, 2.5, -5.1, 1.3, -0.1, 6.2, -0.9, -0.8, 6.3, -0.8, -4.5, 10.4, -4, -0.9, 7.2, -0.4, 7.7, -0.6, -5.1)   # dB on a pip, pip by pip in time. MEASURED, NOT REASONED: with no trims (-24.7 dB) the master gave the 32 pips -33.0 to -19.5 dBFS by place (the two seeds within 0.84 dB): each pip's level less -24, turned over and written 1.15 times as deep
 CHANCE_GAIN = os.environ.get("C11T1_CHANCE_GAIN", "-14.3dB")   # THE BENCH FIRST (the track alone at -20 dB): every pip -29.3 dBFS over its 60 ms, read on the sixteenth it is written on; the first build set for -24 in the song with 10 dB of lift; the second build: the trims' top (10.4) added to the first build's -24.7 dB
+POLY = os.environ.get("C11T1_POLY", "1") != "0" and CHANCE   # v39: FIVE AGAINST SEVEN. A wooden stroke five times a bar, evenly, and another seven times a bar, evenly: neither is on the grid's sixteenths after the first beat, they agree once a bar and nowhere else, and the bar's strokes read the same backwards. The song's own five (the tock's, on the grid) is this five rounded down
+POLY_IN = ("give", 0)                                  # the section and its row (from 0): bars 17 to 24: the first row with no part of its own that is not kept out
+POLY_N = (5, 7)                                        # strokes to the bar, each evenly spread
+POLY_NOTE = ("F4", "C4")                               # the five's wood and the seven's, a fourth apart. THE FIRST BUILD HAD THE FIVE ON F3: on the first beat of the bar the old music in F3's band (the drum and the sub) was 8.6 to 13.4 dB over the stroke (seed 0), and I had not read the old music at the strokes' own instants before building. Read then (oldat.txt, v38, both seeds, eight notes from F3 to Bb4): F4 has 1 of the five's 6 first-beat strokes and 1 of its 24 others with old music over -22 dBFS in its band; F3 had 6 of 6
+POLY_PAN = (-0.4, 0.4)
+POLY_BARS = ((0, 6), (2, 8))                           # bars of the row (from, up to) each plays: the five alone for 2 bars, both for 4, the seven alone for 2
+POLY_FALL = 2.0                                        # dB each stroke of the row's last bar is under the one before it: the seven thins out
+POLY_LEN = 40                                          # ms a stroke takes to die
+POLY_TRIM = ((11.6, 0.9, -3.2, -2.6, 1.0), (8.2, 1.5, 3.2, -4.3, -0.1, -0.2, -2.7))   # dB by place in the bar, the five's and the seven's. THE SECOND BUILD: in the song's master the strokes of the first build (no trims, both voices at -8 dB) stood by place, against their voice's middle, -9.35 -0.05 +3.49 +3.00 -0.15 dB (the five) and -7.17 -1.32 -2.81 +3.71 +0.10 +0.20 +2.31 dB (the seven), the middle of the two seeds: the master holds the stroke on the first beat down (the drum is on it). Each place is turned 1.15 times that the other way; the five is 0.8 dB up as well (on the bench F4 is -42.8 dBFS where C4 is -41.9: the filter)
+POLY_GAIN = os.environ.get("C11T1_POLY_GAIN", "3.6dB")   # both tracks. THE BENCH FIRST (the two alone at -20 dB; the five then on F3): a stroke -42.0 (the five) and -41.9 dBFS (the seven) in its own band in its loudest 20 ms, begun 2.0 ms after it is written; the first build set for -20 dBFS in the song with 10 dB of lift, a guess, at -8 dB: the strokes' middle came out -19.2 and -19.0 dBFS on seed 0 (the lift 10.8 and 10.9 dB). The fader is that plus the highest trim (11.6 dB), for the loudness goes with the velocity under the highest
 assert sum(fu_b for _, fu_b in FUSE_STEPS) % BEATS == 0
 BASSB_MODE = os.environ.get("C11T1_BASSB_MODE", "swap")                        # swap: it is heard where deck A's bass is out ; full: wherever deck B's record plays from "no ruler" on
 BASSB_IN = {"swap": ("no ruler", "the stretch", "out"), "full": ("no ruler", "both", "the stretch", "the nudge", "locked", "out")}[BASSB_MODE]
@@ -2016,6 +2053,14 @@ def song():
         doc["tracks"].append({"name": "chance", "patch": "gt-chance", "gain": CHANCE_GAIN, "pan": 0.0, "notes": [{"at": round(t, 6), "len": CHANCE_LEN, "pitch": CHANCE_NOTE, "vel": round(10 ** ((CHANCE_TRIM[i] - h_top) / 40), 5)} for i, t, _ in cp_]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v38 chance comes in clumps (bars {chance_row() + 1} to {chance_row() + ROW}): eight pips to two bars, on the sixteenths, four times: spread by the golden ratio, thrown by chance, spread, thrown. Generated by")
         assert "From v38" in doc["about"]
+    if poly_row() is not None:
+        ps_ = poly_strokes(); p_top = max(POLY_TRIM[v][k] - dn for v, j, k, t, dn in ps_)
+        PATCHES["gt-wood"] = {"about": f"Give or Take's wooden stroke for five against seven (chirper-zero, 28 Nov, v39): a saw under 520 Hz that dies in {POLY_LEN} ms. Its loudness goes as the square of the velocity.",
+                              "play": {"vel_sens": 1, "gate": 1}, "synth": {"layers": ["saw"], "filters": ["lp cutoff=520", "lp cutoff=520"], "amp": {"a": "0.5ms", "d": f"{POLY_LEN}ms", "s": 0, "r": "5ms"}}}
+        for p_v in (0, 1):
+            doc["tracks"].append({"name": f"even-{POLY_N[p_v]}", "patch": "gt-wood", "gain": POLY_GAIN, "pan": POLY_PAN[p_v], "notes": [{"at": round(t, 6), "len": 0.1, "pitch": POLY_NOTE[p_v], "vel": round(10 ** ((POLY_TRIM[v][k] - dn - p_top) / 40), 5)} for v, j, k, t, dn in ps_ if v == p_v]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v39 five against seven (bars {poly_row() + 1} to {poly_row() + ROW}): a wooden stroke five times a bar, evenly, and another seven times a bar; the five alone for two bars, both for four, the seven alone for two. They agree once a bar, and a bar's strokes read the same backwards. Generated by")
+        assert "From v39" in doc["about"]
     return doc
 
 
@@ -2032,6 +2077,10 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if poly_row() is not None:
+            from fractions import Fraction as Fr
+            ps_ = poly_strokes(); p_sec = poly_row() * BEATS * 60 / BPM; p_bar = BEATS * 60000 / BPM; p_near = sorted((abs(Fr(a_, POLY_N[0]) - Fr(b_, POLY_N[1])), a_, b_) for a_ in range(1, POLY_N[0]) for b_ in range(1, POLY_N[1])); p_min = p_near[0][0]
+            print(f"five against seven ({POLY_GAIN}), bars {poly_row() + 1}-{poly_row() + ROW} ({int(p_sec) // 60}:{p_sec % 60:04.1f}): a wooden stroke (a saw under 520 Hz, {POLY_LEN} ms) ; " + " ; ".join(f"{POLY_NOTE[v]} ({poly_hz(POLY_NOTE[v]):.1f} Hz) {POLY_N[v]} times a bar, every {BEATS / POLY_N[v]:.4f} of a beat ({p_bar / POLY_N[v]:.1f} ms), pan {POLY_PAN[v]:g}, bars {poly_row() + 1 + POLY_BARS[v][0]}-{poly_row() + POLY_BARS[v][1]}" for v in (0, 1)) + f" ; {len(ps_)} strokes ; they agree on the first beat of the bar and nowhere else ; nearest after that {p_min} of a bar ({float(p_min) * p_bar:.1f} ms): " + ", ".join(f"the five's stroke {a_ + 1} {'before' if Fr(a_, POLY_N[0]) < Fr(b_, POLY_N[1]) else 'after'} the seven's stroke {b_ + 1}" for d_, a_, b_ in p_near if d_ == p_min) + " ; read backwards from the next bar line a bar's strokes are the same ; the song's five (sixteenths " + " ".join(str(x) for x in FIVE) + ") is the even five rounded down to the grid: " + " ".join(f"{(16 * k / POLY_N[0] - FIVE[k]) * p_bar / 16:.1f}" for k in range(POLY_N[0])) + f" ms early ; the last bar's strokes each {POLY_FALL:g} dB under the one before" + (" ; trims by place: the five " + " ".join(f"{x:+.1f}" for x in POLY_TRIM[0]) + ", the seven " + " ".join(f"{x:+.1f}" for x in POLY_TRIM[1]) + " dB" if any(POLY_TRIM[0]) or any(POLY_TRIM[1]) else " ; no trims"))
         if chance_row() is not None:
             import math as _m
             h_sec = chance_row() * BEATS * 60 / BPM; ways = _m.comb(CHANCE_SLOTS, CHANCE_N); apart = _m.comb(CHANCE_SLOTS - CHANCE_N + 1, CHANCE_N)
