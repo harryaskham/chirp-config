@@ -411,6 +411,13 @@ v33 (28 Nov): FAR IN PITCH, FAR IN TIME (C11T5_KAPPA=0 takes it out: v32). In ba
 in time; bar by bar it is B4 (near the first) or G5 (near the last). The ear is said to
 hear it nearer in time to the pip it is nearer in pitch (the kappa effect). In bars 149
 and 150 it is truly moved that way by 30 ms, to be compared.
+
+v34 (28 Nov): THE SAME SPACING, ANOTHER NOTE (C11T5_SHIFT=0 takes it out: v33). In bars 89
+to 94 a pip of three plain tones, always 196 Hz apart, a third of a beat after every beat;
+beat by beat all three are moved up together an eighth of that distance, and begin again
+after eight. The distance never changes; the note the ear makes of the three is said to
+rise a third of a semitone a step and to fall back at the fifth (the pitch shift of the
+residue). In bars 95 and 96 the tune it is said to be is played plainly, an octave up.
 """
 import json
 import math
@@ -733,6 +740,25 @@ def para_tones(p):
         if level >= PARA_FLOOR:
             out.append((PARA_APART ** k, f, level))
     return out
+
+
+def shift_row():
+    """The first bar (from 0) of the row with the same spacing, another note, or None."""
+    sec = next((x for x in SECS if x[0] == SHIFT_IN[0]), None)
+    return sec[1] + ROW * SHIFT_IN[1] if SHIFT and sec is not None and SHIFT_IN[1] * ROW < sec[2] else None
+
+
+def shift_said(k):
+    """Cents from the note that step k is said to be heard at: the middle tone over the nearest whole number (the upper one at the half)."""
+    from math import log2, floor
+    c = SHIFT_RANKS[1] + k / SHIFT_STEPS
+    return 1200 * log2(c / floor(c + 0.5))
+
+
+def shift_pips():
+    """[(beat it begins, step (from 0), turn (from 0), "three tones" or "plain")]: one a beat through the row."""
+    assert sum(SHIFT_TURNS) * SHIFT_STEPS == ROW * BEATS
+    return [(round(shift_row() * BEATS + j + SHIFT_AT[0] / SHIFT_AT[1], 7), j % SHIFT_STEPS, j // SHIFT_STEPS, "three tones" if j // SHIFT_STEPS < SHIFT_TURNS[0] else "plain") for j in range(ROW * BEATS)]
 
 
 def kappa_row():
@@ -1189,6 +1215,17 @@ KAPPA_BY = 0.0625                                      # ... by this part of a b
 KAPPA_MS = 60                                          # ms a pip is held
 KAPPA_EDGE = 5                                         # ms it takes to come and to go
 KAPPA_GAIN = os.environ.get("C11T5_KAPPA_GAIN", "-32dB")   # the track. THE BENCH FIRST (the track alone at -20 dB): all 21 tops -25.8 to -25.7 dBFS (5.8 under the fader); the middle pip 0.0 ms off the middle in five bars and -30.0 and +30.0 in the two where it is moved. Aimed at tops of -18 dBFS with the lift read for a pip between the drum's strokes in bars 25 to 32 (19.6 dB). Read in the whole song's master (both seeds) BEFORE any score: all 21 tops -17.6 to -17.3 dBFS (the lift here is 20.3 to 20.4 dB); the middle pip 0.0 to 0.1 ms off the middle in the five bars and -29.6 and +29.9 / +29.8 in the two
+SHIFT = os.environ.get("C11T5_SHIFT", "1") != "0" and KAPPA   # v34: THE SAME SPACING, ANOTHER NOTE (the pitch shift of the residue: Schouten, de Boer): a pip of three plain tones always the same distance apart (the note G3, 196 Hz, apart: as its 5th, 6th and 7th overtones are). Beat by beat all three are moved up together by an eighth of that distance. The distance never changes, so the three beat 196 times a second all the while; yet the note the ear makes of them is said to move: up a third of a semitone a step, down two and a third at the fifth, and up again. In the last two bars the tune it is said to be is played plainly, to be compared
+SHIFT_IN = ("not there", 1)                            # the section and its row (from 0): bars 89 to 96, with the hurry that is not there (82 to 392 Hz). Read on v33: 1000 and 1400 Hz are -47 and -52 dBFS here, the emptiest row of the song up there
+SHIFT_AT = (1, 3)                                      # where in every beat: a third of a beat after it
+SHIFT_MS = 70                                          # ms a pip is held: it ends before the tick on the half beat
+SHIFT_EDGE = 5                                         # ms it takes to come and to go
+SHIFT_NOTE = ("G3", 195.998)                           # the distance between the tones, as a note
+SHIFT_RANKS = (5, 6, 7)                                # the three tones at the start: the note's 5th, 6th and 7th overtones (980, 1176, 1372 Hz)
+SHIFT_STEPS = 8                                        # steps to a whole distance: after 8 the tones would be the 6th, 7th and 8th overtones, and the turn begins again from the 5th, 6th and 7th
+SHIFT_TURNS = (3, 1)                                   # turns of the three tones (bars 89 to 94), then turns of the plain tune (bars 95 and 96)
+SHIFT_UP = 12                                          # semitones the plain tune is played above the note it is said to be: clear of the hurry and the bass
+SHIFT_GAIN = os.environ.get("C11T5_SHIFT_GAIN", "-31dB")   # every track. THE BENCH FIRST (the tracks alone at -20 dB): the three tones' tops -26.4 to -26.0 dBFS, the plain tones' -25.9 to -25.5; every distance between neighbouring tones 195.6 to 196.3 Hz. Aimed at tops of -20 dBFS with a lift of 17 (guessed from a low pluck in this row). Read in the whole song's master (both seeds) BEFORE any score: the lift is 20.0: tops -18.7 to -16.7 / -16.6 dBFS (the middle -17.0), 3 dB over the aim; kept
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1747,6 +1784,17 @@ def song():
         doc["tracks"].append({"name": "kappa", "patch": "ht-kappa", "gain": KAPPA_GAIN, "pan": 0.0, "notes": [{"at": at, "len": round(KAPPA_MS / 1000 * BPM / 60, 7), "pitch": p, "vel": 0.8} for at, p, _, _ in kp]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v33 far in pitch is far in time (bars {kappa_row() + 1} to {kappa_row() + KAPPA_BARS}): three pips a bar, a beat apart, each midway between two strokes of the drum: {KAPPA_ENDS[0]}, then {KAPPA_MID[0]} or {KAPPA_MID[1]} (bar by bar in turn), then {KAPPA_ENDS[1]}. The middle pip is in the middle in time; the ear is said to hear it nearer in time to the pip it is nearer in pitch. In bars {' and '.join(str(kappa_row() + j + 1) for j in KAPPA_TRUE)} it is truly moved that way, by {KAPPA_BY * 60000 / BPM:.0f} ms, to be compared. Generated by")
         assert "From v33" in doc["about"]
+    if shift_row() is not None:
+        sp = shift_pips(); sh_len = round(SHIFT_MS / 1000 * BPM / 60, 7); sh_amp = {"a": f"{SHIFT_EDGE}ms", "d": "0s", "s": 1, "r": f"{SHIFT_EDGE}ms"}
+        for k in range(SHIFT_STEPS):
+            PATCHES[f"ht-shift-{k}"] = {"about": f"Hearing Things' three tones a note apart, step {k} (chirper-zero, 28 Nov, v34): {', '.join(f'{(r + k / SHIFT_STEPS) * SHIFT_NOTE[1]:.1f}' for r in SHIFT_RANKS)} Hz: {SHIFT_NOTE[0]}'s overtones {' '.join(str(r) for r in SHIFT_RANKS)}, all moved up {k}/{SHIFT_STEPS} of the note's own frequency.",
+                                        "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": [f"sine phase=0 ratio={r + k / SHIFT_STEPS:g} level=-9.5dB" for r in SHIFT_RANKS], "filters": ["lp cutoff=7000"], "amp": sh_amp}}
+            PATCHES[f"ht-plain-{k}"] = {"about": f"Hearing Things' plain tone for step {k} (chirper-zero, 28 Nov, v34): the note the three tones of step {k} are said to make ({shift_said(k):+.1f} cents from {SHIFT_NOTE[0]}), {SHIFT_UP} semitones up.",
+                                        "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": ["sine phase=0"], "pitch": {"value": round(SHIFT_UP + shift_said(k) / 100, 4)}, "filters": ["lp cutoff=7000"], "amp": sh_amp}}
+            doc["tracks"].append({"name": f"shift-{k}", "patch": f"ht-shift-{k}", "gain": SHIFT_GAIN, "pan": 0.0, "notes": [{"at": at, "len": sh_len, "pitch": SHIFT_NOTE[0], "vel": 0.8} for at, st, _, kind in sp if st == k and kind == "three tones"]})
+            doc["tracks"].append({"name": f"plain-{k}", "patch": f"ht-plain-{k}", "gain": SHIFT_GAIN, "pan": 0.0, "notes": [{"at": at, "len": sh_len, "pitch": SHIFT_NOTE[0], "vel": 0.8} for at, st, _, kind in sp if st == k and kind == "plain"]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v34 the same spacing is another note (bars {shift_row() + 1} to {shift_row() + ROW}): a pip of three plain tones {SHIFT_NOTE[1]:.0f} Hz apart, a third of a beat after every beat; beat by beat all three are moved up together an eighth of that distance, and begin again after eight. The distance never changes; the note the ear makes of them is said to rise a third of a semitone a step and to fall back at the fifth. In bars {shift_row() + ROW - 1} and {shift_row() + ROW} the tune it is said to be is played plainly, an octave up, to be compared. Generated by")
+        assert "From v34" in doc["about"]
     return doc
 
 
@@ -1764,6 +1812,9 @@ def dump(doc):
 if __name__ == "__main__":
     if os.environ.get("C11T5_SHOW"):
         sec = 60 / BPM * BEATS
+        if shift_row() is not None:
+            sp = shift_pips(); sh_sec = shift_row() * BEATS * 60 / BPM
+            print(f"the same spacing, another note ({SHIFT_GAIN}), bars {shift_row() + 1}-{shift_row() + ROW} ({int(sh_sec) // 60}:{sh_sec % 60:04.1f}): a pip {SHIFT_AT[0]}/{SHIFT_AT[1]} of a beat after every beat, {SHIFT_MS} ms ; three plain tones {SHIFT_NOTE[1]:.1f} Hz apart ({SHIFT_NOTE[0]}), all moved up 1/{SHIFT_STEPS} of that a beat ; {SHIFT_TURNS[0]} turns of {SHIFT_STEPS} (bars {shift_row() + 1}-{shift_row() + SHIFT_TURNS[0] * SHIFT_STEPS // BEATS}), then the tune it is said to be, plainly, {SHIFT_UP} semitones up (bars {shift_row() + SHIFT_TURNS[0] * SHIFT_STEPS // BEATS + 1}-{shift_row() + ROW}) ; step by step, the tones (Hz) and the note said (cents from {SHIFT_NOTE[0]}; the plain tone, Hz): " + " | ".join(f"{k}: {' '.join(f'{(r + k / SHIFT_STEPS) * SHIFT_NOTE[1]:.1f}' for r in SHIFT_RANKS)} ; {shift_said(k):+.1f} ; {SHIFT_NOTE[1] * 2 ** ((SHIFT_UP + shift_said(k) / 100) / 12):.1f}" for k in range(SHIFT_STEPS)) + f" ; {len(sp)} pips")
         if kappa_row() is not None:
             kp = kappa_pips(); kp_sec = kappa_row() * BEATS * 60 / BPM
             print(f"far in pitch, far in time ({KAPPA_GAIN}), bars {kappa_row() + 1}-{kappa_row() + KAPPA_BARS} ({int(kp_sec) // 60}:{kp_sec % 60:04.1f}): three pips a bar on beats {' '.join(str(x) for x in KAPPA_AT)} (the drum is on the half beats), {KAPPA_MS} ms long: {KAPPA_ENDS[0]}, the middle one, {KAPPA_ENDS[1]} ; the middle one bar by bar: " + " ".join(p + (f" ({by * 60000 / BPM:+.0f} ms)" if by else "") for _, p, w, by in kp if w.startswith("near")) + f" ; {len(kp)} pips")
