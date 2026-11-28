@@ -99,6 +99,27 @@ every 7. Those meetings, a click with the drum, were the only ones in the song t
          knock is now the head of each. It stops four bars before the end (the low end of a seam is the next
          song's). Its notes are 98 to 370 Hz, where this song stood 7 to 11 dB under the album's envelope.
 
+v25 (28 Nov): THE ONE CLICK, ONE SIZE UP. Four switches (`--without-large`, `-alone`, `-under`, `-middle`; all
+four off is v24 byte for byte).
+  LARGE  on the first half's second page the three become one click: every stroke of any of them is struck by
+         all three, 57 instants in every 105 sixteenths: the one uneven rhythm the three make. The second half
+         is the first one size up, and had no such place. Now, on page 7, between two meetings of the five and
+         the seven (35 beats, 16.7 s: 5:16.7 to 5:33.3), the three are one click again at the large size: each
+         is struck where ANY of their cycles of 3, 5 and 7 BEATS begins (19 instants), and the fillings rest:
+         the same uneven rhythm, four times as slow. And each stroke comes apart ONCE: its strokes are on
+         tracks of their own (`one-three`, `one-five`, `one-seven`: each click's own sound, fader and rooms)
+         and each has a single echo after its own number of sixteenths, LARGE['apart'] under it: one click,
+         then the three 3 sixteenths on, the five 5, the seven 7: the polyrhythm as the one click's decay.
+         (The first build left the strokes on the clicks' own tracks, where v8's echo goes round and round:
+         3 6 9, 5 10, 7 14: as many strokes a second as the pages on either side, and the scorer's spread of
+         density fell: 0.49. A single echo is the clearer figure and costs 0.03.)
+  ALONE  nothing counts it: the drum, the bass's cell and the counting clap rest for those 35 beats. The drum's
+         answer (the knock on each click's own stroke) is all that is left of the drum.
+  UNDER  the bass holds the page's ground under it, D2, as it does under the first one (v23).
+  MIDDLE the one click stands in one place, the middle (the clicks walk from side to side on every other
+         page); its three echoes go where each click's echo lives: the three's to the right, the five's to
+         the left, the seven's in the middle: one click in the middle that comes apart to both sides.
+
 v24 (28 Nov): EACH CLICK AT THREE SIZES. Two switches (`--without-big`, `-bloom`; both off is v23 byte for byte).
   BLOOM where two big brothers fall on one bar line (every 15, 21 and 35 bars) the meeting is a bigger room:
         both strokes are heard in the hall as well. At the small size a meeting is a ping, at the middle size a
@@ -483,7 +504,7 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
       'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
-      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True, 'wall': True, 'leave': True, 'breath': False, 'struck': True, 'ground': True, 'recap': True, 'pause': True, 'bars': False, 'last': True, 'two': True, 'halve': False, 'pairs': True, 'pedal': True, 'halftime': True, 'stand': True, 'named': True, 'hand': True, 'ebb': True, 'fuse': True, 'unmet': True, 'uncounted': True, 'gather': True, 'dominant': True, 'big': True, 'bloom': True}
+      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True, 'wall': True, 'leave': True, 'breath': False, 'struck': True, 'ground': True, 'recap': True, 'pause': True, 'bars': False, 'last': True, 'two': True, 'halve': False, 'pairs': True, 'pedal': True, 'halftime': True, 'stand': True, 'named': True, 'hand': True, 'ebb': True, 'fuse': True, 'unmet': True, 'uncounted': True, 'gather': True, 'dominant': True, 'big': True, 'bloom': True, 'large': True, 'alone': True, 'under': True, 'middle': True}
 BIG = {'vel': 0.9, 'len': 6, 'from': 15, 'hall': '-6dB', 'cycles': {
     3: {'track': 'big-three', 'patch': 'lc-three-big', 'pitch': 'C6', 'gain': '-16dB', 'pan': 0.5,
         'synth': {'layers': [{'type': 'noise', 'color': 'white'}], 'filters': ['hp cutoff=5000', 'peak cutoff=8500 q=2 gain=8dB'], 'amp': {'a': '0.1ms', 'd': '260ms', 's': 0, 'r': '80ms', 'curve': 3}},
@@ -496,6 +517,7 @@ BIG = {'vel': 0.9, 'len': 6, 'from': 15, 'hall': '-6dB', 'cycles': {
         'about': "Least Common: the seven's big brother (v24): where the seven is the drum machine's rim, this is its tom, an octave down (G2): struck every 7 bars."}}}   # v24: each click's big brother: touch, length (sixteenths), [BLOOM: the send to the hall of the strokes that meet,] the bar of the half (from 0) they are first heard on (15: where two of them first meet; from the first bar they blurred the cut the first held tone makes, 8 s into the half), and for each cycle its track, patch, note, fader (bench), side (its ghost's) and sound
 DOMINANT = {'pitch': 'D2', 'db': -13, 'vel': 0.8, 'early': 2}   # v23: the note the bass holds while nothing counts the one click (the turn's note, as before every page turn), its dB and touch (the leads': v11's), and the sixteenths before the drum comes back at which it is let go
 UNCOUNTED = {'supers': (2, 3), 'who': ('kick', 'bass'), 'db': 0}   # v23: the supercycles of FUSE's page (from which to which, not included) in which nothing counts the one click; who rests; dB on the fused strokes there
+LARGE = {'apart': '-4dB', 'back': 0, 'page': 6, 'beats': (35, 70), 'db': -3, 'vel': 0.95, 'who': ('kick', 'bass', 'clap', 'clap-l', 'clap-r'), 'pitch': 'D2', 'early': 2}   # v25: the page (from 0) on which the three are one click at the large size; from which beat of it to which (not included: two meetings of the five and the seven); dB on each of the three sounds while it plays for all (FUSE's); its touch (a cycle's head); ALONE: who rests; UNDER: the note the bass holds and the sixteenths before the end at which it lets go
 FUSE = {'page': 1, 'supers': (1, 3), 'db': -3}   # v22: the first half's page (from 0) on which the three are one click; from which of its supercycles to which (not included); dB on each of the three sounds while it plays for all
 STAND = {'octaves': 1, 'vel': (.95, .88)}   # v21: how far under the click's knock the drum is while it stands in for it; its stroke where it lands on the old beat, and elsewhere
 EBB = {'keep': (1, 2, 0)}                # v21: of the hat's off beats, one in so many is kept in the page's first, second and third supercycle (0: none)
@@ -793,6 +815,9 @@ def build():
         T['clap-l'], T['clap-r'] = [], []
     if ON['open']:
         T['open'] = []
+    if ON['large']:
+        for v in VOICES:
+            T[f'one-{v}'] = []                                 # v25 LARGE: the one click's strokes, on tracks of their own
 
     def knock(s, db=0):
         """v6: the drum's answer at sixteenth s, a note for each click whose cycle lands on it (every 3, 5 and 7 beats)."""
@@ -875,7 +900,11 @@ def build():
             for c, v in zip(CYCLES, VOICES):
                 if c in heads and v in MEMORY:
                     mem[v] = MEMORY[v][tuple(heads)]
-        for c, v in zip(CYCLES, VOICES):
+        large = bool(ON['large'] and LARGE['page'] * PAGE + LARGE['beats'][0] * BEAT <= s < LARGE['page'] * PAGE + LARGE['beats'][1] * BEAT)   # v25 LARGE: the three are one click, one size up
+        if large and heads:
+            for v in VOICES:
+                add(f'one-{v}', s, 1, mem[v], LARGE['vel'], gain=f"{LARGE['db']}dB")
+        for c, v in (() if large else zip(CYCLES, VOICES)):
             filled = r % (c * BEAT) in fill[c]
             if ON['windup'] and s >= TOTAL - SUPER and r % (c * BEAT):       # v3: the fillings go, the small cycles come back
                 going = (s - (TOTAL - SUPER)) / SUPER * 2
@@ -1068,6 +1097,18 @@ def build():
             if tr in T:
                 T[tr] = [{**n, 'len': round(lo / BEAT - n['at'], 4)} if n['at'] < lo / BEAT < n['at'] + n['len'] else n for n in T[tr] if not lo / BEAT <= n['at'] < hi / BEAT]
         marks = sorted(marks + [(f"the walk stops after its first step: the low band is bare for {(hi - lo) / BEAT:g} beats, to the last meeting of the three and the five, where the bass leads the turn as it led the others", lo)], key=lambda m: m[1])
+    if ON['large']:                                            # v25 LARGE, ALONE, UNDER
+        lo, hi = (LARGE['page'] * PAGE + x * BEAT for x in LARGE['beats'])
+        if ON['alone']:                                        # nothing counts it
+            for tr in LARGE['who']:
+                if tr in T:
+                    T[tr] = [{**n, 'len': round(lo / BEAT - n['at'], 4)} if n['at'] < lo / BEAT < n['at'] + n['len'] else n for n in T[tr] if not lo / BEAT <= n['at'] < hi / BEAT]
+            if ON['under'] and 'bass' in T and 'bass' in LARGE['who']:   # the page's ground, held under all of it
+                T['bass'] = sorted(T['bass'] + [{'at': round(lo / BEAT, 4), 'len': round((hi - lo - LARGE['early']) / BEAT, 4), 'pitch': LARGE['pitch'], 'vel': DOMINANT['vel'], 'gain': f"{DOMINANT['db']}dB"}], key=lambda n: n['at'])
+        marks = sorted(marks + [(f"the three are one click again, one size up: each is struck where any of their cycles of 3, 5 and 7 beats begins ({sum(1 for x in range(lo, hi, BEAT) if any((x - HALF) % (c * BEAT) == 0 for c in CYCLES))} instants in {(hi - lo) // BEAT} beats, {(hi - lo) * 15 / BPM:.1f} s, between two meetings of the five and the seven); the fillings rest; each stroke comes apart once: one echo of each click ({LARGE['apart']}), 3, 5 and 7 sixteenths on" + ('; the one click stands in the middle, and its echoes go to the right, the left and the middle' if ON['middle'] else ''), lo),
+                                ('each click has its own cycle and its filling again', hi)]
+                             + [("nothing counts it: the drum, the bass's cell and the counting clap rest; the drum's answer on each stroke is all that is left of it", lo), ('the drum, the bass and the clap come back', hi)] * ON['alone']
+                             + [(f"the bass holds the page's ground under it: {LARGE['pitch']}", lo)] * (ON['alone'] and ON['under']), key=lambda m: m[1])
     if ON['uncounted'] and ON['fuse']:                         # v23 UNCOUNTED: the drum and the bass rest while the one click goes round once more
         lo, hi = (FUSE['page'] * PAGE + x * SUPER for x in UNCOUNTED['supers'])
         for tr in UNCOUNTED['who']:
@@ -1157,6 +1198,13 @@ def song():
             t = f'{c * 60000 / BPM / BEAT:.2f}ms'
             doc['buses'] = {**doc['buses'], f'ghost-{v}': {'pan': GHOST['side'][v], 'gain': {'value': '0dB', 'mod': [{'src': 'auto.ghost', 'amount': 1}]}, 'auto': {'ghost': span((-60, 0))}, 'fx': [f"hp cutoff={GHOST['hp']}"],
                                                            'returns': [{'from': v, 'gain': GHOST['feed'], 'time': t}, {'from': f'ghost-{v}', 'gain': f"{20 * log10(GHOST['back']):.2f}dB", 'time': t}]}}
+    if ON['large']:                                            # v25 LARGE: the one click's strokes on tracks of their own (each click's sound, fader, place and rooms), and each comes apart ONCE: a single echo after its own number of sixteenths
+        for c, v in zip(CYCLES, VOICES):
+            if T.get(f'one-{v}'):
+                t = f'{c * 60000 / BPM / BEAT:.2f}ms'
+                doc['tracks'].append({**{x: y for x, y in by_name[v].items() if x != 'notes'}, 'name': f'one-{v}', **({'pan': 0} if ON['middle'] else {}), 'notes': sorted(T[f'one-{v}'], key=lambda n: n['at'])})
+                doc['buses'] = {**doc['buses'], f'apart-{v}': {'pan': GHOST['side'][v], 'fx': [f"hp cutoff={GHOST['hp']}"],
+                                                              'returns': [{'from': f'one-{v}', 'gain': LARGE['apart'], 'time': t}] + ([{'from': f'apart-{v}', 'gain': f"{20 * log10(LARGE['back']):.2f}dB", 'time': t}] if LARGE['back'] else [])}}
     for name, side in (('clap-l', -1), ('clap-r', 1)):         # v9 SWAY: the clap again, to each side
         if T.get(name):
             doc['tracks'].append({**{x: y for x, y in by_name['clap'].items() if x != 'notes'}, 'name': name, 'gain': f"{float(by_name['clap']['gain'][:-2]) + SWAY['db']:g}dB", 'pan': side * SWAY['pan'], 'notes': sorted(T[name], key=lambda n: n['at'])})
@@ -1217,7 +1265,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f"--{'without' if ON[k] else 'with'}-{k}", action='store_true', help=f"{'leave out' if ON[k] else 'put in'} {k} (of those that are on: the last two off is v23, the last five v22, the last seven v21, the last eleven v20, the last fourteen v19, the last sixteen v18, the last eighteen v17, the last nineteen v16, the last twenty v15, the last twenty-two v14, the last twenty-three v13, the last twenty-five v12, the last twenty-seven v11, the last twenty-nine v10, the last thirty-two v9, the last thirty-five v8, the last thirty-seven v7, the last forty v6, the last forty-one v5, the last forty-four v4, the last forty-nine v3, the last fifty-seven v2, all sixty-three v1)")
+        ap.add_argument(f"--{'without' if ON[k] else 'with'}-{k}", action='store_true', help=f"{'leave out' if ON[k] else 'put in'} {k} (of those that are on: the last four off is v24, the last six v23, the last nine v22, the last eleven v21, the last fifteen v20, the last eighteen v19, the last twenty v18, the last twenty-two v17, the last twenty-three v16, the last twenty-four v15, the last twenty-six v14, the last twenty-seven v13, the last twenty-nine v12, the last thirty-one v11, the last thirty-three v10, the last thirty-six v9, the last thirty-nine v8, the last forty-one v7, the last forty-four v6, the last forty-five v5, the last forty-eight v4, the last fifty-three v3, the last sixty-one v2, all sixty-seven v1)")
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}') if ON[k] else getattr(a, f'with_{k}')
