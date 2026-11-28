@@ -440,6 +440,11 @@ to sound louder. Two bars alike on the meter; then the spread one is really 3 dB
 v38 (28 Nov): THE ODD ONE OUT SEEMS LONGER (C11T5_ODD=0 takes it out: v37). In bars 185 to
 192 a plain note on every beat, every one held the same 300 ms. Every seventh is another
 note. Nothing else about it is different.
+
+v39 (28 Nov): TURNED OVER IN ONE EAR, THE NOTE COMES BACK (C11T5_MLD=0 takes it out: v38). Under
+the hiss of "in the noise" a plain low note, the same in both ears, is turned down until the
+hiss covers it. Then, no louder, the right ear's wave is turned upside down. Neither ear is
+given anything it was not given before (Hirsh 1948; Licklider 1948: binaural unmasking).
 """
 import json
 import math
@@ -762,6 +767,18 @@ def para_tones(p):
         if level >= PARA_FLOOR:
             out.append((PARA_APART ** k, f, level))
     return out
+
+
+def mld_row():
+    """The first bar (from 0) of the row in which a note comes back when one ear is turned over, or None."""
+    sec = next((x for x in SECS if x[0] == MLD_IN[0]), None)
+    return sec[1] + ROW * MLD_IN[1] if MLD and sec is not None and MLD_IN[1] * ROW < sec[2] else None
+
+
+def mld_notes():
+    """[(note from 0, beat of the song, dB under the first, True if the right ear's is upside down)]."""
+    b0 = mld_row() * BEATS; assert len(MLD_AT) == len(MLD_DOWN) == len(MLD_TURNED) == len(MLD_TRIM) and all(b < ROW and q + MLD_LEN <= BEATS for b, q in MLD_AT)
+    return [(i, b0 + b * BEATS + q, MLD_DOWN[i], bool(MLD_TURNED[i])) for i, (b, q) in enumerate(MLD_AT)]
 
 
 def odd_row():
@@ -1354,6 +1371,17 @@ ODD_EVERY = 7                                          # and every this many aft
 ODD_EDGE = (10, 10)                                    # ms a note takes to come and to go
 ODD_TRIM = (-2, -2.1, -1.9, -1.6, -1.1, 0.6, -0.9, -1.9, -1.2, -0.8, -1.1, 0.8, -1, -0.3, -0.7, 1.2, -0.2, -1.8, -0.8, 0.4, -1.8, 0.4, -1.8, 0.5, -1.3, -1.3, 1.7, -0.6, -1.3, -1.9, -1.7, -2)   # dB on a note, note by note. MEASURED, NOT REASONED: with no trims (-26 dB) the master gave the 32 notes -21.5 to -18.1 dBFS, the odd ones 1.4 to 2.3 dB under their neighbours but for one 1.1 over (the two seeds within 0.02 dB): each note's level less -20, turned over and written 1.15 times as deep
 ODD_GAIN = os.environ.get("C11T5_ODD_GAIN", "-28.3dB")   # THE BENCH FIRST (the track alone at -20 dB): every note -29.0 dBFS and 297.7 ms long (between the points 6 dB under its level), the odd ones as their fellows; the first build set for -20 in the song with 15 dB of lift; the second build: the trims' top (1.7) added to the first build's -26 dB; THE THIRD BUILD: 4 dB lower (the second raised its own row 0.37 dB and turned every other row down by up to 0.1), and the notes a semitone up; the trims are the second build's, fitted on B4 and G flat 4
+MLD = os.environ.get("C11T5_MLD", "1") != "0" and ODD   # v39: TURNED OVER IN ONE EAR, THE NOTE COMES BACK (binaural unmasking: Hirsh 1948, Licklider 1948). A plain low note under the hiss of "in the noise", the same in both ears, is turned down until the hiss covers it; then, no louder, the right ear's is turned upside down. Either ear alone is given what it was given before
+MLD_IN = ("in the noise", 0)                           # the section and its row (from 0): bars 121 to 128. READ FIRST (v38, seed 0): of the 26 rows it is the one with the hiss, and 200 to 360 Hz reads there (-34.6 dBFS in the middle window of 100 ms, -29.2 in the loudest; every other row but the first and the last reaches -22.3 to -12.5 in its loudest), and round A3 that hiss is the same in both ears
+MLD_NOTE = "A3"                                        # 220 Hz: under the tune of the row (A4 to A5) and clear of the note of "after the fall" (E4)
+MLD_AT = ((1, 0), (1, 2), (3, 0), (3, 2), (5, 0), (5, 2), (6, 0), (6, 2), (7, 0), (7, 2))   # (bar of the row from 0, beat): never in bars 121, 123, 125 while the note of "after the fall" is held
+MLD_LEN = 1.6                                          # beats a note is held (768 ms)
+MLD_OVER = 8                                           # dB the first note is aimed over the hiss in the ear's own band round it (48 Hz wide at 220 Hz: 196 to 244 Hz)
+MLD_DOWN = (0, 4, 8, 13, 13, 13, 13, 13, 13, 13)       # dB under the first, note by note
+MLD_TURNED = (0, 0, 0, 0, 1, 0, 1, 0, 1, 1)            # 1: the right ear's wave is upside down
+MLD_EDGE = (60, 60)                                    # ms a note takes to come and to go
+MLD_TRIM = (0.0,) * 10                                 # dB on a note, note by note: none
+MLD_GAIN = os.environ.get("C11T5_MLD_GAIN", "-42.6dB")   # all three tracks. THE BENCH FIRST (the three alone at -20 dB): the first note -29.0 dBFS in each ear; the first build set for -31.8 dBFS in the song (the hiss in the ear's band read -39.8 there in v38, and 8 over it) with 17 dB of lift, a guess. THE SECOND BUILD: the lift was 19.8 dB, not 17, and the notes stood 2.4 to 3.9 dB (seed 0) and 1.4 to 4 dB (seed 11) over what is written against the hiss: 2.8 dB lower, the middle of the twenty. No trims: the notes came out 0 -4 -8 -13 against the first to 0.1 dB; what differs from note to note is the hiss, and it is another hiss on each seed
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1960,6 +1988,17 @@ def song():
         doc["tracks"].append({"name": "odd", "patch": "ht-odd", "gain": ODD_GAIN, "pan": 0.0, "notes": [{"at": round(t, 6), "len": ODD_LEN, "pitch": ODD_OTHER if odd else ODD_NOTE, "vel": round(10 ** ((ODD_TRIM[i] - d_top) / 40), 5)} for i, t, odd in od_]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v38 the odd one out seems longer (bars {odd_row() + 1} to {odd_row() + ROW}): a plain note on every beat, every one held the same {ODD_LEN * 60000 / BPM:.0f} ms; every seventh is another note, and is said to seem longer than its fellows. Generated by")
         assert "From v38" in doc["about"]
+    if mld_row() is not None:
+        mn_ = mld_notes(); m_top = max(MLD_TRIM[i] - dn for i, t, dn, tu in mn_)
+        for m_name, m_ph, m_what in (("ht-under", 0, "as it is"), ("ht-under-turned", 0.5, "upside down")):
+            PATCHES[m_name] = {"about": f"Hearing Things' plain note under the hiss, {m_what} (chirper-zero, 28 Nov, v39): one sine begun {m_ph:g} of a turn on, {MLD_EDGE[0]} ms to come and {MLD_EDGE[1]} to go. Its loudness goes as the square of the velocity.",
+                               "play": {"vel_sens": 1, "gate": 1}, "synth": {"layers": [f"sine phase={m_ph:g}"], "amp": {"a": f"{MLD_EDGE[0]}ms", "d": "0s", "s": 1, "r": f"{MLD_EDGE[1]}ms"}}}
+        m_note = lambda i, t, dn: {"at": round(t, 6), "len": MLD_LEN, "pitch": MLD_NOTE, "vel": round(10 ** ((MLD_TRIM[i] - dn - m_top) / 40), 5)}
+        doc["tracks"].append({"name": "under-l", "patch": "ht-under", "gain": MLD_GAIN, "pan": -1, "notes": [m_note(i, t, dn) for i, t, dn, tu in mn_]})
+        doc["tracks"].append({"name": "under-r", "patch": "ht-under", "gain": MLD_GAIN, "pan": 1, "notes": [m_note(i, t, dn) for i, t, dn, tu in mn_ if not tu]})
+        doc["tracks"].append({"name": "under-t", "patch": "ht-under-turned", "gain": MLD_GAIN, "pan": 1, "notes": [m_note(i, t, dn) for i, t, dn, tu in mn_ if tu]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v39 a note comes back when one ear is turned over (bars {mld_row() + 1 + min(b for b, q in MLD_AT)} to {mld_row() + ROW}): a plain low note under the hiss, the same in both ears, is turned down until the hiss covers it; then, no louder, the right ear's is turned upside down, and it is said to be heard again. Generated by")
+        assert "From v39" in doc["about"]
     return doc
 
 
@@ -1976,6 +2015,9 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T5_SHOW"):
+        if mld_row() is not None:
+            mn_ = mld_notes(); m_sec = mn_[0][1] * 60 / BPM; m_erb = 24.7 * (4.37 * hz(MLD_NOTE) / 1000 + 1)
+            print(f"turned over in one ear, the note comes back ({MLD_GAIN}), bars {mld_row() + 1 + min(b for b, q in MLD_AT)}-{mld_row() + ROW} ({int(m_sec) // 60}:{m_sec % 60:04.1f}): {len(mn_)} plain notes of {MLD_LEN} beats ({MLD_LEN * 60000 / BPM:.0f} ms), {MLD_NOTE} ({hz(MLD_NOTE):.1f} Hz), {MLD_EDGE[0]} ms to come and {MLD_EDGE[1]} to go ; on beats " + " ".join(sorted({f"{q:g}" for b, q in MLD_AT})) + " of bars " + " ".join(str(mld_row() + 1 + b) for b in sorted({b for b, q in MLD_AT})) + " ; the left ear is given all of them the same way up ; dB under the first, note by note: " + " ".join(f"{dn:g}" for i, t, dn, tu in mn_) + " ; aimed against the hiss in the ear's own band round the note (" + f"{hz(MLD_NOTE) - m_erb / 2:.0f} to {hz(MLD_NOTE) + m_erb / 2:.0f} Hz): " + " ".join(f"{MLD_OVER - dn:+g}" for i, t, dn, tu in mn_) + " dB ; the right ear's upside down in notes " + " ".join(str(i + 1) for i, t, dn, tu in mn_ if tu) + (f" ; trims {min(MLD_TRIM):+.1f} to {max(MLD_TRIM):+.1f} dB" if any(MLD_TRIM) else " ; no trims"))
         if odd_row() is not None:
             od_ = odd_notes(); d_sec = odd_row() * BEATS * 60 / BPM
             print(f"the odd one out seems longer ({ODD_GAIN}), bars {odd_row() + 1}-{odd_row() + ROW} ({int(d_sec) // 60}:{d_sec % 60:04.1f}): {len(od_)} plain notes, one on beat {ODD_AT:g} of every beat, every one held {ODD_LEN:g} of a beat ({ODD_LEN * 60000 / BPM:.0f} ms) ; {ODD_NOTE} ({hz(ODD_NOTE):.1f} Hz), but notes " + " ".join(str(i + 1) for i, _, odd in od_ if odd) + f" are {ODD_OTHER} ({hz(ODD_OTHER):.1f} Hz): bar and beat " + " ".join(f"{int(t) // BEATS + 1}.{int(t) % BEATS + 1}" for _, t, odd in od_ if odd) + (f" ; trims {min(ODD_TRIM):+.1f} to {max(ODD_TRIM):+.1f} dB" if any(ODD_TRIM) else " ; no trims"))
