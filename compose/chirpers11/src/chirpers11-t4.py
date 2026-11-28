@@ -32,6 +32,25 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v24 (28 Nov), THE EIGHTH THING IS NOT STRUCK. Three switches (`--without-glass`, `-rub`, `-four`; all three
+off is v23 byte for byte).
+  GLASS  seven things are struck, ring when a hand lets them go and stop when it holds them. The eighth is the
+         other way round: a glass, sung by a finger going round its rim: it sounds only while the hand is ON it
+         and stops when it is let go (`rt-glass`: a sine and a twin 4 cents over, as a glass's two near modes
+         beat, and its second partial 2.32 times up; half a second to speak, a second to stop). So it sings
+         where the others are stopped: one held note a section through the wind-down, a step of the home chord
+         up each time a hand goes on something else (B flat 3 from bar 129, D4 from 137, F4 from 145, B flat 4
+         while the wood closes, D5 over the taps, when every hand is on: bars 169 to 176), and on bar 177,
+         where the hands begin to come off one a bar and each thing rings, the finger comes off first and the
+         glass stops. It is the first sound in the song that does not die away: it lasts as long as the finger
+         is on it.
+  RUB    the finger takes a beat and a half to come round, and the glass's level rocks 6 dB with it: two turns
+         to three beats, so the swell falls on a beat, then between two, and meets the bar line every third
+         bar. (Once a beat and 3 dB, the first build's, could not be told from what this master does to a held
+         note at every drum stroke: a 6 dB dip.)
+  FOUR   v23 read the plate's traded strokes (bars 117 to 128) as 8.0 dB over the rest on beat 2 and 4.3 on
+         beat 4: the strokes on beat 4 are 3 dB up.
+
 v23 (27 Nov), THE PAIR SLOWS AS THE OTHERS ARE STOPPED, AND THE PIPE ENDS AS A PIPE DOES. Two switches
 (`--without-slows`, `-fall`; both off is v22 byte for byte).
   SLOWS  v21's second metal bar came nearer in three steps (one wave a beat, an eighth, a sixteenth) and then
@@ -436,10 +455,13 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True, 'trade': True, 'slack': True, 'hint': True, 'twin': True, 'quicken': True, 'told': True, 'third': True, 'foretold': True, 'hallpair': True, 'slows': True, 'fall': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True, 'trade': True, 'slack': True, 'hint': True, 'twin': True, 'quicken': True, 'told': True, 'third': True, 'foretold': True, 'hallpair': True, 'slows': True, 'fall': True, 'glass': True, 'rub': True, 'four': True}
 TRADE = {'to': 128, 'pairs': (('wood', 'metal', 12, 120), ('string', 'skin', 0, 124))}   # v20: the bar (from 0) at which each has its own cell again; the pairs that play each other's: how many semitones the second is over the first, and the bar (from 0) they trade at
 TWIN = {'patch': 'rt-true', 'ring': 0.3, 'db': -6, 'gap': 1, 'bars': ((48, 64, 4), (96, 112, 2), (112, 144, 1))}   # v21: the metal's patch while it is a pair (the motor's, with the engine's stroke-to-stroke wander off: another sound, another name); the least ring, s, at which the second bar is struck; dB on each of the two (in step at the stroke they add to the old stroke); sixteenths to one wave of the gap between them where QUICKEN is off; the bars (from 0, to but not with) in which the metal is a pair, and the sixteenths to a wave there with QUICKEN
 THIRD = {'pair': ('air', 'plate', 24), 'at': 116, 'told': (78, 80), 'lift': 4}   # v22: (the last: dB on the plate's strokes while it plays the pipe's cell: two of its four fall on the bass drum, and the first build's peak read 2 to 3 dB poorer above 6 kHz, bars 117 to 128) v22: the third pair that trades (how many semitones the second is over the first), the bar (from 0) it trades at, and the bars (from 0, to but not with) in which it is told once before, stopped
+GLASS = {'patch': 'rt-glass', 'gain': '-28dB', 'pan': 0.2, 'room': '-14dB', 'notes': ((128, 136, 'Bb3', 0), (136, 144, 'D4', 0), (144, 152, 'F4', 0), (152, 168, 'Bb4', -3), (168, 176, 'D5', -6)), 'early': 0.5, 'vel': 0.7,
+         'cents': 4, 'twin': -8, 'partial': (14.57, -20), 'rub': 3, 'rate': '3/8', 'turn': 1.5, 'speak': '500ms', 'stop': '1s'}   # v24: the glass: its patch, fader (bench, raw, 200 to 520 Hz: at -20 dB it stood 1 to 3 dB OVER the whole song in its band and 5 to 8 over the song's middle 100 ms: a lead; at -28 it is under the strokes and over the gaps), place and room; its notes (bars from 0, to but not with; and dB: the fewer the things that ring, the more this master lifts a held note); beats before the next note that the finger moves; touch; the twin's cents and dB; the second partial (semitones, dB); half the rock of the finger's turn (dB), the turn, and the turn in beats (a beat and a half: two turns to three beats. Once a beat and 3 dB, the first build's, was 1.9 dB as delivered UNDER a 6 dB dip this master makes in a held note at every drum stroke: not to be told from it); how long it takes to speak and to stop
+FOUR = {'at': 12, 'db': 3}   # v24: the sixteenth of the bar (beat 4) on which the plate's traded strokes are lifted again, and by how much
 SLOWS = {'bars': ((136, 140, 2), (140, 144, 4))}   # v23: the bars (from 0, to but not with) in which the metal's pair goes back the way it came, and sixteenths to one wave of the gap there (they stand before TWIN's own spans)
 TOLD = {'pair': ('string', 'skin', 0), 'bars': (62, 64)}   # v21: the second pair's trade told once before, stopped: the last cell before the string is let go
 HINT = {'pair': ('wood', 'metal', 12), 'bars': (30, 32)}   # v20: the pair that trades once before, stopped; the bars (from 0, to but not with): the last cell before the wood is let go
@@ -881,6 +903,12 @@ def build():
         for k in ('plate', 'plate-room'):
             if T.get(k):
                 T[k] = [{**n, 'gain': f"{round(float(n.get('gain', '0dB')[:-2]) + THIRD['lift'], 2)}dB"} if THIRD['at'] <= n['at'] // 4 < TRADE['to'] else n for n in T[k]]
+        if ON['four']:                                            # v24 FOUR: of those, the ones on beat 4, 3 dB more
+            for k in ('plate', 'plate-room'):
+                if T.get(k):
+                    T[k] = [{**n, 'gain': f"{round(float(n.get('gain', '0dB')[:-2]) + FOUR['db'], 2)}dB"} if THIRD['at'] <= n['at'] // 4 < TRADE['to'] and round(n['at'] % 4 * 4) == FOUR['at'] else n for n in T[k]]
+    if ON['glass']:                                               # v24 GLASS: the eighth thing, sung and not struck: one held note a section while the others are stopped
+        T['glass'] = [{'at': a * 4, 'len': (b - a) * 4 - GLASS['early'], 'pitch': pitch, 'vel': GLASS['vel'], **({'gain': f'{db}dB'} if db else {})} for a, b, pitch, db in GLASS['notes']]
     if ON['twin'] and ON['motor'] and T.get('metal'):             # v21 TWIN: the metal is a pair; QUICKEN: the gap between them doubles twice
         both, second = [], []
         for n in T['metal']:
@@ -1000,6 +1028,16 @@ def song(T, bars=BARS):
         for b in doc['buses'].values():                          # whoever hears the metal hears both bars
             if any(r.get('from') == 'metal' for r in b.get('returns', [])):
                 b['returns'] = b['returns'] + [{**r, 'from': 'metal-twin'} for r in b['returns'] if r.get('from') == 'metal']
+    if T.get('glass'):                                            # v24 GLASS: its patch and its track; RUB: the finger's turn
+        doc['patches'] = {**doc['patches'], GLASS['patch']: {
+            'about': "Ring True: the glass (v24): the eighth thing, the only one that is not struck: a finger goes round its rim, and it sings only while the hand is on it. A sine and a twin a few cents over (a glass's two near modes beat), its second partial 2.32 times up; the level rocks as the finger comes round, two turns to three beats; half a second to speak, a second to stop.",
+            'synth': {'layers': [{'wave': 'sine', **({'level': {'value': f"-{GLASS['rub']}dB", 'mod': [{'src': 'lfo.rub', 'amount': GLASS['rub']}]}} if ON['rub'] else {})},
+                                 {'wave': 'sine', 'detune': GLASS['cents'], 'level': {'value': f"{GLASS['twin'] - GLASS['rub']}dB", 'mod': [{'src': 'lfo.rub', 'amount': GLASS['rub']}]} if ON['rub'] else f"{GLASS['twin']}dB"},
+                                 {'wave': 'sine', 'semi': GLASS['partial'][0], 'level': f"{GLASS['partial'][1]}dB"}],
+                      **({'lfo': {'rub': {'wave': 'sine', 'rate': GLASS['rate'], 'phase': 0, 'retrig': True}}} if ON['rub'] else {}),
+                      'amp': {'a': GLASS['speak'], 'd': '0s', 's': 1, 'r': GLASS['stop']}},
+            'play': {'vel_sens': 0.3, 'gate': 1}}}
+        doc['tracks'].append({'name': 'glass', 'patch': GLASS['patch'], 'gain': GLASS['gain'], 'pan': GLASS['pan'], **({'sends': {'room': GLASS['room']}} if 'room' in doc.get('buses', {}) else {}), 'notes': T['glass']})
     if T.get('metal-twin-room'):                                  # v22 HALLPAIR: the second bar's own way to the hall, as the first's
         first = next(t for t in doc['tracks'] if t['name'] == 'metal-room')
         doc['tracks'].append({**{x: y for x, y in first.items() if x != 'notes'}, 'name': 'metal-twin-room', 'notes': T['metal-twin-room']})
@@ -1036,7 +1074,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the fifty-five that are on: all off is v1; the last fifty off is v2; the last forty-six off is v3; the last forty-three off is v4; the last forty off is v5; the last thirty-nine off is v6; the last thirty-six off is v7; the last thirty-four off is v8; the last thirty-one off is v9; the last twenty-seven off is v10; the last twenty-three off is v11; the last twenty-one off is v12; the last nineteen off is v13; the last seventeen off is v14; the last sixteen off is v15; the last fifteen off is v16; the last fourteen off is v17; the last thirteen off is v18; the last eleven off is v19; the last eight off is v20; the last five off is v21; the last two off is v22)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the fifty-eight that are on: all off is v1; the last fifty-three off is v2; the last forty-nine off is v3; the last forty-six off is v4; the last forty-three off is v5; the last forty-two off is v6; the last thirty-nine off is v7; the last thirty-seven off is v8; the last thirty-four off is v9; the last thirty off is v10; the last twenty-six off is v11; the last twenty-four off is v12; the last twenty-two off is v13; the last twenty off is v14; the last nineteen off is v15; the last eighteen off is v16; the last seventeen off is v17; the last sixteen off is v18; the last fourteen off is v19; the last eleven off is v20; the last eight off is v21; the last five off is v22; the last three off is v23)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -1093,6 +1131,10 @@ if __name__ == '__main__':
             print(f"    the weight's head is {HEFT['db']} dB up under its disc: open it is over the old drum's head, shut {2 * DISC['db'] - HEFT['db']} dB under it")
         if ON['trade']:
             print(f"    the things trade cells, one pair at a time, to bar {TRADE['to']}: " + '; '.join(f"from bar {at + 1} the {x} plays the {y}'s" + (f" (an octave {'down' if semis > 0 else 'up'})" if semis else '') + f" and the {y} the {x}'s" + (f" (an octave {'up' if semis > 0 else 'down'})" if semis else '') for x, y, semis, at in TRADE['pairs']) + f"; from bar {TRADE['to'] + 1} each has its own again")
+        if ON['glass']:
+            print("    the eighth thing is not struck: a glass, sung by a finger going round its rim: it sounds only while the hand is on it, so it sings where the others are stopped: " + ', '.join(f"{pt} bars {a + 1}-{b}" for a, b, pt, _ in GLASS['notes']) + f"; on bar {GLASS['notes'][-1][1] + 1} the hands begin to come off and the finger does first: as the others are let go and ring, the glass stops" + (f"; the finger takes {GLASS['turn']:g} beats to come round: its level rocks {2 * GLASS['rub']:g} dB, two turns to three beats: the swell falls on a beat, then between two, and meets the bar line every third bar" if ON['rub'] else ''))
+        if ON['four'] and ON['third'] and ON['trade'] and THIRD['lift']:
+            print(f"    the plate's traded strokes on beat 4 are {FOUR['db']} dB up again (bars {THIRD['at'] + 1}-{TRADE['to']})")
         if ON['slows'] and ON['quicken'] and ON['twin'] and ON['motor']:
             print('    the pair goes back the way it came while the others are stopped: ' + '; '.join(f"bars {a + 1}-{b}: {BPM * 4 / 60 / g:.2f} Hz (one wave {'a beat' if g == 4 else 'an eighth'})" for a, b, g in SLOWS['bars']) + f"; on bar {SLOWS['bars'][-1][1] + 1} the hand is on the metal and there is one bar")
         if ON['fall'] and (ON['foretold'] or (ON['third'] and ON['trade'])):

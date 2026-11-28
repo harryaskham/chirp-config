@@ -9377,15 +9377,15 @@
       "owner": null,
       "metric": "python3 tools/compscore.py chirpers11-t4 OUT.wav",
       "best": {
-        "score": 99.964,
-        "version": "v23",
+        "score": 99.95,
+        "version": "v24",
         "commit": "see git log songs/chirpers11-t4.yaml",
         "judged": true
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 23,
+      "rounds": 24,
       "priority": 1.0,
       "genre": "clicky minimal techno",
       "mode": "compose",
@@ -9403,7 +9403,7 @@
         "note": "COMPOSE (song, 300-480 s): INSTRUMENTS. A new percussion family built from physical models and noise; the sound design is the song: the same few strokes, reshaped bar by bar."
       },
       "last": {
-        "at": "2026-11-27T23:55:27Z",
+        "at": "2026-11-28T02:04:47Z",
         "who": "chirper-one"
       }
     },
