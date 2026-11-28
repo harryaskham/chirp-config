@@ -1,0 +1,41 @@
+{
+ "about": "Hearing Things' pip of 4 plain tones for the wider, the louder (chirper-zero, 28 Nov, v37): -7 +0 +5 +12 semitones from the note, each 6.02 dB under the one tone of `ht-spread-1`: the same power in all. Its loudness goes as the square of the velocity. BANKED by tools/patchbank.py (28 Nov 2026) from Hearing Things v37 (track spread-4): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "4ms",
+   "d": "0s",
+   "r": "10ms"
+  },
+  "filters": [
+   {
+    "cutoff": 9000
+   }
+  ],
+  "layers": [
+   {
+    "level": "-6.02dB",
+    "phase": 0.0,
+    "ratio": 0.66742
+   },
+   {
+    "level": "-6.02dB",
+    "phase": 0.0
+   },
+   {
+    "level": "-6.02dB",
+    "phase": 0.0,
+    "ratio": 1.33484
+   },
+   {
+    "level": "-6.02dB",
+    "phase": 0.0,
+    "ratio": 2.0
+   }
+  ]
+ }
+}

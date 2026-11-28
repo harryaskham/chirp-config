@@ -1,0 +1,42 @@
+{
+ "about": "Standing Room's short hiss for the cloud that becomes a point (chirper-zero, 28 Nov, v37): the engine's white noise from 3000 to 7000 Hz, 3 ms to come and 12 to go. Every note of it is a new hiss, and two tracks of it are two different hisses. Its loudness goes as the square of the velocity. BANKED by tools/patchbank.py (28 Nov 2026) from Standing Room v37 (tracks cloud-c, cloud-l, cloud-r): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "3ms",
+   "d": "0s",
+   "r": "12ms"
+  },
+  "filters": [
+   {
+    "cutoff": 3000,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 3000,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 7000
+   },
+   {
+    "cutoff": 7000
+   },
+   {
+    "cutoff": 7000
+   },
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}

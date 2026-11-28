@@ -1,0 +1,24 @@
+{
+ "about": "Least Common: the eleven's big brother (v27): the eleven's wooden bar an octave down and let ring: written on G3 and tuned 11/8 over it: 269.5 Hz, the eleventh harmonic still: struck every 11 bars. BANKED by tools/patchbank.py (28 Nov 2026) from Least Common v27 (tracks big-eleven, big-eleven-met): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.3ms",
+   "d": "0s",
+   "r": "300ms"
+  },
+  "layers": [
+   {
+    "bright": 0.35,
+    "decay": "900ms",
+    "modes": "bar",
+    "ratio": 1.375,
+    "strike": 0.5,
+    "type": "modal"
+   }
+  ]
+ }
+}
