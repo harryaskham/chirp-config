@@ -99,6 +99,24 @@ every 7. Those meetings, a click with the drum, were the only ones in the song t
          knock is now the head of each. It stops four bars before the end (the low end of a seam is the next
          song's). Its notes are 98 to 370 Hz, where this song stood 7 to 11 dB under the album's envelope.
 
+v24 (28 Nov): EACH CLICK AT THREE SIZES. Two switches (`--without-big`, `-bloom`; both off is v23 byte for byte).
+  BLOOM where two big brothers fall on one bar line (every 15, 21 and 35 bars) the meeting is a bigger room:
+        both strokes are heard in the hall as well. At the small size a meeting is a ping, at the middle size a
+        held tone, at the large size it is the room.
+  BIG   the first half counts three, five and seven SIXTEENTHS (they meet every 105: a supercycle); the second
+        counts three, five and seven BEATS (105 beats: a page) and keeps the sixteenths as each click's echo.
+        One size up again is BARS, and 105 bars is the whole second half: cycles of 3, 5 and 7 bars begun at
+        the half's first bar meet again only where the song ends. v18 tried that as held tones under the half
+        (BARS, off: a held note under four pages made them alike). Now it is strokes: each click has a big
+        brother, its own sound a size up, struck on the bar line every 3, 5 and 7 bars: the tick a hiss a
+        quarter of a second long (`lc-three-big`), the tock the wooden bar an octave down and let ring
+        (`lc-five-big`, G3), the knock's rim the drum machine's tom an octave down (`lc-seven-big`, G2: the rim
+        itself made long and low was 26 dB under the drum on a bench). So in the
+        second half each click is heard at three sizes: its echo every n sixteenths, itself every n beats, its
+        big brother every n bars. They are first heard where two of them first meet (the three and the five,
+        fifteen bars into the half: bar 121); they rest where the four stops for a turn; where the half begins
+        and where the song ends, the two places all three meet, the chord is already there and they add nothing.
+
 v23 (27 Nov): NOTHING COUNTS THE ONE CLICK. Three switches (`--without-uncounted`, `-gather`, `-dominant`; all
 off is v22 byte for byte).
   UNCOUNTED  v22 made the three one click for two supercycles of page 2, but the bass drum went on counting four
@@ -465,7 +483,17 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
       'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
-      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True, 'wall': True, 'leave': True, 'breath': False, 'struck': True, 'ground': True, 'recap': True, 'pause': True, 'bars': False, 'last': True, 'two': True, 'halve': False, 'pairs': True, 'pedal': True, 'halftime': True, 'stand': True, 'named': True, 'hand': True, 'ebb': True, 'fuse': True, 'unmet': True, 'uncounted': True, 'gather': True, 'dominant': True}
+      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True, 'wall': True, 'leave': True, 'breath': False, 'struck': True, 'ground': True, 'recap': True, 'pause': True, 'bars': False, 'last': True, 'two': True, 'halve': False, 'pairs': True, 'pedal': True, 'halftime': True, 'stand': True, 'named': True, 'hand': True, 'ebb': True, 'fuse': True, 'unmet': True, 'uncounted': True, 'gather': True, 'dominant': True, 'big': True, 'bloom': True}
+BIG = {'vel': 0.9, 'len': 6, 'from': 15, 'hall': '-6dB', 'cycles': {
+    3: {'track': 'big-three', 'patch': 'lc-three-big', 'pitch': 'C6', 'gain': '-16dB', 'pan': 0.5,
+        'synth': {'layers': [{'type': 'noise', 'color': 'white'}], 'filters': ['hp cutoff=5000', 'peak cutoff=8500 q=2 gain=8dB'], 'amp': {'a': '0.1ms', 'd': '260ms', 's': 0, 'r': '80ms', 'curve': 3}},
+        'about': "Least Common: the three's big brother (v24): the tick's noise above 5 kHz, a quarter of a second long: struck every 3 bars."},
+    5: {'track': 'big-five', 'patch': 'lc-five-big', 'pitch': 'G3', 'gain': '-6dB', 'pan': -0.5,
+        'synth': {'layers': [{'type': 'modal', 'modes': 'bar', 'decay': '900ms', 'bright': 0.85, 'damp': 0.05, 'strike': 0.4}], 'amp': {'a': '0.2ms', 'd': '0s', 's': 1, 'r': '300ms'}},
+        'about': "Least Common: the five's big brother (v24): the tock's wooden bar an octave down (G3) and let ring: struck every 5 bars."},
+    7: {'track': 'big-seven', 'patch': 'lc-seven-big', 'pitch': 'G2', 'gain': '-3dB', 'pan': 0.0,
+        'synth': {'layers': [{'type': 'machine', 'machine': {'part': 'tom', 'decay': '600ms'}}], 'amp': {'a': '0.1ms', 'd': '0s', 's': 1, 'r': '200ms'}},
+        'about': "Least Common: the seven's big brother (v24): where the seven is the drum machine's rim, this is its tom, an octave down (G2): struck every 7 bars."}}}   # v24: each click's big brother: touch, length (sixteenths), [BLOOM: the send to the hall of the strokes that meet,] the bar of the half (from 0) they are first heard on (15: where two of them first meet; from the first bar they blurred the cut the first held tone makes, 8 s into the half), and for each cycle its track, patch, note, fader (bench), side (its ghost's) and sound
 DOMINANT = {'pitch': 'D2', 'db': -13, 'vel': 0.8, 'early': 2}   # v23: the note the bass holds while nothing counts the one click (the turn's note, as before every page turn), its dB and touch (the leads': v11's), and the sixteenths before the drum comes back at which it is let go
 UNCOUNTED = {'supers': (2, 3), 'who': ('kick', 'bass'), 'db': 0}   # v23: the supercycles of FUSE's page (from which to which, not included) in which nothing counts the one click; who rests; dB on the fused strokes there
 FUSE = {'page': 1, 'supers': (1, 3), 'db': -3}   # v22: the first half's page (from 0) on which the three are one click; from which of its supercycles to which (not included); dB on each of the three sounds while it plays for all
@@ -877,6 +905,19 @@ def build():
             add('chord', s, 2, ','.join(CHORD), .85)
             continue                                           # after a chord the tone rests until the next two meet
         add('tone', s, nxt - s - 2, TONE[heads], .7)
+    if ON['big']:                                              # v24 BIG: each click's big brother on the bar line every 3, 5 and 7 bars of the second half
+        meets = []
+        for c, big_c in BIG['cycles'].items():
+            T[big_c['track']], T[big_c['track'] + '-met'] = [], []
+            for k in range(1, HALF // (c * BAR)):              # not where the half begins nor where the song ends: the chord is there
+                if not broken(HALF + c * BAR * k) and c * k >= BIG['from']:
+                    met = ON['bloom'] and any(o != c and (c * k) % o == 0 for o in BIG['cycles'])   # v24 BLOOM: two of them on one bar line
+                    add(big_c['track'] + ('-met' if met else ''), HALF + c * BAR * k, BIG['len'], big_c['pitch'], BIG['vel'])
+                    meets += [HALF // BAR + c * k + 1] if met else []
+        if meets:
+            marks += [(f"where two big brothers meet the meeting is a bigger room: both are heard in the hall as well ({BIG['hall']}): bars " + ' '.join(str(b) for b in sorted(set(meets))), HALF + BIG['from'] * BAR)]
+        marks += [("each click has a big brother, its own sound a size up, on the bar line every 3, 5 and 7 BARS: " + ', '.join(f"{len(T[v['track']]) + len(T[v['track'] + '-met'])} every {c}" for c, v in BIG['cycles'].items()) +
+                   f" (none where the four stops; first heard where two of them first meet, bar {HALF // BAR + BIG['from'] + 1}): cycles that take the whole half, 105 bars, to meet: the click at three sizes: its echo every n sixteenths, itself every n beats, its big brother every n bars", HALF)]
     if ON['bars']:                                             # v18 BARS: the same tune a third size up: cycles of 3, 5 and 7 bars, their meetings held
         T['bars'] = []
         big = [(HALF + r, tuple(c for c in CYCLES if r % (c * BAR) == 0)) for r in range(BAR, HALF + 1, BAR)]
@@ -1147,6 +1188,14 @@ def song():
             else:
                 runs.append([x])
         marks = sorted(marks + [(f"the clock on the wall is heard: {len(r)} ticks, at {r[0]} to {r[-1]} s of the song", int((r[0] + WALL['phase']) * BPM * BEAT / 60)) for r in runs], key=lambda m: m[1])
+    if ON['big']:                                              # v24 BIG
+        for c, big_c in BIG['cycles'].items():
+            if T.get(big_c['track']) or T.get(big_c['track'] + '-met'):
+                doc['patches'] = {**doc['patches'], big_c['patch']: {'about': big_c['about'], 'synth': big_c['synth'], 'play': {'event_stable': True, 'vel_sens': 0.5}}}
+            if T.get(big_c['track']):
+                doc['tracks'].append(track(big_c['track'], big_c['patch'], big_c['gain'], pan=big_c['pan'], sends={'room': '-12dB'}))
+            if T.get(big_c['track'] + '-met'):                 # v24 BLOOM: the strokes that meet, in the hall too
+                doc['tracks'].append(track(big_c['track'] + '-met', big_c['patch'], big_c['gain'], pan=big_c['pan'], sends={'room': '-12dB', 'hall': BIG['hall']}))
     if ON['bars'] and T.get('bars'):                           # v18 BARS: the tones' patch an octave down, dry (the hall has nothing under 350 Hz), under the drum as the tones are
         doc['tracks'].append(track('bars', 'lc-tone', f"{THIRD['db']}dB", fx=[under]))
     return doc, marks
@@ -1168,7 +1217,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f"--{'without' if ON[k] else 'with'}-{k}", action='store_true', help=f"{'leave out' if ON[k] else 'put in'} {k} (of those that are on: the last three off is v22, the last five v21, the last nine v20, the last twelve v19, the last fourteen v18, the last sixteen v17, the last seventeen v16, the last eighteen v15, the last twenty v14, the last twenty-one v13, the last twenty-three v12, the last twenty-five v11, the last twenty-seven v10, the last thirty v9, the last thirty-three v8, the last thirty-five v7, the last thirty-eight v6, the last thirty-nine v5, the last forty-two v4, the last forty-seven v3, the last fifty-five v2, all sixty-one v1)")
+        ap.add_argument(f"--{'without' if ON[k] else 'with'}-{k}", action='store_true', help=f"{'leave out' if ON[k] else 'put in'} {k} (of those that are on: the last two off is v23, the last five v22, the last seven v21, the last eleven v20, the last fourteen v19, the last sixteen v18, the last eighteen v17, the last nineteen v16, the last twenty v15, the last twenty-two v14, the last twenty-three v13, the last twenty-five v12, the last twenty-seven v11, the last twenty-nine v10, the last thirty-two v9, the last thirty-five v8, the last thirty-seven v7, the last forty v6, the last forty-one v5, the last forty-four v4, the last forty-nine v3, the last fifty-seven v2, all sixty-three v1)")
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}') if ON[k] else getattr(a, f'with_{k}')
