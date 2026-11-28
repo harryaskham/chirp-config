@@ -1,0 +1,102 @@
+{
+ "about": "Out of Step's 16 tones of G1 (the 5th to the 20th: 245 to 980 Hz), all at one level (chirper-zero, 28 Nov, v32): each tone begun a different part of its own wave late (Schroeder's rule): the same tones at the same levels, never in step: no tick. BANKED by tools/patchbank.py (28 Nov 2026) from Out of Step v32 (track buzz-out): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "3ms",
+   "d": "0s",
+   "r": "15ms"
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 5.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.9375,
+    "ratio": 6.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.8125,
+    "ratio": 7.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.625,
+    "ratio": 8.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.375,
+    "ratio": 9.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.0625,
+    "ratio": 10.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.6875,
+    "ratio": 11.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.25,
+    "ratio": 12.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.75,
+    "ratio": 13.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.1875,
+    "ratio": 14.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.5625,
+    "ratio": 15.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.875,
+    "ratio": 16.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.125,
+    "ratio": 17.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.3125,
+    "ratio": 18.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.4375,
+    "ratio": 19.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.5,
+    "ratio": 20.0
+   }
+  ]
+ }
+}

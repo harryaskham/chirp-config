@@ -1,0 +1,60 @@
+{
+ "about": "Wind Down: the meetings' last chord, opening as it dies (v4): wd-held with its low-pass at 600 Hz while the chord is held and opening two octaves over the first two and a half seconds of a six-second release. v24: on a record pressed 0.4 mm off its centre: its pitch wavers 8.7 cents each way once a turn (1.8 s). BANKED by tools/patchbank.py (28 Nov 2026) from Wind Down v24 (track held): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "500ms",
+   "d": "0s",
+   "r": "6s"
+  },
+  "env": {
+   "shut": {
+    "a": "1ms",
+    "d": "0s",
+    "r": "2.5s"
+   }
+  },
+  "filters": [
+   {
+    "cutoff": {
+     "mod": [
+      {
+       "amount": -2.0,
+       "src": "env.shut"
+      }
+     ],
+     "value": 2400
+    },
+    "q": 0.8
+   }
+  ],
+  "layers": [
+   {
+    "detune": -7,
+    "wave": "saw"
+   },
+   {
+    "detune": 7,
+    "wave": "saw"
+   }
+  ],
+  "lfo": {
+   "wow": {
+    "phase": 0.4238,
+    "rate": 0.55556
+   }
+  },
+  "pitch": {
+   "mod": [
+    {
+     "amount": 0.0872,
+     "src": "lfo.wow"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

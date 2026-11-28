@@ -1,0 +1,102 @@
+{
+ "about": "Out of Step's 16 tones of G1 (the 5th to the 20th: 245 to 980 Hz), all at one level (chirper-zero, 28 Nov, v32): every tone begun together: in step once every wave of the note, where they tick. BANKED by tools/patchbank.py (28 Nov 2026) from Out of Step v32 (track buzz-in): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "3ms",
+   "d": "0s",
+   "r": "15ms"
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 5.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 6.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 7.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 8.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 9.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 10.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 11.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 12.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 13.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 14.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 15.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 16.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 17.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 18.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 19.0
+   },
+   {
+    "level": "-12.04dB",
+    "phase": 0.0,
+    "ratio": 20.0
+   }
+  ]
+ }
+}

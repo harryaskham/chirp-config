@@ -1,0 +1,35 @@
+{
+ "about": "Give or Take's tune on a soft hammer (chirper-zero, 28 Nov, v33): a plain tone with its octave (-9 dB) and its twelfth (-15 dB), struck and gone in 200 ms; nothing over 7 kHz. Its loudness goes as the square of the velocity. BANKED by tools/patchbank.py (28 Nov 2026) from Give or Take v33 (track talea): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "200ms",
+   "r": "60ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   },
+   {
+    "level": "-9dB",
+    "phase": 0.0,
+    "ratio": 2.0
+   },
+   {
+    "level": "-15dB",
+    "phase": 0.0,
+    "ratio": 3.0
+   }
+  ]
+ }
+}
