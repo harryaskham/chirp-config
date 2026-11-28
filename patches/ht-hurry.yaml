@@ -1,0 +1,35 @@
+{
+ "about": "Hearing Things' even stair (chirper-zero, 27 Nov, v30): a soft low pluck: a plain tone with a little of its second and third harmonics, struck and gone in a quarter of a second; every note as loud as every other whatever its pitch. BANKED by tools/patchbank.py (28 Nov 2026) from Hearing Things v30 (tracks hurry-1, hurry-2, hurry-3): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "2ms",
+   "d": "220ms",
+   "r": "50ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   },
+   {
+    "level": "-12dB",
+    "phase": 0.0,
+    "ratio": 2.0
+   },
+   {
+    "level": "-18dB",
+    "phase": 0.0,
+    "ratio": 3.0
+   }
+  ]
+ }
+}

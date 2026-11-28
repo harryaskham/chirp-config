@@ -1,0 +1,29 @@
+{
+ "about": "Standing Room's echo between two walls (chirper-zero, 27 Nov, v30): one soft low thud, a plain tone and its octave, gone in 12 ms, with nothing over 600 Hz; how hard it is struck is how loud it is. A train of them is a rattle or a note, by how close they come. BANKED by tools/patchbank.py (28 Nov 2026) from Standing Room v30 (track close): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "0.2ms",
+   "d": "12ms",
+   "r": "5ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 600
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   },
+   {
+    "phase": 0.0,
+    "ratio": 2.0
+   }
+  ]
+ }
+}
