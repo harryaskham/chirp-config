@@ -99,6 +99,23 @@ every 7. Those meetings, a click with the drum, were the only ones in the song t
          knock is now the head of each. It stops four bars before the end (the low end of a seam is the next
          song's). Its notes are 98 to 370 Hz, where this song stood 7 to 11 dB under the album's envelope.
 
+v26 (28 Nov): THE NEXT PRIME MISSES HOME BY A BEAT. Three switches (`--without-eleven`, `-harmonic`, `-meets`;
+all three off is v25 byte for byte).
+  ELEVEN    the song is three primes, and on its seventh page the drum is counted in two: the first four.
+            The next is eleven, and it is not one of the three: nothing in the song is a multiple of it.
+            From the head of page 7 (bar 158 beat 3, 5:00) a fourth voice is struck every eleven BEATS (a low
+            wooden bar, `lc-eleven`), with its echo on its old cycle as the others have: every eleven
+            sixteenths, three times, falling. It rests while the three are one click (nothing counts that),
+            and it goes on through the last page. The three come home after 210 beats; eleven goes into
+            210 nineteen times and leaves one over: its twentieth stroke is ONE BEAT before home, and it is
+            not struck at home. With the three it would next come home 1155 beats on: nine minutes.
+  HARMONIC  its note is not in the song's scale either: the eleventh harmonic of the drum's G (49 Hz times
+            eleven, 539 Hz): the C between C and C sharp, 51 cents over. (Without: C5, the one note of the
+            five the tune never plays.)
+  MEETS     where a stroke of the eleven falls with a stroke of one of the three (their cycles of 3, 5 and 7
+            beats begin again at each page) the meeting rings, as every meeting in this song does: the same
+            bar an octave up as well, in the hall.
+
 v25 (28 Nov): THE ONE CLICK, ONE SIZE UP. Four switches (`--without-large`, `-alone`, `-under`, `-middle`; all
 four off is v24 byte for byte).
   LARGE  on the first half's second page the three become one click: every stroke of any of them is struck by
@@ -504,7 +521,7 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t2.yaml'
 ON = {'place': True, 'near': True, 'door': True, 'memory': True, 'roots': True, 'break': True,
       'rundown': True, 'windup': True, 'through': True, 'seven': True, 'swing': True, 'line': True, 'rest': True, 'wide': True,
       'away': True, 'home': True, 'slow': True, 'push': True, 'low': True,
-      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True, 'wall': True, 'leave': True, 'breath': False, 'struck': True, 'ground': True, 'recap': True, 'pause': True, 'bars': False, 'last': True, 'two': True, 'halve': False, 'pairs': True, 'pedal': True, 'halftime': True, 'stand': True, 'named': True, 'hand': True, 'ebb': True, 'fuse': True, 'unmet': True, 'uncounted': True, 'gather': True, 'dominant': True, 'big': True, 'bloom': True, 'large': True, 'alone': True, 'under': True, 'middle': True}
+      'bare': True, 'small': True, 'rise': True, 'knock': True, 'turn': True, 'carry': True, 'tame': True, 'ghost': True, 'fore': True, 'count': True, 'sway': True, 'open': True, 'skip': True, 'leap': True, 'back': True, 'hold': True, 'lend': True, 'led': True, 'walk': True, 'ring': True, 'once': True, 'tell': True, 'wall': True, 'leave': True, 'breath': False, 'struck': True, 'ground': True, 'recap': True, 'pause': True, 'bars': False, 'last': True, 'two': True, 'halve': False, 'pairs': True, 'pedal': True, 'halftime': True, 'stand': True, 'named': True, 'hand': True, 'ebb': True, 'fuse': True, 'unmet': True, 'uncounted': True, 'gather': True, 'dominant': True, 'big': True, 'bloom': True, 'large': True, 'alone': True, 'under': True, 'middle': True, 'eleven': True, 'harmonic': True, 'meets': True}
 BIG = {'vel': 0.9, 'len': 6, 'from': 15, 'hall': '-6dB', 'cycles': {
     3: {'track': 'big-three', 'patch': 'lc-three-big', 'pitch': 'C6', 'gain': '-16dB', 'pan': 0.5,
         'synth': {'layers': [{'type': 'noise', 'color': 'white'}], 'filters': ['hp cutoff=5000', 'peak cutoff=8500 q=2 gain=8dB'], 'amp': {'a': '0.1ms', 'd': '260ms', 's': 0, 'r': '80ms', 'curve': 3}},
@@ -517,6 +534,9 @@ BIG = {'vel': 0.9, 'len': 6, 'from': 15, 'hall': '-6dB', 'cycles': {
         'about': "Least Common: the seven's big brother (v24): where the seven is the drum machine's rim, this is its tom, an octave down (G2): struck every 7 bars."}}}   # v24: each click's big brother: touch, length (sixteenths), [BLOOM: the send to the hall of the strokes that meet,] the bar of the half (from 0) they are first heard on (15: where two of them first meet; from the first bar they blurred the cut the first held tone makes, 8 s into the half), and for each cycle its track, patch, note, fader (bench), side (its ghost's) and sound
 DOMINANT = {'pitch': 'D2', 'db': -13, 'vel': 0.8, 'early': 2}   # v23: the note the bass holds while nothing counts the one click (the turn's note, as before every page turn), its dB and touch (the leads': v11's), and the sixteenths before the drum comes back at which it is let go
 UNCOUNTED = {'supers': (2, 3), 'who': ('kick', 'bass'), 'db': 0}   # v23: the supercycles of FUSE's page (from which to which, not included) in which nothing counts the one click; who rests; dB on the fused strokes there
+ELEVEN = {'patch': 'lc-eleven', 'gain': '-12dB', 'pan': -0.3, 'room': '-12dB', 'hall': '-8dB', 'page': 6, 'beats': 11, 'note': 'G4', 'ratio': (11, 8), 'plain': 'C5', 'up': 12, 'vel': 0.9, 'len': 1.0,
+          'echo': (-6, -10, -14), 'echo_vel': 0.6, 'echo_len': 0.5, 'met': -6,
+          'trim': {0: 6.5, 11: 0.3, 22: 4.5, 33: 5.2, 77: 5.1, 88: 3.3, 99: -0.6, 110: 6.3, 121: 2.5, 132: 2.8, 143: 1.3, 154: 8.1, 165: 5.2, 176: 1.8, 187: 2.2, 198: 2.9, 209: -0.5}}   # v26: the eleven: its patch, fader, place, sends; the page it begins on (from 0); its cycle (beats; its echo's is that many sixteenths); the note it is written on and the ratio the patch's bar is tuned by (HARMONIC), or the plain note; semitones up for a meeting's second bar; touch and length (beats) of a stroke; dB, touch and length of its three echoes; dB on a meeting's second bar; dB on each stroke by its beat from the page's head, SET FROM A FINISHED BUILD stroke by stroke: at one level the same stroke came out -12.4 to -21.1 dBFS from 450 to 650 Hz (raw and alone it is -20.7 every time): this master lifts a quarter-second note that falls on the drum 0 to 8 dB by where it falls and what is ringing: each stroke is written to come out at -13
 LARGE = {'apart': '-4dB', 'back': 0, 'page': 6, 'beats': (35, 70), 'db': -3, 'vel': 0.95, 'who': ('kick', 'bass', 'clap', 'clap-l', 'clap-r'), 'pitch': 'D2', 'early': 2}   # v25: the page (from 0) on which the three are one click at the large size; from which beat of it to which (not included: two meetings of the five and the seven); dB on each of the three sounds while it plays for all (FUSE's); its touch (a cycle's head); ALONE: who rests; UNDER: the note the bass holds and the sixteenths before the end at which it lets go
 FUSE = {'page': 1, 'supers': (1, 3), 'db': -3}   # v22: the first half's page (from 0) on which the three are one click; from which of its supercycles to which (not included); dB on each of the three sounds while it plays for all
 STAND = {'octaves': 1, 'vel': (.95, .88)}   # v21: how far under the click's knock the drum is while it stands in for it; its stroke where it lands on the old beat, and elsewhere
@@ -800,6 +820,45 @@ def ground(s):
         return 'G1'
     low = TURNED[(s - HALF) // PAGE % len(TURNED)][CYCLES[0]]
     return f"{low[:-1]}{int(low[-1]) - GROUND['octaves']}"
+
+
+def eleven_patch():
+    """v26 ELEVEN: the eleven's own sound; HARMONIC: tuned 11/8 over its written note."""
+    return {'about': "Least Common: the eleven (v26). A low wooden bar, a quarter of a second long, hollow (little above its first mode)" + (f": written on G4 and tuned {ELEVEN['ratio'][0]}/{ELEVEN['ratio'][1]} over it: the eleventh harmonic of the drum's G1, 539 Hz, 51 cents over C5: a note the scale does not have." if ON['harmonic'] else ', on C5.'),
+            'synth': {'layers': [{'type': 'modal', 'modes': 'bar', 'decay': '260ms', 'bright': 0.35, 'strike': 0.5, **({'ratio': round(ELEVEN['ratio'][0] / ELEVEN['ratio'][1], 6)} if ON['harmonic'] else {})}],
+                      'amp': {'a': '0.3ms', 'd': '450ms', 's': 0, 'r': '120ms'}}, 'play': {'event_stable': True, 'vel_sens': 0.5}}
+
+
+def eleven_notes():
+    """v26 ELEVEN: (the eleven's notes, the meetings' second bars, [(beat from its page's head, who it meets)]): a stroke every ELEVEN['beats'] beats from its page's head to home, three echoes between, none while the three are one click."""
+    head, note = ELEVEN['page'] * PAGE, ELEVEN['note'] if ON['harmonic'] else ELEVEN['plain']
+    lo, hi = ((LARGE['page'] * PAGE + x * BEAT for x in LARGE['beats']) if ON['large'] else (0, 0))
+    out, met, tell = [], [], []
+    for k in range((TOTAL - head) // ELEVEN['beats'] + 1):
+        s = head + k * ELEVEN['beats']                           # sixteenths
+        j = k % BEAT                                             # 0: a stroke (every eleven beats); 1 to 3: its echoes (every eleven sixteenths)
+        if s >= TOTAL or lo <= s < hi or lo <= s - j * ELEVEN['beats'] < hi:   # no stroke while the three are one click, and no echo of a stroke that was not struck
+            continue
+        if j:
+            out.append({'at': s / BEAT, 'len': ELEVEN['echo_len'], 'pitch': note, 'vel': ELEVEN['echo_vel'], 'gain': f"{ELEVEN['echo'][j - 1]:g}dB"})
+            continue
+        b = (s - head) // BEAT                                   # beats from the eleven's page; the three's cycles begin again at each page (105 beats)
+        trim = ELEVEN['trim'].get(b, 0)
+        out.append({'at': s / BEAT, 'len': ELEVEN['len'], 'pitch': note, 'vel': ELEVEN['vel'], **({'gain': f'{trim:g}dB'} if trim else {})})
+        who = [c for c in CYCLES if b % (PAGE // BEAT) % c == 0]
+        tell.append((b, who))
+        if who and ON['meets']:
+            met.append({'at': s / BEAT, 'len': ELEVEN['len'], 'pitch': moved11(note, ELEVEN['up']), 'vel': ELEVEN['vel'], 'gain': f"{ELEVEN['met'] + trim:g}dB"})
+    return out, met, tell
+
+
+def moved11(pitch, semis):
+    """A note name moved by semitones (sharps as the engine writes them)."""
+    names = ('C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B')
+    flat = {'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#'}
+    name, octave = pitch[:-1], int(pitch[-1])
+    n = names.index(flat.get(name, name)) + 12 * octave + semis
+    return f'{names[n % 12]}{n // 12}'
 
 
 def build():
@@ -1246,6 +1305,18 @@ def song():
                 doc['tracks'].append(track(big_c['track'] + '-met', big_c['patch'], big_c['gain'], pan=big_c['pan'], sends={'room': '-12dB', 'hall': BIG['hall']}))
     if ON['bars'] and T.get('bars'):                           # v18 BARS: the tones' patch an octave down, dry (the hall has nothing under 350 Hz), under the drum as the tones are
         doc['tracks'].append(track('bars', 'lc-tone', f"{THIRD['db']}dB", fx=[under]))
+    if ON['eleven']:                                            # v26 ELEVEN: the next prime, from page 7 to a beat before home
+        e_notes, e_met, e_tell = eleven_notes()
+        doc['patches'] = {**doc['patches'], ELEVEN['patch']: eleven_patch()}
+        doc['tracks'].append({'name': 'eleven', 'patch': ELEVEN['patch'], 'gain': ELEVEN['gain'], 'pan': ELEVEN['pan'], 'sends': {'room': ELEVEN['room']}, 'notes': e_notes})
+        if e_met:
+            doc['tracks'].append({'name': 'eleven-met', 'patch': ELEVEN['patch'], 'gain': ELEVEN['gain'], 'pan': ELEVEN['pan'], 'sends': {'room': ELEVEN['room'], 'hall': ELEVEN['hall']}, 'notes': e_met})
+        head, last = ELEVEN['page'] * PAGE, max(b for b, _ in e_tell)
+        marks = sorted(marks + [(f"the next prime: a fourth voice every {ELEVEN['beats']} beats ({ELEVEN['patch']}" + (f", the eleventh harmonic of the drum's G: 539 Hz, 51 cents over C5" if ON['harmonic'] else ', on C5') +
+                                 f"), its echo every {ELEVEN['beats']} sixteenths between: {len(e_tell)} strokes and {len(e_notes) - len(e_tell)} echoes, at beats {' '.join(str(b) for b, _ in e_tell)} from here" +
+                                 (' (none while the three are one click)' if ON['large'] else '') +
+                                 ('; where it falls with one of the three the meeting rings, an octave up in the hall: ' + ', '.join(f"{b} ({' and '.join(str(c) for c in who)})" for b, who in e_tell if who) if ON['meets'] else ''), head),
+                                (f"the eleven's last stroke: {(TOTAL - head) // BEAT - last} beat before home ({(TOTAL - head) // BEAT} beats is {((TOTAL - head) // BEAT) // ELEVEN['beats']} elevens and {((TOTAL - head) // BEAT) % ELEVEN['beats']} over); it is not struck at home: with the three it would next come home {lcm(SUPER, ELEVEN['beats'])} beats on", head + last * BEAT)], key=lambda m: m[1])
     return doc, marks
 
 
@@ -1265,7 +1336,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     for k in ON:
-        ap.add_argument(f"--{'without' if ON[k] else 'with'}-{k}", action='store_true', help=f"{'leave out' if ON[k] else 'put in'} {k} (of those that are on: the last four off is v24, the last six v23, the last nine v22, the last eleven v21, the last fifteen v20, the last eighteen v19, the last twenty v18, the last twenty-two v17, the last twenty-three v16, the last twenty-four v15, the last twenty-six v14, the last twenty-seven v13, the last twenty-nine v12, the last thirty-one v11, the last thirty-three v10, the last thirty-six v9, the last thirty-nine v8, the last forty-one v7, the last forty-four v6, the last forty-five v5, the last forty-eight v4, the last fifty-three v3, the last sixty-one v2, all sixty-seven v1)")
+        ap.add_argument(f"--{'without' if ON[k] else 'with'}-{k}", action='store_true', help=f"{'leave out' if ON[k] else 'put in'} {k} (of those that are on: the last three off is v25, the last seven v24, the last nine v23, the last twelve v22, the last fourteen v21, the last eighteen v20, the last twenty-one v19, the last twenty-three v18, the last twenty-five v17, the last twenty-six v16, the last twenty-seven v15, the last twenty-nine v14, the last thirty v13, the last thirty-two v12, the last thirty-four v11, the last thirty-six v10, the last thirty-nine v9, the last forty-two v8, the last forty-four v7, the last forty-seven v6, the last forty-eight v5, the last fifty-one v4, the last fifty-six v3, the last sixty-four v2, all seventy v1)")
     a = ap.parse_args()
     for k in ON:
         ON[k] = not getattr(a, f'without_{k}') if ON[k] else getattr(a, f'with_{k}')
