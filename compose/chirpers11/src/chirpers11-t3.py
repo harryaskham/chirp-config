@@ -446,6 +446,12 @@ plain pip in both ears walks from the left to the right twice. In bars 146 to 14
 get it exactly as loud and one gets it sooner, by the way round a head (up to 551 millionths
 of a second). In bars 150 to 152 both get it at the same instant and one gets it louder (up
 to 9.4 dB). Rayleigh's two ways of telling where a sound is, one at a time.
+
+v36 (28 Nov): THE HIGHER THE NOTE, THE HIGHER IT HANGS (C11T3_RUNG=0 takes it out: v35).
+Outside the door (bars 153 to 160) one plain pip a beat, always in the middle, the same in
+both ears and nearly as loud, comes down sixteen notes from D7 to D4 and climbs them again. A note is
+said to seem to come from higher up the higher its pitch, wherever it really comes from
+(Pratt, 1930; Roffler and Butler, 1968). Nothing but the note changes.
 """
 import json
 import math
@@ -842,6 +848,16 @@ EARS_WALKS = ("time", "level")                         # the walks, 4 bars each:
 EARS_HEAD = 0.0875                                     # m: the radius of a head
 EARS_LEVEL = 10.0                                      # dB between the ears for a sound straight to one side, in the walk by level; the sine of the angle of it elsewhere. MY CHOICE: a real head shadows a tone as low as this by less
 EARS_GAIN = os.environ.get("C11T3_EARS_GAIN", "-32.5dB")   # both tracks. THE BENCH FIRST (the two tracks alone at -20 dB): a pip of the walk by time -34.0 dBFS in each ear (its middle 60 ms); set for -27 in the song with the 19.5 dB the master gave the knock a third of a beat after the drum in bars 89 to 96. THE SECOND BUILD READ (each ear by itself, both seeds, before any score): by time the left ear later by -541 -357 -125 +125 +375 +563 millionths of a second (starts are rounded to the sample) and the ears 0.0 dB apart, -27.3 to -24.1 dBFS; by level 0 millionths and -9.4 -6.7 -2.4 +2.4 +6.7 +9.4 dB; the quieter ear over the old music by 10.5 dB at the least
+RUNG = os.environ.get("C11T3_RUNG", "1") != "0" and EARS   # v36: THE HIGHER THE NOTE, THE HIGHER IT HANGS (Pratt, 1930; Roffler and Butler, 1968): a note is said to seem to come from higher up the higher its pitch, wherever it really comes from. Outside the door there is no room and no ceiling: one plain pip a beat, always in the middle, the same in both ears and nearly as loud (within 2 dB), comes down a ladder of 16 notes and climbs it again. Nothing but its note changes. v35 placed a pip left and right by time and by level; this is up and down, and it is not in the sound at all
+RUNG_IN = ("the door", 0)                              # the section and its row (from 0): bars 153 to 160. Read on v35 by sixteenth of the beat: 500, 1000 and 2000 Hz are -56, -67 and -79 dBFS a sixteenth after the beat in this row (the emptiest place). THE FIRST BUILD (up then down, every pip a sixteenth after its beat) put the ladder's top on the thing that goes past (closest in bar 157) and the old music under the second pip was -25.6 dBFS: that pip was 2.5 dB UNDER the old music in its band, and six more less than 10 dB over it. b/oldat.py then read the old music at every instant the ladder could use, in the band of the note it would play there, both ways round: DOWN THEN UP, with the pips of beats 1 and 3 three sixteenths after the beat, has nothing louder than -38.5 dBFS under any pip
+RUNG_AT = (0.25, 0.75, 0.25, 0.75)                     # how far after each beat of the bar its pip begins: a sixteenth after beats 0 and 2, three after beats 1 and 3 (read: see RUNG_IN)
+RUNG_FROM = 62                                         # the lowest rung (MIDI): D4, 293.7 Hz
+RUNG_STEPS = (0, 3, 5, 7, 10)                          # semitones over the rung an octave below: D F G A C, the song's own five
+RUNG_N = 16                                            # rungs: D4 to D7 (2349.3 Hz), three octaves: down them first, then up
+RUNG_MS = 90                                           # ms a pip lasts
+RUNG_EDGE = 8                                          # ms it takes to come and to go
+RUNG_TRIM = (-1.2,) * 16 + (0.0,) + (-1.2,) * 15       # dB off each pip in turn (by velocity). In the first build every pip a sixteenth after its beat read -28.1 dBFS but the first of bar 157, which read -29.3 (the thing going past is closest there and the master gives way): that one is left whole and the others taken down to it
+RUNG_GAIN = os.environ.get("C11T3_RUNG_GAIN", "-40.7dB")   # THE BENCH FIRST (the track alone at -20 dB): every pip -26.0 dBFS, the same in both ears; the first build set for -30 in the song with 20 dB of lift (a pip a third after the beat in bars 146 to 152 got 19.2 to 22.4): -44 dB: it got 21.9 and read -28.1. The second build is set for -26: -40.7 dB with the trims
 AIR_PAN = 0.4                                          # the other ear
 RAIL_VEL = 0.8
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
@@ -1171,6 +1187,24 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def rung_row():
+    """The first bar (from 0) of the row with the ladder, or None."""
+    sec = next((x for x in SECS if x[0] == RUNG_IN[0]), None)
+    return sec[1] + ROW * RUNG_IN[1] if RUNG and sec is not None and RUNG_IN[1] * ROW < sec[2] else None
+
+
+def rung_note(k):
+    """The kth rung's note by name (0 the lowest)."""
+    m = RUNG_FROM + 12 * (k // len(RUNG_STEPS)) + RUNG_STEPS[k % len(RUNG_STEPS)]
+    return ("C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B")[m % 12] + str(m // 12 - 1)
+
+
+def rung_pips():
+    """[(the beat it begins on, its rung, its velocity)]: down RUNG_N rungs and up again, one a beat."""
+    b0 = rung_row() * BEATS; ks = list(range(RUNG_N - 1, -1, -1)) + list(range(RUNG_N))
+    return [(b0 + i + RUNG_AT[i % BEATS], k, round(10 ** ((RUNG_TRIM[i] if RUNG_TRIM else 0.0) / 40), 5)) for i, k in enumerate(ks)]
 
 
 def ears_row():
@@ -2163,6 +2197,12 @@ def song():
                                   "notes": [{"at": round(t - sg * itd / 2 * BPM / 60, 7), "len": round(e_len, 7), "pitch": EARS_NOTE, "vel": round(10 ** ((-EARS_LEVEL / 2 + sg * ild / 2) / 40), 5)} for _, _, t, itd, ild in ep]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v35 sooner or louder (bars {ears_row() + 1} to {ears_row() + ROW}): the same plain pip in both ears walks from the left to the right twice: first both ears get it exactly as loud and one gets it sooner (by up to {max(abs(p[3]) for p in ep) * 1e6:.0f} millionths of a second: the way round a head), then both get it at the same instant and one gets it louder (by up to {max(abs(p[4]) for p in ep):.1f} dB). Generated by")
         assert "From v35" in doc["about"]
+    if rung_row() is not None:
+        PATCHES["sr-rung"] = {"about": f"Standing Room's pip on the ladder (chirper-zero, 28 Nov, v36): one plain tone, {RUNG_MS} ms, {RUNG_EDGE} ms to come and to go; in the middle, no room.",
+                              "play": {"vel_sens": 1, "gate": 1}, "synth": {"layers": ["sine phase=0"], "filters": ["lp cutoff=9000"], "amp": {"a": f"{RUNG_EDGE}ms", "d": "0s", "s": 1, "r": f"{RUNG_EDGE}ms"}}}
+        doc["tracks"].append({"name": "rung", "patch": "sr-rung", "gain": RUNG_GAIN, "pan": 0.0, "notes": [{"at": at, "len": round(RUNG_MS / 1000 * BPM / 60, 6), "pitch": rung_note(k), "vel": v} for at, k, v in rung_pips()]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v36 the higher the note, the higher it hangs (bars {rung_row() + 1} to {rung_row() + ROW}): one plain pip a beat, always in the middle and the same in both ears, comes down {RUNG_N} notes from {rung_note(RUNG_N - 1)} to {rung_note(0)} and climbs them again; nothing but its note changes, and a higher note is said to seem to come from higher up (Pratt, 1930). Generated by")
+        assert "From v36" in doc["about"]
     return doc
 
 
@@ -2218,6 +2258,9 @@ def echoes(a, b, n=16):
 
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
+        if rung_row() is not None:
+            rp_ = rung_pips(); r_sec = rung_row() * BEATS * 60 / BPM
+            print(f"the higher the note, the higher it hangs ({RUNG_GAIN}), bars {rung_row() + 1}-{rung_row() + ROW} ({int(r_sec) // 60}:{r_sec % 60:04.1f}): a plain pip ({RUNG_MS} ms) on beats " + ", ".join(f"{q + x:g}" for q, x in enumerate(RUNG_AT)) + f" of every bar, in the middle, no room ; {RUNG_N} rungs down ({rung_note(RUNG_N - 1)} {hz(rung_note(RUNG_N - 1)):.1f} Hz to {rung_note(0)} {hz(rung_note(0)):.1f} Hz: " + " ".join(rung_note(k) for k in range(RUNG_N - 1, -1, -1)) + f") and the same {RUNG_N} up ; {len(rp_)} pips ; velocities {min(v for _, _, v in rp_):g} to {max(v for _, _, v in rp_):g}" + (f" (trims {min(RUNG_TRIM):g} to {max(RUNG_TRIM):g} dB)" if RUNG_TRIM else " (no trims)"))
         if ears_row() is not None:
             ep = ears_pips(); e_sec = ears_row() * BEATS * 60 / BPM
             print(f"sooner or louder ({EARS_GAIN}), bars {ears_row() + 1}-{ears_row() + ROW} ({int(e_sec) // 60}:{e_sec % 60:04.1f}): the same plain pip ({EARS_NOTE}, {hz(EARS_NOTE):.0f} Hz, {EARS_MS} ms) in each ear on beats " + " and ".join(f"{x:.3f}" for x in EARS_AT) + f" of every bar, from the left to the right ; a head of {100 * EARS_HEAD:g} cm ; " + " ; ".join(f"the walk by {w} (bars {int(min(p[2] for p in ep if p[0] == w)) // BEATS + 1}-{int(max(p[2] for p in ep if p[0] == w)) // BEATS + 1}), degrees and " + ("millionths of a second the left ear gets it later (minus: sooner): " + " ".join(f"{p[1]:+d}:{p[3] * 1e6:+.0f}" for p in ep if p[0] == w) if w == "time" else "dB the right ear gets it louder: " + " ".join(f"{p[1]:+d}:{p[4]:+.1f}" for p in ep if p[0] == w)) for i, w in enumerate(EARS_WALKS)))
