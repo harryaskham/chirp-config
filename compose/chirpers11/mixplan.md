@@ -94,6 +94,10 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v23 (01:02): both ends as v22's: bars 1 to 16 by four -22.5 -23.4 -23.6 -20.6 dBFS; the last
+  sixteen by four -22.9 -23.8 -23.1 -19.6; bars 185 to 192 -21.03; highest sample -1.30. Inside: a new wooden
+  key, bars 49 to 80 and 97 to 160 (466 to 1568 Hz); in bars 129 to 160 its stroke on sixteenth 6 is as loud
+  as a seed (-6.6 dBFS in its band) and is to come down in v24.
 - Wind Down v23 (00:36): bars 1 to 8 as v22's (-30.1 -30.3 -30.1 -30.1 dBFS by two). THE ALBUM'S END is 0.6 to
   2.4 dB up in the run-out (a low rumble, 25 to 90 Hz, -48 dBFS, from the first joint at 397.49 s to the lift):
   from the last stroke by second -10.4 -21.0 -32.6 -40.7 -42.8 -44.9 -43.1 -45.0 -35.6; the lift still at
