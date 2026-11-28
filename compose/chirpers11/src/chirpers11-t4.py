@@ -32,6 +32,33 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v27 (28 Nov), THE COMB RINGS THE CHANGES. Four switches (`--without-changes`, `-courses`, `-treble`, `-clear`;
+all four off is v26 byte for byte).
+  CHANGES  for fourteen bars at the peak the comb played its seven tongues in one order, the order the things
+           are let go: the same bar fourteen times. Seven things that ring in a fixed order are what bell
+           ringers call ROUNDS, and what they do next is ring the changes. The plainest way is the plain
+           hunt: every bar each tongue changes places with a neighbour, by turns the pairs counted from the
+           first place and the pairs counted from the second: 1234567 2143657 2416375 4261735 ... 7654321
+           (the tune backwards, bar 124) ... 1325476, and rounds again. On seven that is fourteen rows, and
+           the comb has its seven tongues for fourteen bars (117 to 130): it comes round on bar 131, where
+           the first hands go on and the five tongues that are left ring rounds. The rhythm does not change:
+           the places are SPREAD's; only which tongue is plucked in each place.
+  COURSES  wherever the comb has grown by a tongue it rings the changes on those it has, timed to be back
+           in rounds on the run's last bar (the comb rests after each): on two, bars 53 to 64 (four rows a
+           course: rounds for four bars, then two courses); on three, bars 69 to 80 (six rows: rounds for
+           six bars, then one course); on five, bars 85 to 95 (ten rows: one course, and rounds on bar 95);
+           on six, bars 97 to 112 (twelve rows: rounds for four bars, then one course). After the peak, as
+           the things are stopped, it is rounds to the end.
+  TREBLE   the wood's tongue, the first of rounds, is the one to follow: in a hunt it goes from the first
+           place to the last, a place a bar, lies there for two bars and comes back. It is plucked 3 dB
+           harder wherever it is not first.
+  CLEAR    read in the finished song place by place, the comb's notes in five of its 24 places were under
+           the music without it both at the stroke (the top of its first 60 ms, 150 to 550 Hz) and in the
+           ring (80 to 300 ms after it): the second of three, the fourth of five, the third and the last of
+           six, the third of seven. Each is written up by the lesser of the two shortfalls, 4 dB at most.
+The comb's own words are mended too: its second mode is a tick on the note's front, 20 dB down in 60 ms, not
+a tenth of a second.
+
 v26 (28 Nov), THE TENTH THING IS PLUCKED: LETTING GO IS HOW IT IS PLAYED. Three switches (`--without-comb`,
 `-spread`, `-follows`; all three off is v25 byte for byte).
   COMB     seven things are struck, one is sung and one is scraped. The tenth is plucked: a comb of steel
@@ -498,7 +525,7 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True, 'trade': True, 'slack': True, 'hint': True, 'twin': True, 'quicken': True, 'told': True, 'third': True, 'foretold': True, 'hallpair': True, 'slows': True, 'fall': True, 'glass': True, 'rub': True, 'four': True, 'rasp': True, 'tally': True, 'zip': True, 'comb': True, 'spread': True, 'follows': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True, 'trade': True, 'slack': True, 'hint': True, 'twin': True, 'quicken': True, 'told': True, 'third': True, 'foretold': True, 'hallpair': True, 'slows': True, 'fall': True, 'glass': True, 'rub': True, 'four': True, 'rasp': True, 'tally': True, 'zip': True, 'comb': True, 'spread': True, 'follows': True, 'changes': True, 'courses': True, 'treble': True, 'clear': True}
 TRADE = {'to': 128, 'pairs': (('wood', 'metal', 12, 120), ('string', 'skin', 0, 124))}   # v20: the bar (from 0) at which each has its own cell again; the pairs that play each other's: how many semitones the second is over the first, and the bar (from 0) they trade at
 TWIN = {'patch': 'rt-true', 'ring': 0.3, 'db': -6, 'gap': 1, 'bars': ((48, 64, 4), (96, 112, 2), (112, 144, 1))}   # v21: the metal's patch while it is a pair (the motor's, with the engine's stroke-to-stroke wander off: another sound, another name); the least ring, s, at which the second bar is struck; dB on each of the two (in step at the stroke they add to the old stroke); sixteenths to one wave of the gap between them where QUICKEN is off; the bars (from 0, to but not with) in which the metal is a pair, and the sixteenths to a wave there with QUICKEN
 THIRD = {'pair': ('air', 'plate', 24), 'at': 116, 'told': (78, 80), 'lift': 4}   # v22: (the last: dB on the plate's strokes while it plays the pipe's cell: two of its four fall on the bass drum, and the first build's peak read 2 to 3 dB poorer above 6 kHz, bars 117 to 128) v22: the third pair that trades (how many semitones the second is over the first), the bar (from 0) it trades at, and the bars (from 0, to but not with) in which it is told once before, stopped
@@ -507,6 +534,7 @@ GLASS = {'patch': 'rt-glass', 'gain': '-28dB', 'pan': 0.2, 'room': '-14dB', 'not
 COMB = {'patch': 'rt-tine', 'gain': '-14dB', 'pan': 0.0, 'room': '-14dB', 'at': 6, 'tines': {'wood': 'Bb3', 'metal': 'F4', 'string': 'D4', 'skin': 'C4', 'air': 'G4', 'plate': 'Bb4', 'weight': 'F3'},
         'ringing': 0.25, 'vel': 0.85, 'len': 1.0, 'soft': -9,
         'trim': {(1, 0): -6.6, (2, 0): -7.7, (2, 1): -2.3, (3, 0): -7.8, (3, 1): -1.3, (3, 2): 0.5, (5, 0): -6.8, (5, 1): -2.7, (5, 2): 2.4, (5, 3): -2.4, (5, 4): -1.3, (6, 0): -2.8, (6, 1): -4.0, (6, 2): 0.9, (6, 3): -0.6, (6, 4): -8.2, (6, 5): -2.8, (7, 0): -0.9, (7, 1): 0.9, (7, 2): 1.2, (7, 3): 6.1, (7, 4): -0.8, (7, 5): -1.2, (7, 6): -1.0}}   # v26: the comb: its patch, fader, place, room; the sixteenth of the bar its phrase begins on (the emptiest place in the bar from 150 to 550 Hz, read in the finished v25 by sixteenth: -28 to -34 dBFS on sixteenth 6 while the first things ring, -5 to -7 on the weight's four beats: begun on the one, the comb's first note of the bar came out 8 to 11 dB under the weight); a tongue for each thing, in the order they are let go; the ring from which a thing's tongue is plucked; touch and length (beats); FOLLOWS: dB on the tongue of a thing that does not ring at all; dB on a note by (how many in the bar, which of them), SET FROM A FINISHED BUILD, every note read: with none the comb came out -4.9 to -19.9 dBFS from 150 to 550 Hz (12 dB between the means of its 24 places; raw and alone every note is within 2 dB): this master lifts a half-second note most where the bar is emptiest; each place is written to come out at -12 (a cut of more than 4 dB is written 1.3 times as deep: in the build before, such cuts came out a third short)
+HUNT = {'treble': 'wood', 'db': 3, 'clear': {(3, 1): 4.0, (5, 3): 3.8, (6, 2): 3.3, (6, 5): 3.7, (7, 2): 1.5}, 'about': "Ring True: the comb (v26; these words v27), the tenth thing, the only one that is plucked: a steel tongue clamped at one end, bent and let go: a plain tone that rings half a second, the clamped bar's second mode (6.27 times the note) as a tick on its front (20 dB down in 60 ms), and the nail's click. It cannot be stopped: it is not played until it is let go."}   # v27: the changes: the tongue to follow and the dB on it wherever it is not first in its bar; CLEAR: dB on a note by (how many in the bar, which place), FROM THE FINISHED BUILD WITH THE CHANGES IN: the places whose notes read under the music without the comb both at the top of their first 60 ms and over 80 to 300 ms after (150 to 550 Hz, the mean over every bar they play in): by the lesser shortfall, 4 dB at most, none under 1.5; the comb's patch's own words, mended (v26 wrote a tenth of a second for the second mode: a level on a layer falls in dB, as a straight line: 68 dB in 200 ms)
 COMB_PATCH = {'about': "Ring True: the comb (v26), the tenth thing, the only one that is plucked: a steel tongue clamped at one end, bent and let go: a plain tone, the clamped bar's second mode (6.27 times the note) for a tenth of a second, and the nail's click on its front. It cannot be stopped: it is not played until it is let go.",
               'synth': {'layers': [{'type': 'osc', 'wave': 'sine'},
                                    {'type': 'osc', 'wave': 'sine', 'ratio': 6.27, 'level': {'value': '-80dB', 'mod': [{'src': 'env.ting', 'amount': 68}]}},
@@ -926,16 +954,55 @@ def comb_rings(bar):
             and not (k == 'weight' and ON['toll'] and bar in TOLLS) and ring_at(k, bar) >= COMB['ringing']]
 
 
-def comb_notes():
-    """v26 COMB: a bar's notes: a tongue for each thing that rings; SPREAD: as evenly as that many can be over the bar; FOLLOWS: as hard as its thing rings."""
-    out, whole = [], len(COMB['tines'])
+def comb_runs():
+    """v27: the comb's runs: [first bar, the bar after the last, who] for each stretch of bars with the same tongues and no rest between."""
+    runs = []
     for bar in range(BARS):
         who = comb_rings(bar)
-        for i, k in enumerate(who):
-            s16 = COMB['at'] + (16 * i // len(who) if ON['spread'] else 16 * list(COMB['tines']).index(k) // whole)
+        if who and runs and runs[-1][2] == who and runs[-1][1] == bar:
+            runs[-1][1] = bar + 1
+        elif who:
+            runs.append([bar, bar + 1, who])
+    return runs
+
+
+def hunt_row(n, r):
+    """v27 CHANGES: row r of the plain hunt on n: which of the n (from 0, in rounds' order) is in each place. Row 0 is rounds; at each row every pair changes places, by turns the pairs from the first place and the pairs from the second; rounds again after 2n rows."""
+    row = list(range(n))
+    for step in range(r):
+        for place in range(step % 2, n - 1, 2):
+            row[place], row[place + 1] = row[place + 1], row[place]
+    return row
+
+
+def comb_row(bar, runs):
+    """v27 CHANGES, COURSES: (a bar's tongues in the order they are plucked, the row's number or None where the comb does not hunt). It hunts in a run that has more tongues than the run before (CHANGES: all of them; COURSES: fewer), from the bar that brings it back to rounds on the run's last bar if the comb rests after it, or on the next run's first bar if it does not."""
+    who = comb_rings(bar)
+    at = next((x for x, (a, b, _) in enumerate(runs) if a <= bar < b), None)
+    if at is None or len(who) < 2 or (at and len(who) <= len(runs[at - 1][2])) or not ON['changes' if len(who) == len(COMB['tines']) else 'courses']:
+        return who, None
+    a, b, _ = runs[at]
+    rests = at + 1 == len(runs) or runs[at + 1][0] != b
+    r = max(0, bar - a - (b - a - rests) % (2 * len(who)))
+    return [who[x] for x in hunt_row(len(who), r)], r
+
+
+def comb_patch():
+    """v27: the comb's patch, its own words mended where any of v27 is on."""
+    return {**COMB_PATCH, 'about': HUNT['about']} if ON['changes'] or ON['courses'] or ON['treble'] or ON['clear'] else COMB_PATCH
+
+
+def comb_notes():
+    """v26 COMB: a bar's notes: a tongue for each thing that rings; SPREAD: as evenly as that many can be over the bar; FOLLOWS: as hard as its thing rings. v27 CHANGES, COURSES: which tongue is in which place; TREBLE: the one to follow."""
+    out, whole, runs = [], len(COMB['tines']), comb_runs()
+    for bar in range(BARS):
+        who = comb_rings(bar)
+        order, row = comb_row(bar, runs)
+        for i, k in enumerate(order):
+            s16 = COMB['at'] + (16 * i // len(who) if ON['spread'] else 16 * list(COMB['tines']).index(who[i]) // whole)
             if s16 >= 16 and not comb_rings(bar + 1):            # the phrase's end crosses the bar line: not into a bar where the comb rests
                 continue
-            db = (round(COMB['soft'] * (1 - ring_at(k, bar)), 1) if ON['follows'] else 0) + COMB['trim'].get((len(who), i), 0)
+            db = (round(COMB['soft'] * (1 - ring_at(k, bar)), 1) if ON['follows'] else 0) + COMB['trim'].get((len(who), i), 0) + (HUNT['db'] if ON['treble'] and row is not None and i and k == HUNT['treble'] else 0) + (HUNT['clear'].get((len(who), i), 0) if ON['clear'] else 0)
             out.append({'at': bar * 4 + s16 / 4, 'len': COMB['len'], 'pitch': COMB['tines'][k], 'vel': COMB['vel'], **({'gain': f'{db:g}dB'} if db else {})})
     return out
 
@@ -1154,7 +1221,7 @@ def song(T, bars=BARS):
         first = next(t for t in doc['tracks'] if t['name'] == 'metal-room')
         doc['tracks'].append({**{x: y for x, y in first.items() if x != 'notes'}, 'name': 'metal-twin-room', 'notes': T['metal-twin-room']})
     if ON['comb'] and bars == BARS:                               # v26 COMB: the tenth thing, plucked
-        doc['patches'] = {**doc['patches'], COMB['patch']: COMB_PATCH}
+        doc['patches'] = {**doc['patches'], COMB['patch']: comb_patch()}
         doc['tracks'].append({'name': 'comb', 'patch': COMB['patch'], 'gain': COMB['gain'], 'pan': COMB['pan'], **({'sends': {'room': COMB['room']}} if 'room' in doc.get('buses', {}) else {}), 'notes': comb_notes()})
     return doc
 
@@ -1189,7 +1256,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the sixty-four that are on: all off is v1; the last fifty-nine off is v2; the last fifty-five off is v3; the last fifty-two off is v4; the last forty-nine off is v5; the last forty-eight off is v6; the last forty-five off is v7; the last forty-three off is v8; the last forty off is v9; the last thirty-six off is v10; the last thirty-two off is v11; the last thirty off is v12; the last twenty-eight off is v13; the last twenty-six off is v14; the last twenty-five off is v15; the last twenty-four off is v16; the last twenty-three off is v17; the last twenty-two off is v18; the last twenty off is v19; the last seventeen off is v20; the last fourteen off is v21; the last eleven off is v22; the last nine off is v23; the last six off is v24; the last three off is v25)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the sixty-eight that are on: all off is v1; the last sixty-three off is v2; the last fifty-nine off is v3; the last fifty-six off is v4; the last fifty-three off is v5; the last fifty-two off is v6; the last forty-nine off is v7; the last forty-seven off is v8; the last forty-four off is v9; the last forty off is v10; the last thirty-six off is v11; the last thirty-four off is v12; the last thirty-two off is v13; the last thirty off is v14; the last twenty-nine off is v15; the last twenty-eight off is v16; the last twenty-seven off is v17; the last twenty-six off is v18; the last twenty-four off is v19; the last twenty-one off is v20; the last eighteen off is v21; the last fifteen off is v22; the last thirteen off is v23; the last ten off is v24; the last seven off is v25; the last four off is v26)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -1292,6 +1359,22 @@ if __name__ == '__main__':
             print(f"    the tenth thing is plucked: a comb of steel tongues ({COMB['patch']}), one for each thing in the order they are let go: " + ', '.join(f'the {k} {v}' for k, v in COMB['tines'].items()) +
                   ": in every bar the tongues of the things that ring" + (', spread as evenly as that many can be over the bar' if ON['spread'] else ', each in its own place') + (', each as hard as its thing rings' if ON['follows'] else '') + ': ' +
                   '; '.join(f"bars {a + 1}-{b}: {' '.join(COMB['tines'][k] for k in who)}" + (f" on {' '.join(str(COMB['at'] + 16 * i // len(who)) for i in range(len(who)))}" if ON['spread'] else '') for a, b, who in runs) + f" (sixteenths of the bar; 16 is the next bar's one); {len(comb_notes())} notes")
+        if ON['comb'] and (ON['changes'] or ON['courses']):
+            c_runs = comb_runs()
+            for c_a, c_b, c_who in c_runs:
+                c_rows = [comb_row(c_bar, c_runs) for c_bar in range(c_a, c_b)]
+                if c_rows[0][1] is None:
+                    continue
+                digits = lambda order: ''.join(str(c_who.index(k) + 1) for k in order)
+                c_first = next(x for x, (_, r) in enumerate(c_rows) if r)
+                print(f"    the comb rings the changes on {len(c_who)}, bars {c_a + 1}-{c_b}: a plain hunt: every bar each tongue changes places with a neighbour ({2 * len(c_who)} rows to a course)" +
+                      (f": rounds for {c_first} bar{'s' if c_first > 1 else ''}, then" if c_first > 1 else ':') + ' ' + ' '.join(digits(order) for order, _ in c_rows[c_first if c_first > 1 else 0:]) +
+                      (f": back in rounds on the run's last bar" if c_rows[-1][0] == c_who else f": it comes round on bar {c_b + 1}, where the comb goes on with the tongues that are left") +
+                      f" (1 is {COMB['tines'][c_who[0]]}, the {c_who[0]}'s; {len(c_who)} is {COMB['tines'][c_who[-1]]}, the {c_who[-1]}'s)")
+            if ON['treble']:
+                print(f"    the {HUNT['treble']}'s tongue is the one to follow: {HUNT['db']} dB harder wherever it is not first in its bar: it goes from the first place to the last, a place a bar, and back")
+        if ON['comb'] and ON['clear']:
+            print("    the comb's weakest places are written up: " + ', '.join(f"note {c_i + 1} of {c_n} {c_db:+g} dB" for (c_n, c_i), c_db in HUNT['clear'].items()))
         print(f'{BARS} bars, {BARS * sec:.1f} s; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in build().items()))
     else:
         a.out.write_text(dump(bench() if a.bench else song(build())))
