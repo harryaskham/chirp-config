@@ -9265,14 +9265,14 @@
       "metric": "python3 tools/compscore.py chirpers11-t1 OUT.wav",
       "best": {
         "score": 100.0,
-        "version": "v37",
+        "version": "v38",
         "commit": "see git log songs/chirpers11-t1.yaml",
         "judged": true
       },
       "passes": 1,
       "enabled": true,
       "status": "active",
-      "rounds": 37,
+      "rounds": 38,
       "priority": 1.0,
       "genre": "clicky minimal techno",
       "mode": "compose",
@@ -9290,7 +9290,7 @@
         "note": "COMPOSE (opener, 240-420 s): TIME. Open the record: the kick and one click set the grid, and something about time is not what it seems (a tempo that seems to move while the grid holds, a swing that drifts, a bar that will not divide). Any version at all opens the groove to it; then keep finessing."
       },
       "last": {
-        "at": "2026-11-28T08:16:02Z",
+        "at": "2026-11-28T09:29:06Z",
         "who": "chirper-zero"
       }
     },

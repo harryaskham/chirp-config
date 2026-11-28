@@ -409,6 +409,10 @@ v37 (28 Nov): GIVE OR TAKE THIRTY MILLISECONDS (C11T1_SHRINK=0 takes it out: v36
 56, where there is no ruler, three clicks, twice a bar. The first and the last are always the
 same time apart; the middle one is in the middle, then 30 ms early, then 30 ms late, then
 early and late side by side.
+
+v38 (28 Nov): CHANCE COMES IN CLUMPS (C11T1_CHANCE=0 takes it out: v37). In bars 57 to 64
+eight pips to two bars, on the sixteenths, four times: spread by the golden ratio, thrown
+by chance, spread, thrown. The throw's seed was written before the throw was seen.
 """
 import json
 import math
@@ -661,6 +665,44 @@ def faster_strokes():
             if amp > 0 and 20 * math.log10(amp) >= FASTER_FLOOR:
                 out.append((turn, j, faster_row() * BEATS + FASTER_FROM + (turn + x) * FASTER_TURN, amp, ks))
     return out
+
+
+def chance_row():
+    """The first bar (from 0) of the row in which chance comes in clumps, or None."""
+    sec = next((x for x in SECS if x[0] == CHANCE_IN[0]), None)
+    return sec[1] + ROW * CHANCE_IN[1] if CHANCE and sec is not None and CHANCE_IN[1] * ROW < sec[2] else None
+
+
+def chance_phrases():
+    """[(kind, sorted sixteenths)] for the phrases of CHANCE_ORDER. Spread: sixteenth floor(SLOTS frac(n g)), g the golden ratio less one, n going on from phrase to phrase. Chance: a shuffle by the generator of CHANCE_SEED, going on from phrase to phrase."""
+    g = (5 ** 0.5 - 1) / 2; x = CHANCE_SEED; n = 0; out = []
+    for kind in CHANCE_ORDER:
+        if kind == "spread":
+            sl = [int(CHANCE_SLOTS * ((k * g) % 1)) for k in range(n, n + CHANCE_N)]; n += CHANCE_N
+        else:
+            pool = list(range(CHANCE_SLOTS)); sl = []
+            for i in range(CHANCE_N):
+                x = (1664525 * x + 1013904223) % 2 ** 32; j = i + (x >> 16) % (CHANCE_SLOTS - i); pool[i], pool[j] = pool[j], pool[i]; sl.append(pool[i])
+        assert len(set(sl)) == CHANCE_N, sl
+        out.append((kind, sorted(sl)))
+    return out
+
+
+def chance_pips():
+    """[(pip from 0 in time, beat of the song, phrase from 0)]."""
+    b0 = chance_row() * BEATS; per = CHANCE_SLOTS / 4; assert per * len(CHANCE_ORDER) == ROW * BEATS and len(CHANCE_TRIM) == CHANCE_N * len(CHANCE_ORDER)
+    return [(p * CHANCE_N + q, b0 + p * per + sl / 4, p) for p, (_, sls) in enumerate(chance_phrases()) for q, sl in enumerate(sls)]
+
+
+def chance_hz():
+    """Hz of CHANCE_NOTE (a letter, an optional b, an octave; A4 is 440)."""
+    semi = {"C": -9, "D": -7, "E": -5, "F": -4, "G": -2, "A": 0, "B": 2}[CHANCE_NOTE[0]] - (1 if "b" in CHANCE_NOTE[1:] else 0)
+    return 440 * 2 ** ((semi + 12 * (int(CHANCE_NOTE[-1]) - 4)) / 12)
+
+
+def chance_stats(sls):
+    """(pairs side by side, the longest silence in sixteenths from one pip to the next) of a phrase's sorted sixteenths."""
+    gaps = [b - a for a, b in zip(sls, sls[1:])]; return sum(1 for d in gaps if d == 1), max(gaps)
 
 
 def shrink_row():
@@ -1148,6 +1190,17 @@ SHRINK_MS = 15                                         # ms a click is held
 SHRINK_EDGE = (1, 5)                                   # ms it takes to come and to go
 SHRINK_TRIM = (10.4, 0.5, -2.3, 9.2, -0.4, -2.4, 6, -2, -0.4, 4.5, -2, -2.5, 11.6, 1.4, -1.9, -2.3, 7.6, -0.9, -2.1, -2.5, 1.6, -1.5, -2, -0.1, 11.8, -0.7, -0.1, 0.5, -2.6, 9.6, -0.7, -2, 5.5, -1.2, -2.5, -2.6, 10.6, 1, -1.8, -1.5, -2.2, 1.7, -1.4, -2.5, 5.3, -1.1, 8.2, 0.4)   # dB on a click, click by click. MEASURED, NOT REASONED: with no trims (-25.7 dB) the master gave the 48 clicks -34.2 to -21.7 dBFS (up to 12.4 dB apart within a triple; the two seeds within 1.93 dB): each click's level less -24, turned over and written 1.15 times as deep
 SHRINK_GAIN = os.environ.get("C11T1_SHRINK_GAIN", "-13.9dB")   # THE BENCH FIRST (the track alone at -20 dB): every click -30.3 dBFS (root mean square over 20 ms), every gap within 0.04 ms of what is written; the first build set for -24 in the song with 12 dB of lift; the second build: the trims' top (11.8) added to the first build's -25.7 dB
+CHANCE = os.environ.get("C11T1_CHANCE", "1") != "0" and SHRINK   # v38: CHANCE COMES IN CLUMPS: eight pips to two bars, on the sixteenths, four times: spread by the golden ratio (never two side by side), thrown by chance, spread, thrown. Of all the ways to draw 8 sixteenths of 32, nine in ten have two side by side
+CHANCE_IN = ("no ruler", 1)                            # the section and its row (from 0): bars 57 to 64
+CHANCE_SLOTS = 32                                      # sixteenths to a phrase (two bars)
+CHANCE_N = 8                                           # pips to a phrase
+CHANCE_ORDER = ("spread", "chance", "spread", "chance")   # the four phrases
+CHANCE_SEED = 111                                      # the throw: x -> (1664525 x + 1013904223) mod 2^32 from this, its top 16 bits; the first CHANCE_N of a shuffle of the sixteenths. Written before the throw was seen, and not changed after
+CHANCE_NOTE = "G4"                                     # a plain pip
+CHANCE_LEN = 0.125                                     # beats a pip is held (60 ms)
+CHANCE_EDGE = (3, 15)                                  # ms a pip takes to come and to go
+CHANCE_TRIM = (7.8, -5, 3.5, -3, -1.9, -2.1, -4, 2.7, -2.5, -5.1, -2.9, -4.4, 5.8, 6.9, 2.5, -5.1, 1.3, -0.1, 6.2, -0.9, -0.8, 6.3, -0.8, -4.5, 10.4, -4, -0.9, 7.2, -0.4, 7.7, -0.6, -5.1)   # dB on a pip, pip by pip in time. MEASURED, NOT REASONED: with no trims (-24.7 dB) the master gave the 32 pips -33.0 to -19.5 dBFS by place (the two seeds within 0.84 dB): each pip's level less -24, turned over and written 1.15 times as deep
+CHANCE_GAIN = os.environ.get("C11T1_CHANCE_GAIN", "-14.3dB")   # THE BENCH FIRST (the track alone at -20 dB): every pip -29.3 dBFS over its 60 ms, read on the sixteenth it is written on; the first build set for -24 in the song with 10 dB of lift; the second build: the trims' top (10.4) added to the first build's -24.7 dB
 assert sum(fu_b for _, fu_b in FUSE_STEPS) % BEATS == 0
 BASSB_MODE = os.environ.get("C11T1_BASSB_MODE", "swap")                        # swap: it is heard where deck A's bass is out ; full: wherever deck B's record plays from "no ruler" on
 BASSB_IN = {"swap": ("no ruler", "the stretch", "out"), "full": ("no ruler", "both", "the stretch", "the nudge", "locked", "out")}[BASSB_MODE]
@@ -1956,6 +2009,13 @@ def song():
         doc["tracks"].append({"name": "shrink", "patch": "gt-shrink", "gain": SHRINK_GAIN, "pan": 0.0, "notes": [{"at": round(t, 6), "len": round(SHRINK_MS / s_ms, 6), "pitch": SHRINK_NOTE, "vel": round(10 ** ((SHRINK_TRIM[i] - s_top) / 40), 5)} for i, t, _, _, _ in sc_]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v37 give or take thirty milliseconds (bars {shrink_row() + 1} to {shrink_row() + ROW}): three clicks, the first and the last always {SHRINK_SPAN * s_ms:.0f} ms apart; the middle one in the middle, then {(SHRINK_MID['even'] - SHRINK_MID['short-long']) * s_ms:.0f} ms early (short, long: said to sound even), then {(SHRINK_MID['long-short'] - SHRINK_MID['even']) * s_ms:.0f} ms late (long, short: said to sound uneven), then the two side by side. Generated by")
         assert "From v37" in doc["about"]
+    if chance_row() is not None:
+        cp_ = chance_pips(); h_top = max(CHANCE_TRIM)
+        PATCHES["gt-chance"] = {"about": f"Give or Take's plain pip for chance and for the spread (chirper-zero, 28 Nov, v38): one sine, {CHANCE_EDGE[0]} ms to come and {CHANCE_EDGE[1]} to go. Its loudness goes as the square of the velocity.",
+                                "play": {"vel_sens": 1, "gate": 1}, "synth": {"layers": ["sine phase=0"], "filters": ["lp cutoff=2000"], "amp": {"a": f"{CHANCE_EDGE[0]}ms", "d": "0s", "s": 1, "r": f"{CHANCE_EDGE[1]}ms"}}}
+        doc["tracks"].append({"name": "chance", "patch": "gt-chance", "gain": CHANCE_GAIN, "pan": 0.0, "notes": [{"at": round(t, 6), "len": CHANCE_LEN, "pitch": CHANCE_NOTE, "vel": round(10 ** ((CHANCE_TRIM[i] - h_top) / 40), 5)} for i, t, _ in cp_]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v38 chance comes in clumps (bars {chance_row() + 1} to {chance_row() + ROW}): eight pips to two bars, on the sixteenths, four times: spread by the golden ratio, thrown by chance, spread, thrown. Generated by")
+        assert "From v38" in doc["about"]
     return doc
 
 
@@ -1972,6 +2032,10 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if chance_row() is not None:
+            import math as _m
+            h_sec = chance_row() * BEATS * 60 / BPM; ways = _m.comb(CHANCE_SLOTS, CHANCE_N); apart = _m.comb(CHANCE_SLOTS - CHANCE_N + 1, CHANCE_N)
+            print(f"chance comes in clumps ({CHANCE_GAIN}), bars {chance_row() + 1}-{chance_row() + ROW} ({int(h_sec) // 60}:{h_sec % 60:04.1f}): {CHANCE_N} pips ({CHANCE_NOTE}, {chance_hz():.1f} Hz, {CHANCE_LEN * 60000 / BPM:.0f} ms) to {CHANCE_SLOTS} sixteenths, {len(CHANCE_ORDER)} times ; " + " ; ".join(f"bars {chance_row() + 1 + p * CHANCE_SLOTS // 16}-{chance_row() + (p + 1) * CHANCE_SLOTS // 16} {kind}: sixteenths " + " ".join(str(v) for v in sls) + f" ({chance_stats(sls)[0]} side by side, the longest silence {chance_stats(sls)[1]})" for p, (kind, sls) in enumerate(chance_phrases())) + f" ; of the {ways} ways to draw {CHANCE_N} of {CHANCE_SLOTS}, {apart} ({100 * apart / ways:.1f} in a hundred) have no two side by side" + (f" ; trims {min(CHANCE_TRIM):+.1f} to {max(CHANCE_TRIM):+.1f} dB" if any(CHANCE_TRIM) else " ; no trims"))
         if shrink_row() is not None:
             sc_ = shrink_clicks(); k_sec = shrink_row() * BEATS * 60 / BPM; k_ms = 60000 / BPM
             print(f"give or take thirty milliseconds ({SHRINK_GAIN}), bars {shrink_row() + 1}-{shrink_row() + ROW} ({int(k_sec) // 60}:{k_sec % 60:04.1f}): {len(sc_)} clicks ({SHRINK_NOTE}, {SHRINK_MS} ms) in {len(SHRINK_ORDER)} triples on beats {' '.join(f'{x:g}' for x in SHRINK_AT)} of every bar ; the first and the last click {SHRINK_SPAN:g} of a beat apart ({SHRINK_SPAN * k_ms:.1f} ms) ; the middle click after " + " ; ".join(f"{k}: {v:g} of a beat (gaps {v * k_ms:.1f} and {(SHRINK_SPAN - v) * k_ms:.1f} ms)" for k, v in SHRINK_MID.items()) + " ; triple by triple (e even, s short-long, l long-short): " + " ".join(k[0] for k in SHRINK_ORDER) + (f" ; trims {min(SHRINK_TRIM):+.1f} to {max(SHRINK_TRIM):+.1f} dB" if any(SHRINK_TRIM) else " ; no trims"))
