@@ -418,6 +418,12 @@ beat by beat all three are moved up together an eighth of that distance, and beg
 after eight. The distance never changes; the note the ear makes of the three is said to
 rise a third of a semitone a step and to fall back at the fifth (the pitch shift of the
 residue). In bars 95 and 96 the tune it is said to be is played plainly, an octave up.
+
+v35 (28 Nov): THE GAP GOES TO THE OTHER ONE (C11T5_GAP=0 takes it out: v34). In bars 137
+and 141 a long plain tone glides slowly up and is broken for 90 ms just where a short one
+glides quickly down across it; the short one is whole. It is said to be heard the other way
+round: the long glide unbroken, the hole in the short one (the gap transfer). In bars 139
+and 143 it is made the way it is said to sound, to be compared.
 """
 import json
 import math
@@ -740,6 +746,33 @@ def para_tones(p):
         if level >= PARA_FLOOR:
             out.append((PARA_APART ** k, f, level))
     return out
+
+
+def gap_row():
+    """The first bar (from 0) of the row in which the gap goes to the other glide, or None."""
+    sec = next((x for x in SECS if x[0] == GAP_IN[0]), None)
+    return sec[1] + ROW * GAP_IN[1] if GAP and sec is not None and GAP_IN[1] * ROW < sec[2] else None
+
+
+def gap_figs():
+    """[(bar (from 0), which glide is broken, the long glide's (from beat, to beat), the short one's, the break's)]: beats of the song."""
+    out = []
+    for b, kind in zip(GAP_BARS, GAP_KIND):
+        b0 = (gap_row() + b) * BEATS; l0, l1 = b0 + GAP_LONG[0], b0 + GAP_LONG[1]; c = (l0 + l1) / 2; g = GAP_MS / 1000 * BPM / 60
+        out.append((gap_row() + b, kind, (l0, l1), (c - GAP_SHORT[0] / 2, c + GAP_SHORT[0] / 2), (c - g / 2, c + g / 2)))
+    return out
+
+
+def gap_lane(which):
+    """The lane of one glide's track: semitones from GAP_NOTE, a straight line through each glide, a step between."""
+    from math import log2
+    mid = 12 * log2((GAP_LONG[2] * GAP_LONG[3]) ** 0.5 / hz(GAP_NOTE))
+    p0, p1 = (12 * log2(GAP_LONG[2] / hz(GAP_NOTE)), 12 * log2(GAP_LONG[3] / hz(GAP_NOTE))) if which == "long" else (mid + GAP_SHORT[1] / 2, mid - GAP_SHORT[1] / 2)
+    pts = [["0b", round(p0, 4)]]; last = p0
+    for _, _, lg, sh, _ in gap_figs():
+        a, b = lg if which == "long" else sh
+        pts += [[f"{a - 0.001:.3f}b", round(last, 4)], [f"{a:.3f}b", round(p0, 4)], [f"{b:.3f}b", round(p1, 4)]]; last = p1
+    return pts
 
 
 def shift_row():
@@ -1226,6 +1259,16 @@ SHIFT_STEPS = 8                                        # steps to a whole distan
 SHIFT_TURNS = (3, 1)                                   # turns of the three tones (bars 89 to 94), then turns of the plain tune (bars 95 and 96)
 SHIFT_UP = 12                                          # semitones the plain tune is played above the note it is said to be: clear of the hurry and the bass
 SHIFT_GAIN = os.environ.get("C11T5_SHIFT_GAIN", "-31dB")   # every track. THE BENCH FIRST (the tracks alone at -20 dB): the three tones' tops -26.4 to -26.0 dBFS, the plain tones' -25.9 to -25.5; every distance between neighbouring tones 195.6 to 196.3 Hz. Aimed at tops of -20 dBFS with a lift of 17 (guessed from a low pluck in this row). Read in the whole song's master (both seeds) BEFORE any score: the lift is 20.0: tops -18.7 to -16.7 / -16.6 dBFS (the middle -17.0), 3 dB over the aim; kept
+GAP = os.environ.get("C11T5_GAP", "1") != "0" and SHIFT   # v35: THE GAP GOES TO THE OTHER ONE (the gap transfer of Nakajima and others): a long plain tone glides slowly up; a short one glides quickly down across it. In bars 137 and 141 the LONG one is broken for a moment just where they cross, and the short one is whole. It is said to be heard the other way round: the long glide runs on unbroken and the short one has the hole. In bars 139 and 143 it is made the way it is said to sound (the short one broken, the long whole), to be compared: the two are said to sound alike
+GAP_IN = ("round the click", 0)                        # the section and its row (from 0): bars 137 to 144. Read on v34 by twelfths of the beat: 950 to 1650 Hz is -74 and -52 dBFS a third to five twelfths into the beat (between the drum on the quarter and the tick on the half), -31 to -40 in the beat's second half
+GAP_BARS = (0, 2, 4, 6)                                # the bars of the row (from 0) with a pair of glides: bars 137, 139, 141, 143
+GAP_KIND = ("long", "short", "long", "short")          # which glide is broken in each
+GAP_LONG = (0.583, 3.583, 980.0, 1560.0)               # the long glide: from beat, to beat (of its bar), from Hz, to Hz: a straight line in pitch, 8 semitones in 3 beats. THE FIRST BUILD HAD 0.875 TO 3.875 (the crossing on beat 2.375) and the break fell in the drum's own dent: the master takes 9 dB off a held tone for a twelfth of a beat after every drum stroke (the stroke is on the quarter beat here): read by twelfth, the glide alone was -24 -23 -25 -32 -28 -27 -30 -29 -28 -26 -24 -22 dBFS. From the eleventh twelfth of a beat to the third it read -22 to -25: the crossing is now on beat 2.083, in the middle of that
+GAP_SHORT = (0.75, 6.0)                                # the short glide: beats long and semitones it falls: centred where the long one is half way (beat 2.083, 1236 Hz): they cross there
+GAP_MS = 90                                            # ms from the end of the broken glide's first piece to the start of its second, centred on the crossing: it ends 35 ms before the drum (beat 2.25)
+GAP_EDGE = 10                                          # ms a piece takes to come and to go
+GAP_NOTE = "C6"                                        # the written note; the lanes are in semitones from it
+GAP_GAIN = os.environ.get("C11T5_GAP_GAIN", "-34dB")   # both tracks. THE BENCH FIRST (the two tracks alone at -20 dB): one glide alone, in the break, -29.0 dBFS; the builds were set for -43 on the bench. THE SECOND BUILD READ (both seeds, before any score): before the break, in it, after it: -21.9 -22.9 -24.3 dBFS where the long glide is broken, -22.1 -23.0 -24.1 where the short one is; the long glide where it is alone -34 to -23: the master's dent after every drum stroke is still in it
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1795,6 +1838,19 @@ def song():
             doc["tracks"].append({"name": f"plain-{k}", "patch": f"ht-plain-{k}", "gain": SHIFT_GAIN, "pan": 0.0, "notes": [{"at": at, "len": sh_len, "pitch": SHIFT_NOTE[0], "vel": 0.8} for at, st, _, kind in sp if st == k and kind == "plain"]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v34 the same spacing is another note (bars {shift_row() + 1} to {shift_row() + ROW}): a pip of three plain tones {SHIFT_NOTE[1]:.0f} Hz apart, a third of a beat after every beat; beat by beat all three are moved up together an eighth of that distance, and begin again after eight. The distance never changes; the note the ear makes of them is said to rise a third of a semitone a step and to fall back at the fifth. In bars {shift_row() + ROW - 1} and {shift_row() + ROW} the tune it is said to be is played plainly, an octave up, to be compared. Generated by")
         assert "From v34" in doc["about"]
+    if gap_row() is not None:
+        gf = gap_figs()
+        PATCHES["ht-gap"] = {"about": f"Hearing Things' glide for the gap that goes to the other one (chirper-zero, 28 Nov, v35): one plain tone whose note is drawn by its track's lane (`auto.glide`, in semitones from {GAP_NOTE}): a straight line in pitch; {GAP_EDGE} ms to come and to go.",
+                             "play": {"gate": 1, "vel_sens": 0}, "synth": {"layers": ["sine phase=0"], "pitch": {"value": 0, "mod": [{"src": "auto.glide", "amount": 1}]}, "filters": ["lp cutoff=7000"], "amp": {"a": f"{GAP_EDGE}ms", "d": "0s", "s": 1, "r": f"{GAP_EDGE}ms"}}}
+        g_note = lambda a, b: {"at": round(a, 7), "len": round(b - a, 7), "pitch": GAP_NOTE, "vel": 0.8}
+        for which in ("long", "short"):
+            ns = []
+            for _, kind, lg, sh, gp in gf:
+                a, b = lg if which == "long" else sh
+                ns += [g_note(a, gp[0]), g_note(gp[1], b)] if kind == which else [g_note(a, b)]
+            doc["tracks"].append({"name": f"gap-{which}", "patch": "ht-gap", "gain": GAP_GAIN, "pan": 0.0, "notes": ns, "auto": {"glide": {"points": gap_lane(which), "curve": 0}}})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v35 the gap goes to the other one (bars {gf[0][0] + 1} to {gf[-1][0] + 1}): a long plain tone glides slowly up and a short one quickly down across it; in bars {' and '.join(str(f[0] + 1) for f in gf if f[1] == 'long')} the long one is broken for {GAP_MS} ms where they cross and the short one is whole, and it is said to be heard the other way round; in bars {' and '.join(str(f[0] + 1) for f in gf if f[1] == 'short')} it is made the way it is said to sound. Generated by")
+        assert "From v35" in doc["about"]
     return doc
 
 
@@ -1812,6 +1868,9 @@ def dump(doc):
 if __name__ == "__main__":
     if os.environ.get("C11T5_SHOW"):
         sec = 60 / BPM * BEATS
+        if gap_row() is not None:
+            gf = gap_figs(); g_sec = gap_row() * BEATS * 60 / BPM; g_mid = (GAP_LONG[2] * GAP_LONG[3]) ** 0.5
+            print(f"the gap goes to the other one ({GAP_GAIN}), bars {gap_row() + 1}-{gap_row() + ROW} ({int(g_sec) // 60}:{g_sec % 60:04.1f}): a long plain tone glides up from {GAP_LONG[2]:.0f} to {GAP_LONG[3]:.0f} Hz in {GAP_LONG[1] - GAP_LONG[0]:g} beats (beats {GAP_LONG[0]:g} to {GAP_LONG[1]:g} of the bar) ; a short one glides down {GAP_SHORT[1]:g} semitones in {GAP_SHORT[0]:g} of a beat ({g_mid * 2 ** (GAP_SHORT[1] / 24):.0f} to {g_mid * 2 ** (-GAP_SHORT[1] / 24):.0f} Hz) ; they cross at {g_mid:.1f} Hz on beat {(GAP_LONG[0] + GAP_LONG[1]) / 2:g} ; a break of {GAP_MS} ms centred there ; " + " ; ".join(f"bar {b + 1}: the {kind} one is broken" for b, kind, _, _, _ in gf))
         if shift_row() is not None:
             sp = shift_pips(); sh_sec = shift_row() * BEATS * 60 / BPM
             print(f"the same spacing, another note ({SHIFT_GAIN}), bars {shift_row() + 1}-{shift_row() + ROW} ({int(sh_sec) // 60}:{sh_sec % 60:04.1f}): a pip {SHIFT_AT[0]}/{SHIFT_AT[1]} of a beat after every beat, {SHIFT_MS} ms ; three plain tones {SHIFT_NOTE[1]:.1f} Hz apart ({SHIFT_NOTE[0]}), all moved up 1/{SHIFT_STEPS} of that a beat ; {SHIFT_TURNS[0]} turns of {SHIFT_STEPS} (bars {shift_row() + 1}-{shift_row() + SHIFT_TURNS[0] * SHIFT_STEPS // BEATS}), then the tune it is said to be, plainly, {SHIFT_UP} semitones up (bars {shift_row() + SHIFT_TURNS[0] * SHIFT_STEPS // BEATS + 1}-{shift_row() + ROW}) ; step by step, the tones (Hz) and the note said (cents from {SHIFT_NOTE[0]}; the plain tone, Hz): " + " | ".join(f"{k}: {' '.join(f'{(r + k / SHIFT_STEPS) * SHIFT_NOTE[1]:.1f}' for r in SHIFT_RANKS)} ; {shift_said(k):+.1f} ; {SHIFT_NOTE[1] * 2 ** ((SHIFT_UP + shift_said(k) / 100) / 12):.1f}" for k in range(SHIFT_STEPS)) + f" ; {len(sp)} pips")
