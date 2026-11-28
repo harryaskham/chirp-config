@@ -405,6 +405,12 @@ a pip follows every beat by a third of a beat: always the same note at the same 
 Only its length changes: 5, 10, 20, 40, 80 ms and back. Under about a fifth of a second
 the ear adds a sound up over its length, so the same height twice as long is heard
 louder: a swell and a fall every two bars, and no level moves.
+
+v33 (28 Nov): FAR IN PITCH, FAR IN TIME (C11T5_KAPPA=0 takes it out: v32). In bars 145 to
+151 three pips a bar, a beat apart: A4, a middle one, A5. The middle pip is in the middle
+in time; bar by bar it is B4 (near the first) or G5 (near the last). The ear is said to
+hear it nearer in time to the pip it is nearer in pitch (the kappa effect). In bars 149
+and 150 it is truly moved that way by 30 ms, to be compared.
 """
 import json
 import math
@@ -726,6 +732,21 @@ def para_tones(p):
         level = -20 * math.log10(math.e) * math.log2(f / PARA_MID) ** 2 / (2 * PARA_WIDE ** 2)
         if level >= PARA_FLOOR:
             out.append((PARA_APART ** k, f, level))
+    return out
+
+
+def kappa_row():
+    """The first bar (from 0) of the row with far in pitch, far in time, or None."""
+    sec = next((x for x in SECS if x[0] == KAPPA_IN[0]), None)
+    return sec[1] + ROW * KAPPA_IN[1] if KAPPA and sec is not None and KAPPA_IN[1] * ROW < sec[2] else None
+
+
+def kappa_pips():
+    """[(beat it begins, note, "first" / "near the first" / "near the last" / "last", how far it is truly moved, in beats)]: three a bar."""
+    out = []
+    for j in range(KAPPA_BARS):
+        b = (kappa_row() + j) * BEATS; near = j % 2; by = (KAPPA_BY if near else -KAPPA_BY) if j in KAPPA_TRUE else 0.0
+        out += [(float(b + KAPPA_AT[0]), KAPPA_ENDS[0], "first", 0.0), (round(b + KAPPA_AT[1] + by, 7), KAPPA_MID[near], "near the last" if near else "near the first", by), (float(b + KAPPA_AT[2]), KAPPA_ENDS[1], "last", 0.0)]
     return out
 
 
@@ -1157,6 +1178,17 @@ LONG_MS = (5, 10, 20, 40, 80, 40, 20, 10)              # the lengths, beat by be
 LONG_NOTE = "B5"                                       # 987.8 Hz: the fifth of the song's E
 LONG_EDGE = 2                                          # ms the pip takes to come and to go
 LONG_GAIN = os.environ.get("C11T5_LONG_GAIN", "-28dB")   # the track. THE BENCH FIRST (the track alone at -20 dB): all 32 tops -25.9 to -25.8 dBFS; the lengths at half height 4.4, 9.5, 19.5, 39.5, 79.5 ms. Read in the whole song's master at -28dB (both seeds) BEFORE any score: the tops -14.4 to -13.4 dBFS (this master lifts a pip a third of a beat after the drum 19.6 dB: I had guessed 15, so it is 5 dB hotter than I aimed: kept: after the clap the old music is -29 dBFS in its band)
+KAPPA = os.environ.get("C11T5_KAPPA", "1") != "0" and LONG   # v33: FAR IN PITCH, FAR IN TIME (the kappa effect): three pips a bar, a beat apart: low, a middle one, high. The middle pip is in the middle in time, always; bar by bar it is by turns two semitones from the first or two semitones from the last. The ear is said to hear it nearer in time to the pip it is nearer in pitch: early, then late. Then, for two bars, it is truly moved that way, to be compared
+KAPPA_IN = ("round the click", 1)                      # the section and its row (from 0): bars 145 to 152, with the hiss that repeats (3000 Hz and up). Read on v32 by twelfths of the beat: the drum, the bass and the tick are all on the half beat here, and on the beat 400 to 800 Hz is -46 dBFS and 700 to 1400 Hz -50; 7 notes of the song begin within 26 ms of the beat (the hiss's own, and the rabbit's in bar 152)
+KAPPA_BARS = 7                                         # a figure a bar for seven bars: bar 152 is the rabbit's
+KAPPA_AT = (0, 1, 2)                                   # the beats of the bar its three pips fall on: each midway between two strokes of the drum, a beat (480 ms) apart
+KAPPA_ENDS = ("A4", "A5")                              # the first pip and the last: an octave apart
+KAPPA_MID = ("B4", "G5")                               # the middle pip, bar by bar in turn: 2 semitones from the first (and 10 from the last), or 2 from the last
+KAPPA_TRUE = (4, 5)                                    # the bars (from 0) in which the middle pip is truly moved the way the ear is said to hear it
+KAPPA_BY = 0.0625                                      # ... by this part of a beat (30 ms): early when it is near the first, late when it is near the last
+KAPPA_MS = 60                                          # ms a pip is held
+KAPPA_EDGE = 5                                         # ms it takes to come and to go
+KAPPA_GAIN = os.environ.get("C11T5_KAPPA_GAIN", "-32dB")   # the track. THE BENCH FIRST (the track alone at -20 dB): all 21 tops -25.8 to -25.7 dBFS (5.8 under the fader); the middle pip 0.0 ms off the middle in five bars and -30.0 and +30.0 in the two where it is moved. Aimed at tops of -18 dBFS with the lift read for a pip between the drum's strokes in bars 25 to 32 (19.6 dB). Read in the whole song's master (both seeds) BEFORE any score: all 21 tops -17.6 to -17.3 dBFS (the lift here is 20.3 to 20.4 dB); the middle pip 0.0 to 0.1 ms off the middle in the five bars and -29.6 and +29.9 / +29.8 in the two
 PARA = os.environ.get("C11T5_PARA", "1") != "0" and OCT    # v19: an octave up is a semitone down (Risset's paradox)
 PARA_IN = ("round the click", 0, 8)                       # the section, and the bars of it: its first row (the row before the answer's bells is left bare)
 PARA_APART = 2.1                                          # from each tone of the bell to the next: a little more than an octave (1284.5 cents)
@@ -1708,6 +1740,13 @@ def song():
         doc["tracks"].append({"name": "long", "patch": "ht-long", "gain": LONG_GAIN, "pan": 0.0, "notes": [{"at": at, "len": round(ms / 1000 * BPM / 60, 7), "pitch": LONG_NOTE, "vel": 0.8} for at, ms in lg]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v32 the longer is the louder (bars {long_row() + 1} to {long_row() + ROW}, the second row of 'turned around'): a pip {LONG_AT[0]}/{LONG_AT[1]} of a beat after every beat, always {LONG_NOTE} at the same height; only its length changes, beat by beat: {', '.join(str(m) for m in LONG_MS)} ms: every doubling is twice the sound at the same height, and under about a fifth of a second the ear adds it up. Generated by")
         assert "From v32" in doc["about"]
+    if kappa_row() is not None:
+        kp = kappa_pips()
+        PATCHES["ht-kappa"] = {"about": f"Hearing Things' three pips (chirper-zero, 28 Nov, v33): one plain tone, {KAPPA_EDGE} ms to come and to go; the same for all three.",
+                               "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": ["sine phase=0"], "filters": ["lp cutoff=7000"], "amp": {"a": f"{KAPPA_EDGE}ms", "d": "0s", "s": 1, "r": f"{KAPPA_EDGE}ms"}}}
+        doc["tracks"].append({"name": "kappa", "patch": "ht-kappa", "gain": KAPPA_GAIN, "pan": 0.0, "notes": [{"at": at, "len": round(KAPPA_MS / 1000 * BPM / 60, 7), "pitch": p, "vel": 0.8} for at, p, _, _ in kp]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v33 far in pitch is far in time (bars {kappa_row() + 1} to {kappa_row() + KAPPA_BARS}): three pips a bar, a beat apart, each midway between two strokes of the drum: {KAPPA_ENDS[0]}, then {KAPPA_MID[0]} or {KAPPA_MID[1]} (bar by bar in turn), then {KAPPA_ENDS[1]}. The middle pip is in the middle in time; the ear is said to hear it nearer in time to the pip it is nearer in pitch. In bars {' and '.join(str(kappa_row() + j + 1) for j in KAPPA_TRUE)} it is truly moved that way, by {KAPPA_BY * 60000 / BPM:.0f} ms, to be compared. Generated by")
+        assert "From v33" in doc["about"]
     return doc
 
 
@@ -1725,6 +1764,9 @@ def dump(doc):
 if __name__ == "__main__":
     if os.environ.get("C11T5_SHOW"):
         sec = 60 / BPM * BEATS
+        if kappa_row() is not None:
+            kp = kappa_pips(); kp_sec = kappa_row() * BEATS * 60 / BPM
+            print(f"far in pitch, far in time ({KAPPA_GAIN}), bars {kappa_row() + 1}-{kappa_row() + KAPPA_BARS} ({int(kp_sec) // 60}:{kp_sec % 60:04.1f}): three pips a bar on beats {' '.join(str(x) for x in KAPPA_AT)} (the drum is on the half beats), {KAPPA_MS} ms long: {KAPPA_ENDS[0]}, the middle one, {KAPPA_ENDS[1]} ; the middle one bar by bar: " + " ".join(p + (f" ({by * 60000 / BPM:+.0f} ms)" if by else "") for _, p, w, by in kp if w.startswith("near")) + f" ; {len(kp)} pips")
         if long_row() is not None:
             lg = long_pips(); lg_b = long_row()
             print(f"the longer, the louder ({LONG_GAIN}), bars {lg_b + 1}-{lg_b + ROW} ({int(lg_b * sec) // 60}:{lg_b * sec % 60:04.1f}): {len(lg)} pips, one {LONG_AT[0]}/{LONG_AT[1]} of a beat ({1000 * 60 / BPM * LONG_AT[0] / LONG_AT[1]:.0f} ms) after every beat, always {LONG_NOTE} at one height ; {LONG_EDGE} ms to come and to go ; the lengths beat by beat, ms: {' '.join(str(m) for m in LONG_MS)} (round and round: {len(lg) // len(LONG_MS)} arches) ; every doubling is 3.01 dB more sound at the same height")
