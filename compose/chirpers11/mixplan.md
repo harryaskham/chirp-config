@@ -94,6 +94,11 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Wind Down v23 (00:36): bars 1 to 8 as v22's (-30.1 -30.3 -30.1 -30.1 dBFS by two). THE ALBUM'S END is 0.6 to
+  2.4 dB up in the run-out (a low rumble, 25 to 90 Hz, -48 dBFS, from the first joint at 397.49 s to the lift):
+  from the last stroke by second -10.4 -21.0 -32.6 -40.7 -42.8 -44.9 -43.1 -45.0 -35.6; the lift still at
+  405.19 s; highest sample -1.30. A master fade-out must still not begin before 405.5 s, and a high-pass on the
+  album's master would take the rumble away. Inside: a 6 ms tooth above 8 kHz on every click, bars 9 to 144.
 - Ring True v23 (23:55): both ends as v22's to 0.1 dB: bars 1 to 8 by two -17.7 -17.8 -17.8 -17.8 dBFS; bar 184
   -11.1; the tail by second -18.4 -33.3 -47.6 -60.9; highest sample -1.46. Inside: a few notes only (the metal's
   second bar slower in bars 137 to 144; the pipe's seventh stroke a third lower in the even bars 118 to 128).
