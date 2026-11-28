@@ -424,6 +424,12 @@ five narrow windows an octave apart, all climbing an octave every four bars, eac
 in at the bottom and going out at the top (the engine's barber's pole). The overtones are
 picked out one after another, always upward; every four bars the same chord stands there
 again.
+
+v34 (28 Nov): ONE AND ONE MAKE TWO, ONE, OR NOTHING (C11T7_SUM=0 takes it out: v33). In
+bars 113 to 120 a plain tone, alone and steady for two bars; then a second tone of the same
+pitch and loudness sounds with it all the time. In step, the two make one tone 6 dB higher;
+a third of a turn out, one exactly as loud as either; half a turn out, nothing. The rhythm
+is the second tone's phase alone.
 """
 import json
 import math
@@ -823,6 +829,17 @@ POLE_Q = 6.0                                           # how narrow a window is:
 POLE_CYCLE = 4                                         # bars a window takes to climb to where the next one was (the engine keeps it on the song's clock: bar 25 begins a turn). THE FIRST BUILD HAD 2 (bars 27 to 32, three turns) and the scorer counted its steps as strokes in a thin stretch (the spread of the sections' densities 0.20 to 0.19: variety 99.54 to 97.89 / 99.39 to 97.52). At 4 the lowest window's steps come one a bar (overtones 4 5 6 7), the next one's two a bar, the next four: slow enough to follow
 POLE_FADE = (8, 4, 24)                                 # beats it takes to come, beats to go, and from how many dB down
 POLE_GAIN = os.environ.get("C11T7_POLE_GAIN", "-35dB")   # the track. THE BENCH FIRST (the track alone at -20 dB): -33.8 dBFS at full height; with 17.5 dB of lift for a held part in a drum row, aimed at -31. Read in the whole song's master BEFORE any score (both seeds): -31.5 to -30.7 dBFS; between the strokes 7.6 dB over the old music in 150 to 800 Hz (80 of 80 windows) and 3.0 under it in 800 to 3200 Hz
+SUM = os.environ.get("C11T7_SUM", "1") != "0" and POLE   # v34: ONE AND ONE MAKE TWO, ONE, OR NOTHING: two plain tones of one pitch and one loudness, both sounding all the time. Where the second is in step with the first they make one tone twice as high (6 dB); where it is a third of a turn out, one tone exactly as loud as either alone; where it is half a turn out, nothing. So the rhythm is made by the second tone's phase alone, and most of the time two tones are sounding and nothing is heard. For the first two bars the first tone is alone, and steady: the second, as steady, is what chops it
+SUM_IN = ("drifts", 1)                                 # the section and its row (from 0): bars 113 to 120. Read on v33 by twelfths of the beat: 495 to 548 Hz is -34 dBFS on the beat and -37 to -57 between here
+SUM_WAVES = 62                                         # whole waves of the tone in a sixteenth: 520.8 Hz (C5, 8 cents flat): so the first tone runs on unbroken from stroke to stroke
+SUM_NOTE = "C5"                                        # the written note; the patch is tuned down to SUM_WAVES
+SUM_ALONE = 2                                          # bars the first tone is alone
+SUM_BARS = ("I..T..I..T..I.T.", "T..I..T..I..T.I.")    # the second tone by sixteenth, bar and bar about: I in step, T a third of a turn out, . half a turn out
+SUM_TURN = {"I": 0.0, "T": 1 / 3, ".": 0.5}            # turns the second tone is behind the first
+SUM_EDGE = 2                                           # ms a tone takes to come and to go
+SUM_TRIM = (0.0, 0, 0, -4.3, 0, 0, -5.1, 0, 0, -4.9, 0, 0, -1.3, 0, -4.4, 0)   # dB (0 or less) on both tones of a stroke by the sixteenth of the bar it falls on, by velocity (both alike, or they would not cancel). THE FIRST BUILD HAD NONE (-40 dB): in the finished song a stroke a third of a turn out came out, at sixteenths 0 3 6 9 12 14 of the bar, -30.6 -27.2 -25.5 -25.8 -29.3 -26.2 dBFS and one in step -24.7 -19.5 -19.6 -19.7 -23.4 -20.3: 5 dB between the beat and the off beat. These are that reading turned over, for -27 and -21 everywhere
+SUM_HELD = -5.6                                        # dB (0 or less) on the first tone while it is alone: held, the master lifts it 21 dB (the first build: -25.5 to -24.7 dBFS at its tops); a stroke on the beat 15: this brings it to the strokes' -27
+SUM_GAIN = os.environ.get("C11T7_SUM_GAIN", "-36.4dB")   # every track. THE BENCH FIRST (the four tracks alone at -20 dB, no trims): a stroke a third of a turn out -25.5 dBFS at its top; the first build was set for -45.5 on the bench (-40 dB); the second is 3.6 dB up with the trims. THE SECOND BUILD READ (both seeds, before any score): in step -21.1 -20.2 -21.1 -21.0 -21.2 -21.0 dBFS by place, a third out -27.0 -27.9 -27.0 -27.1 -27.0 -27.0, the tone alone -27.5 to -26.7; the silences 35 dB under the lowest stroke
 SING = os.environ.get("C11T7_SING", "1") != "0" and os.environ.get("C11T7_VERN", "1") != "0" and os.environ.get("C11T7_FIVE", "1") != "0" and JET      # v16: the clicks sing (every phase set to nought)
 SING_IN = ("slips", 24, 32)                                          # the section, and the bars of it: the bare row between the vernier and the hat
 SING_OF = "a-ear"                                                    # whose strokes: A's, as they are in those bars
@@ -1066,6 +1083,28 @@ def swarm_ticks():
 
 
 _HUM_MEMO = {}
+
+
+def sum_row():
+    """The first bar (from 0) of the row in which one and one make two, one or nothing, or None."""
+    sec = next((x for x in SECS if x[0] == SUM_IN[0]), None)
+    return sec[1] + ROW * SUM_IN[1] if SUM and sec is not None and SUM_IN[1] * ROW < sec[2] else None
+
+
+def sum_hz():
+    """The tone: SUM_WAVES whole waves to the sixteenth."""
+    return SUM_WAVES * 4 * BPM / 60
+
+
+def sum_runs():
+    """[(beat, beats long, state, the sixteenth of the bar it begins on)]: the second tone's states after the bars alone, each run of one state one note."""
+    st = "".join(SUM_BARS[b % len(SUM_BARS)] for b in range(ROW - SUM_ALONE)); out = []; k = 0
+    while k < len(st):
+        j = k
+        while j < len(st) and st[j] == st[k] and (st[k] == "." or j == k):
+            j += 1
+        out.append(((sum_row() + SUM_ALONE) * BEATS + k / 4, (j - k) / 4, st[k], k % (4 * BEATS))); k = j
+    return out
 
 
 def pole_row():
@@ -1908,6 +1947,18 @@ def song():
                               "notes": [note(pl0, POLE_NOTE[0], pl1 - pl0, 0.8)]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v33 five out of step make a stair without end (bars {pl0 // BEATS + 1} to {pl1 // BEATS}): {POLE_NOTE[0]} with all its overtones, held, through {POLE_BANDS} narrow windows {POLE_SPACING:g} octave apart ({POLE_LOW} Hz and up) that all climb an octave every {POLE_CYCLE} bars, each coming in at the bottom and going out at the top: the overtones are picked out one after another, always upward, and every {POLE_CYCLE} bars the same chord stands there again. Generated by")
         assert "From v33" in doc["about"]
+    if sum_row() is not None:
+        sr_ = sum_runs(); s_tune = round(12 * math.log2(sum_hz() / hz(SUM_NOTE)), 6); s_amp = {"a": f"{SUM_EDGE}ms", "d": "0s", "s": 1, "r": f"{SUM_EDGE}ms"}
+        for nm, tn, what in (("os-sum", 0.0, "the first tone, and the second where it is in step"), ("os-sum-third", SUM_TURN["T"], "the second tone a third of a turn behind"), ("os-sum-out", SUM_TURN["."], "the second tone half a turn behind: the first turned over")):
+            PATCHES[nm] = {"about": f"Out of Step's plain tone for one and one (chirper-zero, 28 Nov, v34): {sum_hz():.1f} Hz, {SUM_WAVES} whole waves to the sixteenth; {what}. Its loudness goes as the square of the velocity.",
+                           "play": {"vel_sens": 1, "gate": 1}, "synth": {"layers": [f"sine phase={round(tn, 7):g}"], "pitch": {"value": s_tune}, "filters": ["lp cutoff=7000"], "amp": s_amp}}
+        s_vel = lambda pl, stt: 1.0 if stt == "." else round(10 ** (SUM_TRIM[pl] / 40), 5)
+        s_note = lambda at, ln, v: {"at": round(at, 7), "len": round(ln, 7), "pitch": SUM_NOTE, "vel": v}
+        doc["tracks"].append({"name": "sum-a", "patch": "os-sum", "gain": SUM_GAIN, "pan": 0.0, "notes": [s_note(sum_row() * BEATS, SUM_ALONE * BEATS, round(10 ** (SUM_HELD / 40), 5))] + [s_note(at, ln, s_vel(pl, stt)) for at, ln, stt, pl in sr_]})
+        for nm, pt, stt0 in (("sum-in", "os-sum", "I"), ("sum-third", "os-sum-third", "T"), ("sum-out", "os-sum-out", ".")):
+            doc["tracks"].append({"name": nm, "patch": pt, "gain": SUM_GAIN, "pan": 0.0, "notes": [s_note(at, ln, s_vel(pl, stt)) for at, ln, stt, pl in sr_ if stt == stt0]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v34 one and one make two, one, or nothing (bars {sum_row() + 1} to {sum_row() + ROW}): a plain tone ({sum_hz():.1f} Hz) alone and steady for {SUM_ALONE} bars; then a second tone of the same pitch and loudness sounds with it all the time, in step (the two make one twice as high), a third of a turn out (one exactly as loud as either) or half a turn out (nothing): the rhythm is the second tone's phase and nothing else. Generated by")
+        assert "From v34" in doc["about"]
     return doc
 
 
@@ -1937,6 +1988,9 @@ def lock(k):
 if __name__ == "__main__":
     if os.environ.get("C11T7_SHOW"):
         sec = 60 / BPM * BEATS
+        if sum_row() is not None:
+            sr_ = sum_runs(); s_sec = sum_row() * BEATS * 60 / BPM; s_n = {k: sum(1 for q in sr_ if q[2] == k) for k in "IT."}
+            print(f"one and one make two, one, or nothing ({SUM_GAIN}), bars {sum_row() + 1}-{sum_row() + ROW} ({int(s_sec) // 60}:{s_sec % 60:04.1f}): two plain tones at {sum_hz():.1f} Hz ({SUM_WAVES} waves to the sixteenth; {SUM_NOTE} {1200 * math.log2(sum_hz() / hz(SUM_NOTE)):+.1f} cents), one loudness ; the first alone for {SUM_ALONE} bars ; then the second by sixteenth, bar and bar about: {' | '.join(SUM_BARS)} (I in step: the two make {20 * math.log10(abs(2 * math.cos(math.pi * SUM_TURN['I']))):+.2f} dB ; T a third of a turn out: {20 * math.log10(abs(2 * math.cos(math.pi * SUM_TURN['T']))):+.2f} dB ; . half a turn out: nothing) ; {s_n['I']} strokes in step, {s_n['T']} a third out, {s_n['.']} silences ; both tones sound for {sum(q[1] for q in sr_):g} beats and are silent together for {sum(q[1] for q in sr_ if q[2] == '.'):g} of them ; trims by sixteenth of the bar (dB): " + " ".join(f"{t:g}" for t in SUM_TRIM) + f" ; alone {SUM_HELD:g}")
         if pole_row() is not None:
             pl0, pl1 = pole_span(); pl_sec = pl0 * 60 / BPM
             print(f"five out of step make a stair without end ({POLE_GAIN}), bars {pl0 // BEATS + 1}-{pl1 // BEATS} ({int(pl_sec) // 60}:{pl_sec % 60:04.1f}): {POLE_NOTE[0]} ({POLE_NOTE[1]:.2f} Hz) held {pl1 - pl0} beats, a sawtooth under 3 kHz ; {POLE_BANDS} windows {POLE_SPACING:g} octave apart from {POLE_LOW} Hz ({POLE_LOW} to {POLE_LOW * 2 ** (POLE_BANDS * POLE_SPACING):.0f} Hz), each a {POLE_Q:g}th of its frequency wide, climbing an octave every {POLE_CYCLE} bars: {(pl1 - pl0) // (BEATS * POLE_CYCLE)} turns ; in over {POLE_FADE[0]} beats and out over {POLE_FADE[1]}, from {POLE_FADE[2]} dB down ; the window that begins a turn at {POLE_LOW * 2:.0f} Hz stands on overtone, beat by beat: " + " ".join(f"{POLE_LOW * 2 * 2 ** (k / (BEATS * POLE_CYCLE)) / POLE_NOTE[1]:.1f}" for k in range(BEATS * POLE_CYCLE)))
