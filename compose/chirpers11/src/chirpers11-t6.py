@@ -58,7 +58,24 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True, 'spun': True, 'lands': True, 'metal': True, 'damped': True, 'flick': True, 'tally': True, 'reckon': True, 'linger': True, 'rounded': True, 'paid': True, 'cannot': True, 'late': True, 'offkey': True, 'closing': True, 'receipt': True, 'clasp': True, 'miss': True, 'snap': True, 'product': True, 'melts': True, 'hands': True, 'term': True, 'settled': True, 'chest': False}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True, 'spun': True, 'lands': True, 'metal': True, 'damped': True, 'flick': True, 'tally': True, 'reckon': True, 'linger': True, 'rounded': True, 'paid': True, 'cannot': True, 'late': True, 'offkey': True, 'closing': True, 'receipt': True, 'clasp': True, 'miss': True, 'snap': True, 'product': True, 'melts': True, 'hands': True, 'term': True, 'settled': True, 'chest': False, 'interest': True, 'largest': True}
+# ---- v28 (28 Nov): A DEBT BEARS INTEREST, AND THE LARGEST OF ALL IS HEARD. Two switches (`--without-interest`,
+# `-largest`; both off is v27 byte for byte).
+#   INTEREST a held debt (v27) was owed at one level for its whole term. Now it GROWS WHILE IT IS OWED, and by
+#            compound interest: the same share more with every sixteenth, which on a fader is a straight line in
+#            dB: 1 dB a sixteenth (12.2%), from 3 dB under where it stood. A debt of two comes to less than it
+#            was (it has not had time); a debt of seven ends 4 dB over where it stood, and is then settled on the
+#            key note (v27) at the short notes' level. The bass's fader and its octave's ride together; the
+#            notes are as they were. (Wind Down pays this song's last seed back with interest; here is where
+#            the interest came from.)
+#   LARGEST  the number on the form print's third line, 23, the largest amount coins of 5 and 7 cannot make, was
+#            never played: it is longer than a bar, and in the drum again the bass played the first bar's debts
+#            over again in the bar after (1 2 3 6 9 11 13), which that seed does not owe: seventeen sixteenths
+#            on is 5 + 5 + 7. Now the bar after each seed's has only what is still owed from that seed: 18 (on
+#            sixteenth 2) and 23 (on sixteenth 7), and the 23, a tone under the key note, is owed until the next
+#            seed pays it: nine sixteenths, growing all the way (9 dB: it ends at the short notes' level). A busy bar and a bar with one long note, by
+#            turns, for sixteen bars; and in bar 112, where the till cannot pay sixteen and its key rests, the
+#            largest debt of all is under the small change.
 # ---- v27 (28 Nov): A DEBT HAS A TERM. Two switches on (`--without-term`, `-settled`; both off is v26 byte for byte)
 # and one written and off (`--with-chest`).
 #   TERM     the bass plays what the purse cannot pay: each debt a sixteenth long, whatever its size, and the
@@ -162,6 +179,7 @@ CLASP_PATCH = {'about': "Small Change: the purse's clasp (v25). Two small metal 
                          'amp': {'a': '0.1ms', 'd': '0s', 's': 1, 'r': '30ms'}},
                'play': {'event_stable': True, 'vel_sens': 0.6}}
 TERM = {'up': 2, 'vel': 0.85, 'db': -6, 'chest': 'peak cutoff=71 q=1.4 gain=4dB'}   # v27: SETTLED: the semitones from the largest debt's note to the key note it is paid on, and that note's touch; TERM: dB on a held debt (-6: between the drum's strokes it then reads 6.6 dB under the short notes, -18.0 dBFS from 50 to 130 Hz where there was -43.9; at 0 dB and in every bar the lows read 2 to 3 dB OVER the album's envelope); CHEST: the bell on the drum's track (off)
+INTEREST = {'under': 3, 'rate': 1.0, 'most': 9, 'edge': 0.01}   # v28: a held debt begins this many dB under where it stood, grows this many dB a sixteenth (compound: a straight line in dB), by no more than this (then it stands; at 9 none does: a build with 7 made the 23 sink 2.5 dB before its seed and gave the rest of the song back only 0.3 dB: in the last sixteenth before the seed this master takes 1.1 dB off the rest when the 23 is held at one level, 1.8 capped at 7 and 2.1 at 9); the fader is back in this many beats before the note
 PRODUCT = {'patch': 'sc-product', 'gain': '-38dB', 'sections': (1, 11), 'bars': (4, 8, 12), 'down': -36, 'vel': 0.8, 'hands': 0.5, 'trim': {84: -6, 88: -6, 92: -6, 100: 4, 104: 4, 108: 4, 116: 4, 120: 4, 124: 4}}   # v26: the product: its patches' name (one for each pair of coins) and fader; the sections it plays in (from, to: the drum to home); the bars of a section (from 0) whose seed it leads to; the seed's note to the unit, semitones; touch; HANDS: how far to each side the two coins are; dB on a note by its seed's bar (from 0), SET FROM TWO FINISHED BUILDS, every note read (rms, 50 to 900 Hz): THIS SONG'S MASTER IS A LOUDNESS TARGET ON A SONG OF CLICKS, AND A HELD TONE IS THE LOUDEST THING IN IT: at -16 dB every note came out -6.7 to -9.5 dBFS, 3 to 10 dB OVER the drum and the bass together; at -24 dB it came out only 0.8 to 2.8 dB lower (a line of it -7.3 dBFS finished for -28.9 on the bench: 21.6 dB of lift), and BOTH ENDS OF THE SONG 0.8 dB lower: the fader was turning the rest of the song up, not the tone down. At -38 the tone is 3 to 5 dB under the drum and the bass in its band and both ends are within 0.1 dB of what they were; 6 dB more off where there is no drum (it is alone there), and 4 dB on in the two fullest sections (the drum again and three purses, where it read 8 to 14 dB under). Not where the seed is sown off the beat: there the bar before the seed is empty on purpose (the old music is -33 to -63 dBFS where the product would ring)
 OFFKEY = {'db': -9}                         # v24: dB on a payment's first stroke where the payments begin off the beat (PAID['late']) and no seed is sown with it: read in the finished song (there it came out at -6.5 dBFS, the seed's own level; with a seed it is 8 dB under the seed and is left)
 CLOSING = {'where': ('home',), 'bars': 12}  # v24: the sections where the till closes (a payment to each seed), and for how many of their bars (the coin is spun in home's last four)
@@ -873,7 +891,11 @@ def build():
             others = []
             mark = len(T['bass'])
             if bass and ON['debts']:
-                for s in debts(*pq):
+                late = ON['largest'] and ON['term'] and frobenius(*pq) >= BAR and every == 2 and (bar - i * SEC) % every == 1   # v28 LARGEST: the bar after a seed's, where the purse's largest debt is longer than a bar
+                for s in [x for x in range(BAR, frobenius(*pq) + 1) if coins_for(x, *pq) is None] if late else []:   # only what that seed still owes; the largest until the next seed
+                    if (at16 + s) % 4:
+                        T['bass'].append({'at': bar * 4 + (at16 + s - BAR) / 4, 'len': 0.25, 'pitch': 'F2' if s == frobenius(*pq) else 'G2', 'vel': .85, **({'_term': s, '_until': 2 * BAR - at16 - s} if s == frobenius(*pq) else {})})
+                for s in [] if late else debts(*pq):
                     if ON['abroad'] and ON['exchange'] and name == EXCHANGE['section'] and (bar - i * SEC) % every == 0 and (s * EXCHANGE['per']) % 1 == 0 and coins_for(round(s * EXCHANGE['per']), *EXCHANGE['coins']):
                         continue                                 # v10 ABROAD: the exchange pays this one
                     if (at16 + s) % 4:                           # never with the drum
@@ -913,6 +935,7 @@ def build():
             term = x.pop('_term')
             held = min(term, (nxt['at'] - x['at']) * 4) if nxt else term
             held = min(held, ((x['at'] // (SEC * 4) + 1) * SEC * 4 - x['at']) * 4)   # not over a section's end
+            held = min(held, x.pop('_until', held))             # v28 LARGEST: nor past the seed that pays it
             if held <= 1:
                 continue
             x['len'] = terms[round(x['at'], 4)] = round(held / 4, 4)
@@ -924,6 +947,7 @@ def build():
         up = {round(x['at'], 4) for x in lifted}
         for x in lifted:
             x.pop('_term', None)
+            x.pop('_until', None)
             if round(x['at'], 4) in terms:
                 x['len'] = terms[round(x['at'], 4)]
         for of, x in paid:
@@ -970,6 +994,23 @@ def build():
     return T
 
 
+def owed_gain(fader):
+    """v28 INTEREST: the bass's fader (and its octave's) rides each held debt: INTEREST['under'] dB under at the note's start, a straight line in dB (compound interest) up INTEREST['rate'] dB a sixteenth to where the note is let go (95% of its length), and back by its end. Without it, or with no held debts, the plain fader."""
+    if not (ON['interest'] and ON['term'] and TERM.get('held')):
+        return {'gain': fader}
+    pts = [[0.0, 0]]
+    for at, ln in TERM['held']:
+        if at - INTEREST['edge'] > pts[-1][0]:
+            pts.append([round(at - INTEREST['edge'], 4), 0])
+        elif pts[-1][0] >= at:                                   # a debt held up to the next held debt: the fader goes straight from the one's end to the other's start
+            pts.pop()
+        grown = min(INTEREST['most'], INTEREST['rate'] * ln * 4)
+        knee = round(at + grown / INTEREST['rate'] / 4, 4)      # where a debt that has grown all it may stands
+        pts += [[at, -INTEREST['under']]] + ([[knee, round(grown - INTEREST['under'], 2)]] if knee < round(at + ln * 0.95, 4) else []) + [[round(at + ln * 0.95, 4), round(grown - INTEREST['under'], 2)], [round(at + ln, 4), 0]]
+    assert all(a[0] < b[0] for a, b in zip(pts, pts[1:])), [(a, b) for a, b in zip(pts, pts[1:]) if a[0] >= b[0]][:3]
+    return {'gain': {'value': fader, 'mod': [{'src': 'auto.owed', 'amount': 1}]}, 'auto': {'owed': {'points': [[f'{t}b', v] for t, v in pts] + [[f'{BARS * 4}b', 0]], 'curve': 0}}}
+
+
 def alone():
     """The seeds' fader ride: ALONE dB through the sections with no drum, 0 elsewhere, moved over the half beat before a section."""
     pts = []
@@ -1014,8 +1055,8 @@ def song():
         'master': {'fx': [{'type': 'eq', 'bands': ['hp cutoff=28']}]},
         'tracks': [{'name': 'kick', 'patch': 'sc-kick', 'gain': '-9dB', 'notes': T['kick'],
                     'fx': [{'type': 'eq', 'bands': ['peak cutoff=47 q=1.2 gain=-3dB', 'peak cutoff=130 q=0.9 gain=3dB'] + ([TERM['chest']] if ON['chest'] else [])}]},
-                   {'name': 'bass', 'patch': DEBT['patch'] if ON['octave'] else 'sub-sine', 'gain': '-13dB', 'notes': T['bass'], 'fx': [under]}] +
-                  ([{'name': 'bass-up', 'patch': DEBT['patch'] if ON['octave'] else 'sub-sine', 'gain': f"{-13 + LIFT['db']}dB", 'notes': T['bass-up'], 'fx': [under]}] if T.get('bass-up') else []) +   # v17 LIFT
+                   {'name': 'bass', 'patch': DEBT['patch'] if ON['octave'] else 'sub-sine', **owed_gain('-13dB'), 'notes': T['bass'], 'fx': [under]}] +
+                  ([{'name': 'bass-up', 'patch': DEBT['patch'] if ON['octave'] else 'sub-sine', **owed_gain(f"{-13 + LIFT['db']}dB"), 'notes': T['bass-up'], 'fx': [under]}] if T.get('bass-up') else []) +   # v17 LIFT
                   [{'name': f'seed-{k}', 'patch': 'sc-seed', 'gain': {'value': '-3dB', 'mod': [{'src': 'auto.alone', 'amount': 1}]}, 'auto': {'alone': alone()},
                     'notes': T[f'seed-{k}'], 'fx': ['clip drive=0dB ceiling=-12dB']} for k in purses()],   # the seed's highest sample is its own, not the limiter's
     }
@@ -1123,7 +1164,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v26, the last five v25, the last eight v24, the last eleven v23, the last fourteen v22, the last fifteen v21, the last seventeen v20, the last eighteen v19, the last twenty-one v18, the last twenty-three v17, the last twenty-seven v16, the last twenty-nine v15, the last thirty-one v14, the last thirty-two v13, the last thirty-four v12, the last thirty-six v11, the last thirty-eight v10, the last forty-one v9, the last forty-four v8, the last forty-six v7, the last forty-eight v6, the last fifty-two v5, the last fifty-three v4, the last fifty-six v3, the last sixty v2, all sixty-three v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last two off is v27, the last four v26, the last seven v25, the last ten v24, the last thirteen v23, the last sixteen v22, the last seventeen v21, the last nineteen v20, the last twenty v19, the last twenty-three v18, the last twenty-five v17, the last twenty-nine v16, the last thirty-one v15, the last thirty-three v14, the last thirty-four v13, the last thirty-six v12, the last thirty-eight v11, the last forty v10, the last forty-three v9, the last forty-six v8, the last forty-eight v7, the last fifty v6, the last fifty-four v5, the last fifty-five v4, the last fifty-eight v3, the last sixty-two v2, all sixty-five v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -1255,6 +1296,13 @@ if __name__ == '__main__':
                   f": {len(TERM['held'])} held notes: " + ', '.join(f"{SECTIONS[t_i][0]} {t_c}" for t_i, t_c in ((t_i, sum(1 for t_at, _ in TERM['held'] if t_i * SEC * 4 <= t_at < (t_i + 1) * SEC * 4)) for t_i in range(len(SECTIONS))) if t_c))
             if ON['settled'] and TERM.get('paid'):
                 print(f"    and when its term is up the debt is settled: the bass is back on the key note for a sixteenth at that instant: {len(TERM['paid'])} notes (not where the instant is the drum's): " + ' '.join(sorted({t_x['pitch'] for t_x in TERM['paid']})))
+        if ON['largest'] and ON['term'] and any(t_len * 4 > BAR // 2 for _, t_len in TERM.get('held', [])):
+            t_long = [t_x for t_x in T['bass'] if t_x['len'] * 4 > BAR // 2]
+            print(f"    the largest debt of all is heard: coins of 5 and 7 cannot make {frobenius(5, 7)}, more than a bar: in the drum again the bar after each seed's has only what that seed still owes: 18 (sixteenth 2) and {frobenius(5, 7)} (sixteenth {frobenius(5, 7) - BAR}), and the {frobenius(5, 7)} is owed until the next seed pays it, {t_long[0]['len'] * 4:g} sixteenths, a tone under the key note: " +
+                  ', '.join(f"bar {int(t_x['at'] // 4) + 1} {t_x['pitch']}" for t_x in t_long))
+        if ON['interest'] and ON['term'] and TERM.get('held'):
+            print(f"    a debt bears interest while it is owed: compound, {INTEREST['rate']:g} dB a sixteenth ({100 * (10 ** (INTEREST['rate'] / 20) - 1):.1f}% more each sixteenth: a straight line in dB on the bass's fader and its octave's), from {INTEREST['under']} dB under where it stood: " +
+                  ', '.join(f"a debt owed {t_len * 4:g} sixteenths comes to {-INTEREST['under'] + min(INTEREST['most'], INTEREST['rate'] * t_len * 4):+.1f} dB" for t_len in sorted({t_len for _, t_len in TERM['held']})) + (f"; no debt grows more than {INTEREST['most']} dB: then it stands" if any(INTEREST['rate'] * t_len * 4 > INTEREST['most'] for _, t_len in TERM['held']) else ''))
         if ON['chest']:
             print(f"    the drum has a chest: a bell on its own track: {TERM['chest']}")
         print(f'{BARS} bars, {BARS * sec:.1f} s; written notes: ' + ', '.join(f'{k} {len(v)}' for k, v in T.items() if v or not k.startswith('long-')))
