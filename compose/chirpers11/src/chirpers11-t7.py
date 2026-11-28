@@ -397,6 +397,13 @@ phrase is in the sum of the two sides: in the middle, with the drum. Out of phas
 their difference, where almost nothing else is: it leaves the middle, is heard at the two
 ears, and comes clear of the drum, though neither ear's level has changed. On one speaker
 the second and fourth times are not there: the two sides add up to nothing.
+
+v30 (28 Nov): THE BEAT THAT IS ONLY IN THE HEAD (C11T7_HEAD=0 takes it out: v29). In
+the row of the sung clicks a low note is held in each ear: 249 waves to the bar in the
+left, and 250, 250, 251, 251, 253, 253, 257, 257 in the right. Each ear by itself has a
+steady note. The difference in phase between the ears goes round once for every wave
+more: once a bar, then twice, four times, eight. Slowly, the note crosses the head;
+fast, it flutters. On one speaker it is a plain beat.
 """
 import json
 import math
@@ -764,6 +771,14 @@ FLIP_TIMES = ("in", "out", "in", "out")                # the four times: in phas
 FLIP_LEN = 0.9                                         # beats a note is written
 FLIP_LAST = 0.2                                        # beats the phrase's last note is written: short, so that nothing of it is left when the row ends: the two bars after the row are the drum's rest, and a cut leans on that rest (the first build held it 0.65 of a beat into bar 81: one of the scorer's seven cuts lost its bound at 155 s on both seeds)
 FLIP_GAIN = os.environ.get("C11T7_FLIP_GAIN", "-32dB")   # all three tracks. The bench (the row alone at -20 dB): a note's first 200 ms -33.1 dBFS in each ear. Read in the whole song's master at -28dB and -34dB (seed 0), BEFORE any score: -24.4 and -30.4 dBFS in each ear (the master lifts it 16.7 dB: a sixteenth before the beat in a row with the drum), the same in phase and out. At -28dB the phrase in phase stood 13.7 dB over the old music's sum in its own sixth of an octave: too far forward for the change to matter; at -34dB 7.7. -32dB is meant to bring it to -28.4 dBFS: in the music when in phase
+HEAD = os.environ.get("C11T7_HEAD", "1") != "0" and FLIP   # v30: THE BEAT THAT IS ONLY IN THE HEAD: one low note in each ear, the right ear's a few waves a bar more than the left's. Each ear by itself has a steady note; the difference in phase between the ears goes round once for every wave more: slowly, the note crosses the head; fast, it flutters. On one speaker it is a plain beat
+HEAD_IN = ("slips", 3)                                 # the section and its row (from 0): bars 49 to 56, the row of the sung clicks: the clicks are already an ear each there
+HEAD_NOTE = ("C3", 130.8127826502993)                  # the note written and its frequency; the lanes move it to a whole number of waves to the bar
+HEAD_WAVES = 249                                       # waves to the bar in the left ear (130.725 Hz at 126 to the minute: C3 less 1.2 cents)
+HEAD_MORE = (1, 1, 2, 2, 4, 4, 8, 8)                   # waves more to the bar in the right ear, bar by bar: the turns of the difference in phase in that bar. In phase at every bar line
+HEAD_RISE = 2                                          # beats the note takes to come
+HEAD_GO = 4                                            # beats it takes to go: the last bar
+HEAD_GAIN = os.environ.get("C11T7_HEAD_GAIN", "-35dB")   # both tracks. The bench (the two tracks alone at -20 dB): each ear -29.0 dBFS (a track hard to one side reads 9.0 under its fader). The old music in a sixth of an octave round C3 in this row is -31.2 dBFS a side. Read in the whole song's master at -35dB (both seeds) BEFORE any score: each ear -26.8 / -26.7 dBFS (the master lifts a held tone in this row 17.2 dB), 4.6 / 4.7 dB over the old music in its band: kept
 SING = os.environ.get("C11T7_SING", "1") != "0" and os.environ.get("C11T7_VERN", "1") != "0" and os.environ.get("C11T7_FIVE", "1") != "0" and JET      # v16: the clicks sing (every phase set to nought)
 SING_IN = ("slips", 24, 32)                                          # the section, and the bars of it: the bare row between the vernier and the hat
 SING_OF = "a-ear"                                                    # whose strokes: A's, as they are in those bars
@@ -1007,6 +1022,26 @@ def swarm_ticks():
 
 
 _HUM_MEMO = {}
+
+
+def head_row():
+    """The first bar (from 0) of the row with the beat that is only in the head, or None."""
+    sec = next((x for x in SECS if x[0] == HEAD_IN[0]), None)
+    return sec[1] + ROW * HEAD_IN[1] if HEAD and sec is not None and HEAD_IN[1] * ROW < sec[2] else None
+
+
+def head_semis(waves):
+    """Semitones from the written note to a tone of so many waves to the bar."""
+    import math
+    return round(12 * math.log2(waves * BPM / (60 * BEATS) / HEAD_NOTE[1]), 7)
+
+
+def head_lane(more):
+    """A track's pitch by time, as a lane in semitones: HEAD_WAVES + more[k] waves to the bar in the row's kth bar."""
+    b0 = head_row() * BEATS; pts = [["0b", head_semis(HEAD_WAVES + more[0])]]
+    for k, m in enumerate(more):
+        pts += [[f"{b0 + k * BEATS:g}b", head_semis(HEAD_WAVES + m)], [f"{b0 + (k + 1) * BEATS - 0.001:g}b", head_semis(HEAD_WAVES + m)]]
+    return {"points": pts + [[f"{b0 + len(more) * BEATS:g}b", head_semis(HEAD_WAVES + more[-1])], [f"{BARS * BEATS}b", head_semis(HEAD_WAVES + more[-1])]], "curve": 0}
 
 
 def flip_row():
@@ -1741,6 +1776,16 @@ def song():
             doc["tracks"].append({"name": fl_name, "patch": fl_patch, "gain": FLIP_GAIN, "pan": fl_pan, "notes": [{"at": t, "len": flip_len(t), "pitch": p, "vel": 0.8} for t, p, how in fl if how in fl_how]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v29 a phrase is in phase and out of phase (bars {flip_row() + 1} to {flip_row() + ROW}, the row of the gears in 'slips'): {' '.join(p for p, _ in FLIP_TUNE)}, two bars, {len(FLIP_TIMES)} times, the same in each ear every time; the {' and '.join(('first', 'second', 'third', 'fourth')[k] for k, how in enumerate(FLIP_TIMES) if how == 'out')} time the right ear's wave is upside down: the phrase is then in neither the left nor the right alone but in their difference, where almost nothing else is: it leaves the middle and comes clear of the drum; on one speaker it is not there. Generated by")
         assert "From v29" in doc["about"]
+    if head_row() is not None:
+        hd_beat = 60 / BPM
+        PATCHES["os-head"] = {"about": "Out of Step's beat in the head (chirper-zero, 28 Nov, v30): one plain held tone whose pitch follows its track's lane (auto.tune, semitones). One track in each ear, the right ear's a few waves a bar more: each ear by itself is steady and the difference in phase between them goes round.",
+                              "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": ["sine phase=0"], "pitch": {"value": 0, "mod": [{"src": "auto.tune", "amount": 1}]}, "filters": ["lp cutoff=7000"],
+                                                                         "amp": {"a": f"{round(HEAD_RISE * hd_beat, 4):g}s", "d": "0s", "s": 1, "r": f"{round(HEAD_GO * hd_beat, 4):g}s"}}}
+        for hd_name, hd_pan, hd_more in (("head-l", -1.0, (0,) * len(HEAD_MORE)), ("head-r", 1.0, HEAD_MORE)):
+            doc["tracks"].append({"name": hd_name, "patch": "os-head", "gain": HEAD_GAIN, "pan": hd_pan, "auto": {"tune": head_lane(hd_more)},
+                                  "notes": [{"at": head_row() * BEATS, "len": len(HEAD_MORE) * BEATS - HEAD_GO, "pitch": HEAD_NOTE[0], "vel": 0.8}]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v30 a beat is only in the head (bars {head_row() + 1} to {head_row() + ROW}, the row of the sung clicks in 'slips'): a low note in each ear, {HEAD_WAVES} waves to the bar in the left ({HEAD_WAVES * BPM / (60 * BEATS):.3f} Hz) and {', '.join(str(HEAD_WAVES + m) for m in HEAD_MORE)} in the right, bar by bar: each ear by itself has a steady note, and the difference in phase between the ears goes round {', '.join(str(m) for m in HEAD_MORE)} times a bar: slowly it crosses the head, fast it flutters; on one speaker it is a plain beat. Generated by")
+        assert "From v30" in doc["about"]
     return doc
 
 
@@ -1770,6 +1815,9 @@ def lock(k):
 if __name__ == "__main__":
     if os.environ.get("C11T7_SHOW"):
         sec = 60 / BPM * BEATS
+        if head_row() is not None:
+            hd_b = head_row(); hd_f = BPM / (60 * BEATS)
+            print(f"the beat that is only in the head ({HEAD_GAIN}), bars {hd_b + 1}-{hd_b + ROW} ({int(hd_b * BEATS * 60 / BPM) // 60}:{hd_b * BEATS * 60 / BPM % 60:04.1f}): the left ear {HEAD_WAVES} waves to the bar ({HEAD_WAVES * hd_f:.3f} Hz: {HEAD_NOTE[0]} {head_semis(HEAD_WAVES) * 100:+.1f} cents) ; the right ear " + ' '.join(f"{HEAD_WAVES + m} ({(HEAD_WAVES + m) * hd_f:.3f} Hz)" for m in HEAD_MORE) + " ; the difference in phase goes round " + ' '.join(f"{m}" for m in HEAD_MORE) + " times a bar (" + ' '.join(f"{m * hd_f:.2f}" for m in sorted(set(HEAD_MORE))) + f" a second) ; in phase at every bar line ; {HEAD_RISE} beats to come, {HEAD_GO} to go")
         if flip_row() is not None:
             fl = flip_notes(); fl_b = flip_row()
             print(f"in phase, out of phase ({FLIP_GAIN}), bars {fl_b + 1}-{fl_b + ROW} ({int(fl_b * BEATS * 60 / BPM) // 60}:{fl_b * BEATS * 60 / BPM % 60:04.1f}): the phrase {' '.join(f'{p} (beat {t:g})' for p, t in FLIP_TUNE)} ; {len(FLIP_TIMES)} times: {' '.join(FLIP_TIMES)} ; the left ear the same every time (pan -1), the right ear the same wave (in) or the wave upside down (out) (pan 1) ; {len(fl)} notes of {FLIP_LEN:g} beats (the last of each time {FLIP_LAST:g}: over before the bar ends)")
