@@ -71,6 +71,29 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v24 (28 Nov): THE TICK COMES APART AS THE SPRING RUNS DOWN, AND THE RECORD IS OFF ITS CENTRE. Four switches
+(`--without-rundown`, `-limp`, `-wow`, `-waver`; all four off is v23 byte for byte).
+  RUNDOWN  v23's teeth are heard where the drum plays and not after. Now they come back under the last ticks
+           (bars 193 to 200, when the drum has gone and the spring runs down), and they tell how far down it
+           is. A watchmaker's timing machine reads a balance's swing from the time between a tick's first
+           sound and its last (the lift time): the weaker the swing, the longer the tooth takes to fall. So
+           each of the 32 last clicks has its tooth again, and the tooth falls after the click by a time that
+           grows as the spring's speed falls (RUNDOWN['lift'] seconds times one over the speed, less one):
+           nothing at bar 193, 15 ms at bar 197, 54 ms at bar 199, a tenth of a second at the last click: the
+           tick thickens, then comes apart into two sounds. On the last stroke no tooth falls: the wheel has
+           stopped.
+  LIMP     the second pallet's tooth has twice as far to fall: tick is still one sound when tock is two.
+  WOW      everything here is ON a record, and the record is pressed off its centre (WOW['off'] mm): once a
+           turn the groove runs fast and slow under the needle, and what rings long enough to show it wavers
+           in pitch: the clock's bells. The same hole and a smaller circle: the nearer the label, the deeper
+           the wow, so each quarter's chime wavers more than the last (the radius falls evenly, as v21's
+           hiss does), and the hour bell most. It turns with the record: it is at its top where the groove
+           joins itself, at every joint of the run-out. New patches, the old bells with the wow:
+           `wd-chime-wow-1` to `-4` and `wd-hour-wow`.
+  WAVER    the meetings' last chord (bar 161: held a bar, then six seconds dying as it opens) is the one other
+           sound on the record long enough for a turn to be heard in it: it wavers too, four turns and more
+           (`wd-open-wow`). Nothing else is given the wow: a liberty; the rest is too short to show it.
+
 v23 (28 Nov): THE ESCAPEMENT IS HEARD: TICK, TOCK; AND THE TURNTABLE RUMBLES IN THE RUN-OUT. Three switches
 (`--without-pallet`, `-exit`, `-rumble`; all three off is v22 byte for byte).
   PALLET   the song is a clock, and the click is its grid, on the half beats. When the drum comes (bar 9) the
@@ -494,14 +517,16 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True, 'quarters': True, 'hour': True, 'hammer': True, 'one': True, 'sympathy': True, 'groove': True, 'surface': True, 'lift': True, 'leadin': True, 'reveal': True, 'inner': True, 'spiral': False, 'preecho': True, 'nearer': True, 'pallet': True, 'exit': True, 'rumble': True}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True, 'quarters': True, 'hour': True, 'hammer': True, 'one': True, 'sympathy': True, 'groove': True, 'surface': True, 'lift': True, 'leadin': True, 'reveal': True, 'inner': True, 'spiral': False, 'preecho': True, 'nearer': True, 'pallet': True, 'exit': True, 'rumble': True, 'rundown': True, 'limp': True, 'wow': True, 'waver': True}
 GROOVE = {'patch': 'wd-groove', 'turn': 1.8, 'after': 1.1, 'turns': 4, 'dust': ((0, 'G2', 1.0, 0), (3, 'D4', .7, -9), (8, 'A3', .6, -14), (15, 'F4', .8, -6)),   # v20: the run-out groove: seconds a turn (33 1/3 a minute); seconds from the last stroke to the first joint; turns; what is in a turn: (sixteenths of a turn after the joint, the chip noise's note: its step rate, how hard, dB)
           'gain': '-28dB', 'pan': 0, 'ms': 4, 'hp': 180, 'lp': 2600, 'rest': 1.5}   # its fader (bench: at -24 dB the joint's highest sample stood 2 to 6 dB over the wall clock's ticks: 4 dB off) and place; a speck's length, ms; its band; seconds of the song after the last joint (the surface goes in them)
 SPIRAL = {'patch': 'wd-spiral', 'gain': '-51dB', 'hp': 700, 'lp': 6000, 'in': 4, 'to': 8, 'out': 4, 'radius': (146.05, 60.3, 53.2), 'lock': 'wd-inner', 'every': 8, 'walls': 2, 'up': 4, 'down': 70}   # v21: the playing groove's surface: its patch, fader (bench, alone: at the run-out's -58 dB the white hiss stood 10 dB under the locked groove's chip noise: -78 dBFS for -68: so 7 dB up, to meet it at the first joint with INNER's 3.8) and band at the first groove (the run-out's, v20); bars over which it comes in; the bar to which it is held, and bars over which it goes, where it does not stay; an LP's first, last and locked groove, mm from the centre; the run-out surface's name when its band has slid; bars between the points of the slide's line; low-pass filters in a row at the band's top (Out of Step's last bars lie over the first eight: nothing over 10 kHz); REVEAL: bars over which it comes up again from the bar the spring runs down; dB it is down in between
 RUMBLE = {'patch': 'wd-rumble', 'gain': '-32dB', 'hp': 25, 'lp': 90, 'pitch': 'C3', 'vel': 0.8, 'in': (-6,), 'from': 'joint'}   # v23: the bearing's rumble: its patch, fader (the second build's -20 dB stood 10 dB OVER the surface in the run-out: this master lifted it 13.6 dB), band, the chip noise's note (its step rate), touch, and the dB on its first turns as it comes in
 PALLET = {'patch': 'wd-pallet', 'gain': '-20dB', 'hp': 10000, 'ms': 6, 'bars': (8, 144), 'vel': 0.8, 'exit': {'patch': 'wd-pallet-exit', 'gain': '-10dB', 'band': (8000, 11000), 'steep': 3, 'on': (6, 14)}}   # v23: the tooth on the pallet: its patch, fader (bench), where it begins (Hz), how long it is, the bars (from 0, to but not with) in which it is struck with the click where the drum plays, and its touch (the click's own shape is not copied: one touch)
 NEARER = {'up': 9, 'lock': 6}   # v22: dB on the playing groove's surface where it comes back as the spring runs down (the lead-in in bars 1 to 8 is as it was: chirper-zero's seam), and on the locked groove's hiss
-PREECHO = {'at': {15: -30, 31: -30, 47: -30, 111: -30}, 'not': ('rumble', 'pallet', 'pallet-exit', 'tick', 'clock-tick', 'clock-tock', 'chime', 'hour', 'groove', 'surface', 'lift', 'spiral')}   # v22: the caught bars (from 0) whose next bar is heard a turn early, and the dB under itself at which it is (the first build had all seven at -30: the scorer's cuts at bars 64, 80 and 96, the catches' own beginnings, read 0.20 0.18 0.20 before and 0.16 0.16 0.17 with it: two sections lost at its two highest settings, structure 100 to 95.3, the total 1.08 down); the tracks that do not print through (the click and the clocks keep their own time; the run-out is not music)
+RUNDOWN = {'lift': 0.04, 'limp': 2, 'gain': '-20dB', 'exit': '-10dB'}   # v24: seconds of lift time for each time the spring's speed has halved... (times one over the speed, less one); how many times as far the second pallet's tooth falls (LIMP); the two teeth's faders under the last ticks (v23's own, read in the row)
+WOW = {'off': 0.4, 'top': 0.25, 'chime': 'wd-chime-wow', 'hour': 'wd-hour-wow', 'held': 'wd-open-wow'}   # v24: mm the record's hole is off its centre; where in its turn the wow is at the joint (0.25: its top); the wowed bells' names
+PREECHO = {'at': {15: -30, 31: -30, 47: -30, 111: -30}, 'not': ('pallet-down', 'pallet-exit-down', 'chime-q1', 'chime-q2', 'chime-q3', 'chime-q4', 'rumble', 'pallet', 'pallet-exit', 'tick', 'clock-tick', 'clock-tock', 'chime', 'hour', 'groove', 'surface', 'lift', 'spiral')}   # v22: the caught bars (from 0) whose next bar is heard a turn early, and the dB under itself at which it is (the first build had all seven at -30: the scorer's cuts at bars 64, 80 and 96, the catches' own beginnings, read 0.20 0.18 0.20 before and 0.16 0.16 0.17 with it: two sections lost at its two highest settings, structure 100 to 95.3, the total 1.08 down); the tracks that do not print through (the click and the clocks keep their own time; the run-out is not music)
 SURFACE = {'patch': 'wd-surface', 'gain': '-58dB', 'hp': 700, 'lp': 6000, 'pitch': 'D3', 'vel': 0.8}   # v20: the record's surface: its fader (benched), its band, the chip noise's note (its step rate: slow enough not to come round inside a turn)
 LIFT = {'patch': 'wd-lift', 'after': 0.5, 'rest': 1.0, 'pitch': 'D2', 'gain': '-22dB', 'vel': 0.8, 'ms': 90, 'speck': ('C2', 1.0, 3)}   # v20: the needle is lifted: seconds after the last joint; seconds of nothing after it; the thump's note, fader, touch and decay; the speck with it (the groove's patch: note, touch, dB)
 HAMMER = {'patch': 'wd-chime-struck', 'amount': 96, 'ms': 3}   # v19: the struck bell's name; the hammer's grain of noise: its envelope's amount over -80 dB (benched: see the docstring), and how long
@@ -743,6 +768,34 @@ def inner(sec=None):
     if not ON['inner']:
         return 1.0
     return lock / r0 if sec is None else (r0 + (r1 - r0) * min(max(sec / (clock(BARS) + GROOVE['after']), 0), 1)) / r0
+
+
+def second_at(beat):
+    """v24: the second at which the song reaches a beat, on the tempo map as written: beat_at turned round, by halving (clock() is the platter's own curve, which the map follows a beat at a time: the two are 10 ms apart at the last click)."""
+    lo, hi = 0.0, clock(BARS) + 60
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        lo, hi = (mid, hi) if beat_at(mid) < beat else (lo, mid)
+    return (lo + hi) / 2
+
+
+def lift_time(at, second=False):
+    """v24 RUNDOWN: seconds from a click of the wind-down (at beat `at`) to its tooth: the lift time, which grows as the spring's speed falls; LIMP: twice that on the second pallet."""
+    return RUNDOWN['lift'] * (1 / speed(at - RUNS_DOWN * 4) - 1) * (RUNDOWN['limp'] if second and ON['limp'] else 1)
+
+
+def wow_cents(sec):
+    """v24 WOW: how far each way, in cents, the pitch wavers at second sec of the record: the hole's offset over the needle's radius (which falls evenly to the run-out's first joint)."""
+    r0, r1, _ = SPIRAL['radius']
+    return 1200 * log2(1 + WOW['off'] / (r0 + (r1 - r0) * min(max(sec / (clock(BARS) + GROOVE['after']), 0), 1)))
+
+
+def wow_patch(patch, sec, text):
+    """v24 WOW: a bell with the record's wow at second sec: its pitch on an oscillator that runs on song time, once a turn, at its top at every joint of the run-out."""
+    joint = clock(BARS) + GROOVE['after']
+    return {**patch, 'about': patch['about'] + text,
+            'synth': {**patch['synth'], 'pitch': {'value': 0, 'mod': [{'src': 'lfo.wow', 'amount': round(wow_cents(sec) / 100, 4)}]},
+                      'lfo': {**patch['synth'].get('lfo', {}), 'wow': {'wave': 'sine', 'rate': round(1 / GROOVE['turn'], 5), 'phase': round((WOW['top'] - joint / GROOVE['turn']) % 1, 4)}}}}
 
 
 def run_out():
@@ -1064,8 +1117,10 @@ def song():
                                     'fx': ['lp cutoff=6000', 'hp cutoff=40', hold(INTEREST['size'])],
                                     'returns': [{'from': 'paid', 'gain': INTEREST['feed'], 'time': t}, {'from': me, 'gain': db(INTEREST['back']), 'time': t}, {'from': f'paid{other}', 'gain': db(INTEREST['back']), 'time': t}]}
     if ON['held']:
-        doc['patches'] = {**doc['patches'], **({'wd-open': OPEN} if ON['open'] else {'wd-held': V3['wd-held']})}
-        doc['tracks'].append({'name': 'held', 'patch': 'wd-open' if ON['open'] else 'wd-held', 'gain': f"{float(HELD['gain'][:-2]) + OPEN_DB:g}dB" if ON['open'] else HELD['gain'], 'pan': -0.1, 'notes': T['held'], 'fx': [under], 'sends': {'hall': '-6dB'}})
+        waver = ON['waver'] and ON['wow'] and ON['open']        # v24 WAVER: the meetings' last chord is on the record too
+        held_sec = second_at(min(n['at'] for n in T['held'])) if waver else 0
+        doc['patches'] = {**doc['patches'], **({WOW['held']: wow_patch(OPEN, held_sec, f" v24: on a record pressed {WOW['off']:g} mm off its centre: its pitch wavers {wow_cents(held_sec):.1f} cents each way once a turn ({GROOVE['turn']} s).")} if waver else {'wd-open': OPEN} if ON['open'] else {'wd-held': V3['wd-held']})}
+        doc['tracks'].append({'name': 'held', 'patch': WOW['held'] if waver else 'wd-open' if ON['open'] else 'wd-held', 'gain': f"{float(HELD['gain'][:-2]) + OPEN_DB:g}dB" if ON['open'] else HELD['gain'], 'pan': -0.1, 'notes': T['held'], 'fx': [under], 'sends': {'hall': '-6dB'}})
     if ON['real']:
         doc['patches'] = {**doc['patches'], 'wd-under': V3['wd-under']}
         doc['tracks'].append({'name': 'under', 'patch': 'wd-under', 'gain': REAL['gain'], 'notes': T['under'], 'fx': [under]})
@@ -1086,12 +1141,21 @@ def song():
             doc['tracks'].append({'name': f'clock-{nm}', 'patch': f'wd-clock-{nm}', 'gain': WALL['gain'], 'pan': WALL['pan'], 'notes': notes})
     if ON['quarters'] or ON['hour']:                            # v18: the clock on the wall chimes the song's quarters, and the hour
         bell = HAMMER['patch'] if ON['hammer'] else CHIME['patch']   # v19 HAMMER: another sound, another name
-        doc['patches'] = {**doc['patches'], bell: chime_patch()}
-        doc['tracks'].append({'name': 'chime', 'patch': bell, 'gain': CHIME['gain'], 'pan': WALL['pan'], 'sends': {'hall': CHIME['hall']},
-                              'notes': [{'at': round(beat_at(sec), 5), 'len': 1.0, 'pitch': CHIME['bells'][deg], 'vel': CHIME['vel'], **({'gain': f"{CHIME['trim'][q]:g}dB"} if q in CHIME['trim'] else {})} for q, sec, deg in chimes()]})
+        if ON['wow']:                                           # v24 WOW: each quarter's chime has its own depth: a track and a patch a quarter
+            for quarter in sorted({q for q, _, _ in chimes()}):
+                first = min(sec for q, sec, _ in chimes() if q == quarter)
+                doc['patches'] = {**doc['patches'], f"{WOW['chime']}-{quarter}": wow_patch(chime_patch(), first, f" v24: on a record pressed {WOW['off']:g} mm off its centre: its pitch wavers {wow_cents(first):.1f} cents each way once a turn ({GROOVE['turn']} s), as deep as the needle's radius at quarter {quarter} makes it.")}
+                doc['tracks'].append({'name': f'chime-q{quarter}', 'patch': f"{WOW['chime']}-{quarter}", 'gain': CHIME['gain'], 'pan': WALL['pan'], 'sends': {'hall': CHIME['hall']},
+                                      'notes': [{'at': round(beat_at(sec), 5), 'len': 1.0, 'pitch': CHIME['bells'][deg], 'vel': CHIME['vel'], **({'gain': f"{CHIME['trim'][q]:g}dB"} if q in CHIME['trim'] else {})} for q, sec, deg in chimes() if q == quarter]})
+        else:
+            doc['patches'] = {**doc['patches'], bell: chime_patch()}
+            doc['tracks'].append({'name': 'chime', 'patch': bell, 'gain': CHIME['gain'], 'pan': WALL['pan'], 'sends': {'hall': CHIME['hall']},
+                                  'notes': [{'at': round(beat_at(sec), 5), 'len': 1.0, 'pitch': CHIME['bells'][deg], 'vel': CHIME['vel'], **({'gain': f"{CHIME['trim'][q]:g}dB"} if q in CHIME['trim'] else {})} for q, sec, deg in chimes()]})
     if ON['one'] and ON['hour']:                                # v19 ONE: the clock strikes one, on the song's last stroke
-        doc['patches'] = {**doc['patches'], ONE['patch']: chime_patch(ONE['ring'], f"Wind Down: the hour bell of the clock on the wall (v19). The chime's bell (six partials, no third{', struck by a hammer' if ON['hammer'] else ''}) an octave under the note its quarters end on, let ring {ONE['ring']}. It is struck once, on the song's last stroke: one o'clock.")}
-        doc['tracks'].append({'name': 'hour', 'patch': ONE['patch'], 'gain': CHIME['gain'], 'pan': WALL['pan'], 'sends': {'hall': CHIME['hall']},
+        one_bell = chime_patch(ONE['ring'], f"Wind Down: the hour bell of the clock on the wall (v19). The chime's bell (six partials, no third{', struck by a hammer' if ON['hammer'] else ''}) an octave under the note its quarters end on, let ring {ONE['ring']}. It is struck once, on the song's last stroke: one o'clock.")
+        one_name = WOW['hour'] if ON['wow'] else ONE['patch']    # v24 WOW: the hour bell on the record: another sound, another name
+        doc['patches'] = {**doc['patches'], one_name: wow_patch(one_bell, clock(BARS), f" v24: on a record pressed {WOW['off']:g} mm off its centre: its pitch wavers {wow_cents(clock(BARS)):.1f} cents each way once a turn ({GROOVE['turn']} s).") if ON['wow'] else one_bell}
+        doc['tracks'].append({'name': 'hour', 'patch': one_name, 'gain': CHIME['gain'], 'pan': WALL['pan'], 'sends': {'hall': CHIME['hall']},
                               'notes': [{'at': BARS * 4, 'len': 1.0, 'pitch': ONE['bell'], 'vel': ONE['vel'], 'gain': f"{ONE['db']:g}dB"}]})
         if ON['sympathy'] and ON['strings']:                    # v19 SYMPATHY: Ring True's strings hear the hour bell
             for name, bus in doc['buses'].items():
@@ -1168,6 +1232,16 @@ def song():
                 'about': f"Wind Down: the tooth on the exit pallet, the tock (v23): wd-pallet's {PALLET['ms']} ms of noise, through a band from {PALLET['exit']['band'][0] / 1000:g} to {PALLET['exit']['band'][1] / 1000:g} kHz: lower than the tick's tooth, with less of its top.",
                 'play': {'vel_sens': 0.5}, 'synth': {'layers': [{'type': 'noise', 'color': 'white'}], 'filters': [f"hp cutoff={PALLET['exit']['band'][0]}"] * 2 + [f"lp cutoff={PALLET['exit']['band'][1]}"] * PALLET['exit']['steep'], 'amp': {'a': '0.1ms', 'd': f"{PALLET['ms']}ms", 's': 0, 'r': '4ms'}}}}
             doc['tracks'].append({'name': 'pallet-exit', 'patch': PALLET['exit']['patch'], 'gain': PALLET['exit']['gain'], 'pan': click.get('pan', 0), 'notes': tock})
+    if ON['rundown'] and ON['pallet'] and ON['stop']:           # v24 RUNDOWN: the teeth come back under the last ticks, each a lift time after its click; LIMP: the second pallet's twice as late
+        click = next(t for t in doc['tracks'] if t['name'] == 'tick')
+        down = {False: [], True: []}
+        for n in click['notes']:
+            if RUNS_DOWN * 4 <= n['at'] < BARS * 4:             # the last clicks, not the last stroke: the wheel has stopped
+                second = bool(ON['exit']) and round(n['at'] % 4 * 4) in PALLET['exit']['on']
+                down[second].append({'at': round(beat_at(second_at(n['at']) + lift_time(n['at'], second)), 5), 'len': 0.05, 'pitch': 'C6', 'vel': PALLET['vel']})
+        doc['tracks'].append({'name': 'pallet-down', 'patch': PALLET['patch'], 'gain': RUNDOWN['gain'], 'pan': click.get('pan', 0), 'notes': down[False]})
+        if down[True]:
+            doc['tracks'].append({'name': 'pallet-exit-down', 'patch': PALLET['exit']['patch'], 'gain': RUNDOWN['exit'], 'pan': click.get('pan', 0), 'notes': down[True]})
     if ON['preecho'] and ON['catch']:                           # v22 PREECHO: in each caught bar the first turn of the bar after it, a turn early
         turn = GROOVE['turn'] * BPM / 60                        # beats in one turn of the record (the tempo is steady at every catch)
         for t in list(doc['tracks']):
@@ -1211,7 +1285,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v22, the last five v21, the last eight v20, the last eleven v19, the last fourteen v18, the last sixteen v17, the last eighteen v16, the last twenty v15, the last twenty-two v14, the last twenty-four v13, the last twenty-six v12, the last twenty-eight v11, the last thirty-one v10, the last thirty-four v9, the last thirty-seven v8, the last thirty-nine v7, the last forty-two v6, the last forty-five v5, the last forty-eight v4, the last fifty-one v3, the last fifty-seven v2, all sixty-three v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last four off is v23, the last seven v22, the last nine v21, the last twelve v20, the last fifteen v19, the last eighteen v18, the last twenty v17, the last twenty-two v16, the last twenty-four v15, the last twenty-six v14, the last twenty-eight v13, the last thirty v12, the last thirty-two v11, the last thirty-five v10, the last thirty-eight v9, the last forty-one v8, the last forty-three v7, the last forty-six v6, the last forty-nine v5, the last fifty-two v4, the last fifty-five v3, the last sixty-one v2, all sixty-seven v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -1239,6 +1313,12 @@ if __name__ == '__main__':
                        ([(RUNS_DOWN, f"the turntable rumbles: its bearing is heard {'in the run-out' if RUMBLE['from'] == 'joint' else 'under the last ticks and the run-out'}, {RUMBLE['hp']} to {RUMBLE['lp']} Hz, the same at every turn, from {'its first joint' if RUMBLE['from'] == 'joint' else f'bar {RUNS_DOWN + 1}'} to the needle's lift")] if ON['rumble'] and ON['groove'] and ON['surface'] and ON['stop'] and lifted() else []) +
                        ([(PALLET['bars'][0], f"the escapement has two pallets: the tooth on the first (the click on sixteenths 2 and 10: tick) is all above {PALLET['hp'] / 1000:g} kHz; on the second (sixteenths {' and '.join(str(x) for x in PALLET['exit']['on'])}: tock) it is lower, {PALLET['exit']['band'][0] / 1000:g} to {PALLET['exit']['band'][1] / 1000:g} kHz, with less of the first one's top")] if ON['pallet'] and ON['exit'] else []) +
                        ([(PALLET['bars'][0], f"the click shows its tooth where the drum plays, bars {PALLET['bars'][0] + 1} to {PALLET['bars'][1]}: {PALLET['ms']} ms of noise above {PALLET['hp'] / 1000:g} kHz with every click (the escape wheel's tooth on the pallet); not in the caught bars, where the click is bare")] if ON['pallet'] else []) +
+                       ([(RUNS_DOWN, "the tick comes apart as the spring runs down: the teeth come back under the last 32 clicks, each a lift time after its click (ms, by bar, first pallet" + (" then second, which has twice as far to fall" if ON['limp'] and ON['exit'] else '') + "): " +
+                         '; '.join(f"bar {RUNS_DOWN + k + 1}: {1000 * lift_time((RUNS_DOWN + k) * 4 + 0.5):.0f}" + (f" {1000 * lift_time((RUNS_DOWN + k) * 4 + 1.5, True):.0f}" if ON['exit'] else '') for k in range(WIND)) +
+                         f"; the last click {1000 * lift_time(BARS * 4 - 0.5, True):.0f}; on the last stroke no tooth falls: the wheel has stopped")] if ON['rundown'] and ON['pallet'] and ON['stop'] else []) +
+                       ([(0, f"the record is pressed {WOW['off']:g} mm off its centre: once a turn ({GROOVE['turn']} s) what rings on it wavers in pitch, more the nearer the label: the clock's chimes " +
+                         ', '.join(f"{wow_cents(min(sec for q, sec, _ in chimes() if q == quarter)):.1f}" for quarter in sorted({q for q, _, _ in chimes()})) + f" cents each way by quarter, the hour bell {wow_cents(clock(BARS)):.1f}; at its top at every joint of the run-out")] if ON['wow'] and (ON['quarters'] or ON['hour']) else []) +
+                       ([(GOES['meetings'], f"the last chord is on the record too: it wavers {wow_cents(clock(GOES['meetings'])):.1f} cents each way once a turn as it dies")] if ON['waver'] and ON['wow'] and ON['open'] else []) +
                        ([(CATCHES[0], f"the record's pre-echo: in caught bars {', '.join(str(c + 1) for c in sorted(PREECHO['at']))} the first turn of the bar after ({GROOVE['turn']} s: {GROOVE['turn'] * BPM / 60:.2f} beats) is heard a turn early, {' '.join(str(-PREECHO['at'][c]) for c in sorted(PREECHO['at']))} dB down: all but the click and the clocks; its beats fall {round(1000 * (240 / BPM - GROOVE['turn']))} ms after the caught bar's own")] if ON['preecho'] and ON['catch'] else []) +
                        ([(CATCHES[0], 'the other clock is heard in each caught bar, falling behind the beat it began on (the click is on the half beats): ms after the beat, by catch: ' + '; '.join(' '.join(f'{(s * BPM % 60) * 1000 / BPM:.0f}' for s in caught_seconds() if 240 * b <= s * BPM < 240 * (b + 1)) for b in CATCHES))] if ON['clocks'] and ON['wall'] and ON['stop'] and ON['catch'] else []) +
                        ([(b, 'the hall keeps the goodbye: ' + ', '.join(sorted({tr for tr, _ in left(b) if tr in LINGER['db']}))) for b in range(BARS) if any(tr in LINGER['db'] for tr, _ in left(b))] if ON['linger'] and ON['left'] else []) +
