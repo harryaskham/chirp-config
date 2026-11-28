@@ -32,6 +32,30 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v26 (28 Nov), THE TENTH THING IS PLUCKED: LETTING GO IS HOW IT IS PLAYED. Three switches (`--without-comb`,
+`-spread`, `-follows`; all three off is v25 byte for byte).
+  COMB     seven things are struck, one is sung and one is scraped. The tenth is plucked: a comb of steel
+           tongues clamped at one end, as in a thumb piano or a music box (`rt-tine`: a plain tone, the
+           clamped bar's second mode 6.27 times over it for an instant, and the nail). It is the one thing
+           here that cannot be struck or stopped: a tongue is bent and LET GO, which is what this song is
+           about. It has a tongue for each thing, in the order they are let go: the wood B flat 3, the metal
+           F4, the string D4, the skin C4, the air G4, the plate B flat 4, the weight F3; and in every bar
+           it plays the tongues of the things that ring (the ninth thing's count, sung): one note a bar from
+           bar 37, two from 53, three from 69, five from 85, six with no weight, all seven at the peak: the
+           weight's low F last, leading to the next bar's B flat. Then they are stopped one by one and the
+           tune loses its notes: five, two, one, and the wood's alone as the wood closes. It rests where a
+           thing is listened to alone, in the hush, and while everything is tapped. It is the song's tune:
+           233 to 466 Hz, where nothing else is while the things ring.
+  SPREAD   the bar's notes are spread as evenly as that many can be over sixteen sixteenths (the i-th of n
+           16 i / n sixteenths after the first, rounded down): 0 | 0 8 | 0 5 10 | 0 3 6 9 12 | 0 2 5 8 10 13 |
+           0 2 4 6 9 11 13: the rhythm is made again each time a thing is let go or stopped. The first is
+           on sixteenth 6, the emptiest place in the bar where the comb sounds (read in the finished v25),
+           so a long phrase ends over the bar line: the weight's low F is on sixteenth 3 of the next bar. (Without: each
+           tongue keeps the place it has when all seven play.)
+  FOLLOWS  a tongue is plucked as hard as its thing rings: 9 dB down for a thing that is stopped dead, none
+           for one that rings whole: a new tongue comes in softly and grows, and the wood's goes out with
+           the wood.
+
 v25 (28 Nov), THE NINTH THING IS SCRAPED, AND IT COUNTS THE OTHERS. Three switches (`--without-rasp`, `-tally`,
 `-zip`; all three off is v24 byte for byte).
   RASP   seven things are struck and one is sung. The ninth is scraped: a notched stick (`rt-rasp`: a notch is
@@ -474,12 +498,22 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True, 'trade': True, 'slack': True, 'hint': True, 'twin': True, 'quicken': True, 'told': True, 'third': True, 'foretold': True, 'hallpair': True, 'slows': True, 'fall': True, 'glass': True, 'rub': True, 'four': True, 'rasp': True, 'tally': True, 'zip': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True, 'trade': True, 'slack': True, 'hint': True, 'twin': True, 'quicken': True, 'told': True, 'third': True, 'foretold': True, 'hallpair': True, 'slows': True, 'fall': True, 'glass': True, 'rub': True, 'four': True, 'rasp': True, 'tally': True, 'zip': True, 'comb': True, 'spread': True, 'follows': True}
 TRADE = {'to': 128, 'pairs': (('wood', 'metal', 12, 120), ('string', 'skin', 0, 124))}   # v20: the bar (from 0) at which each has its own cell again; the pairs that play each other's: how many semitones the second is over the first, and the bar (from 0) they trade at
 TWIN = {'patch': 'rt-true', 'ring': 0.3, 'db': -6, 'gap': 1, 'bars': ((48, 64, 4), (96, 112, 2), (112, 144, 1))}   # v21: the metal's patch while it is a pair (the motor's, with the engine's stroke-to-stroke wander off: another sound, another name); the least ring, s, at which the second bar is struck; dB on each of the two (in step at the stroke they add to the old stroke); sixteenths to one wave of the gap between them where QUICKEN is off; the bars (from 0, to but not with) in which the metal is a pair, and the sixteenths to a wave there with QUICKEN
 THIRD = {'pair': ('air', 'plate', 24), 'at': 116, 'told': (78, 80), 'lift': 4}   # v22: (the last: dB on the plate's strokes while it plays the pipe's cell: two of its four fall on the bass drum, and the first build's peak read 2 to 3 dB poorer above 6 kHz, bars 117 to 128) v22: the third pair that trades (how many semitones the second is over the first), the bar (from 0) it trades at, and the bars (from 0, to but not with) in which it is told once before, stopped
 GLASS = {'patch': 'rt-glass', 'gain': '-28dB', 'pan': 0.2, 'room': '-14dB', 'notes': ((128, 136, 'Bb3', 0), (136, 144, 'D4', 0), (144, 152, 'F4', 0), (152, 168, 'Bb4', -3), (168, 176, 'D5', -6)), 'early': 0.5, 'vel': 0.7,
          'cents': 4, 'twin': -8, 'partial': (14.57, -20), 'rub': 3, 'rate': '3/8', 'turn': 1.5, 'speak': '500ms', 'stop': '1s'}   # v24: the glass: its patch, fader (bench, raw, 200 to 520 Hz: at -20 dB it stood 1 to 3 dB OVER the whole song in its band and 5 to 8 over the song's middle 100 ms: a lead; at -28 it is under the strokes and over the gaps), place and room; its notes (bars from 0, to but not with; and dB: the fewer the things that ring, the more this master lifts a held note); beats before the next note that the finger moves; touch; the twin's cents and dB; the second partial (semitones, dB); half the rock of the finger's turn (dB), the turn, and the turn in beats (a beat and a half: two turns to three beats. Once a beat and 3 dB, the first build's, was 1.9 dB as delivered UNDER a 6 dB dip this master makes in a held note at every drum stroke: not to be told from it); how long it takes to speak and to stop
+COMB = {'patch': 'rt-tine', 'gain': '-14dB', 'pan': 0.0, 'room': '-14dB', 'at': 6, 'tines': {'wood': 'Bb3', 'metal': 'F4', 'string': 'D4', 'skin': 'C4', 'air': 'G4', 'plate': 'Bb4', 'weight': 'F3'},
+        'ringing': 0.25, 'vel': 0.85, 'len': 1.0, 'soft': -9,
+        'trim': {(1, 0): -6.6, (2, 0): -7.7, (2, 1): -2.3, (3, 0): -7.8, (3, 1): -1.3, (3, 2): 0.5, (5, 0): -6.8, (5, 1): -2.7, (5, 2): 2.4, (5, 3): -2.4, (5, 4): -1.3, (6, 0): -2.8, (6, 1): -4.0, (6, 2): 0.9, (6, 3): -0.6, (6, 4): -8.2, (6, 5): -2.8, (7, 0): -0.9, (7, 1): 0.9, (7, 2): 1.2, (7, 3): 6.1, (7, 4): -0.8, (7, 5): -1.2, (7, 6): -1.0}}   # v26: the comb: its patch, fader, place, room; the sixteenth of the bar its phrase begins on (the emptiest place in the bar from 150 to 550 Hz, read in the finished v25 by sixteenth: -28 to -34 dBFS on sixteenth 6 while the first things ring, -5 to -7 on the weight's four beats: begun on the one, the comb's first note of the bar came out 8 to 11 dB under the weight); a tongue for each thing, in the order they are let go; the ring from which a thing's tongue is plucked; touch and length (beats); FOLLOWS: dB on the tongue of a thing that does not ring at all; dB on a note by (how many in the bar, which of them), SET FROM A FINISHED BUILD, every note read: with none the comb came out -4.9 to -19.9 dBFS from 150 to 550 Hz (12 dB between the means of its 24 places; raw and alone every note is within 2 dB): this master lifts a half-second note most where the bar is emptiest; each place is written to come out at -12 (a cut of more than 4 dB is written 1.3 times as deep: in the build before, such cuts came out a third short)
+COMB_PATCH = {'about': "Ring True: the comb (v26), the tenth thing, the only one that is plucked: a steel tongue clamped at one end, bent and let go: a plain tone, the clamped bar's second mode (6.27 times the note) for a tenth of a second, and the nail's click on its front. It cannot be stopped: it is not played until it is let go.",
+              'synth': {'layers': [{'type': 'osc', 'wave': 'sine'},
+                                   {'type': 'osc', 'wave': 'sine', 'ratio': 6.27, 'level': {'value': '-80dB', 'mod': [{'src': 'env.ting', 'amount': 68}]}},
+                                   {'type': 'noise', 'color': 'white', 'level': {'value': '-80dB', 'mod': [{'src': 'env.nail', 'amount': 62}]}}],
+                        'env': {'ting': {'a': '0.1ms', 'd': '200ms', 's': 0, 'r': '30ms'}, 'nail': {'a': '0.1ms', 'd': '1.5ms', 's': 0, 'r': '1.5ms'}},
+                        'amp': {'a': '0.5ms', 'd': '450ms', 's': 0, 'r': '90ms'}},
+              'play': {'event_stable': True, 'vel_sens': 0.5}}
 RASP = {'patch': 'rt-rasp', 'gain': '-12dB', 'notch': -8, 'bare': -6, 'more': 1, 'pan': -0.45, 'room': '-14dB', 'bars': (TOP[1], TOP[12] + 8), 'at': 8, 'gap': 1 / 16, 'ringing': 0.25, 'pitch': 'D7', 'climb': 1, 'vel': (0.5, 0.85), 'len': 0.04, 'plain': 0}   # v25: the rasp: its patch, fader, dB on every notch before the last click, and dB on a last click that has no weight under it (all three from the finished song: at -6 dB and no trims the last click read -10 dBFS with the weight and -3.5 without it, and the notches, between the strokes, -3 to -7: this master lifts a click that falls between the drum's strokes 15.5 dB where one thing rings (9 to 12 at the peak) and one that falls with the drum 8 to 10), dB more on the whole row for each notch in it (TALLY: the more things ring the harder it is scraped: with none, the third build's, the peak's seven notches were 10 to 20 dB under what rings in their band and its last click 4 under), place and room; the bars it plays in (from 0, to but not with); the sixteenth of the bar its row ends on; the gap between notches (beats: a sixty-fourth); the ring at which a thing counts as ringing; the last click's note; steps of the five notes each notch is under the next (ZIP); touch (the first notch, the last click); a click's length (beats); the notches without TALLY
 RASP_PATCH = {'about': "Ring True: the rasp (v25): the ninth thing, scraped and not struck: one notch of a notched stick: a very small dry bar (six milliseconds) with two milliseconds of grit on it. Nothing in it rings.",
               'synth': {'layers': [{'type': 'modal', 'modes': 'bar', 'decay': '6ms', 'bright': 0.9, 'strike': 0.8},
@@ -884,6 +918,28 @@ def rasp_notes():
     return out
 
 
+def comb_rings(bar):
+    """v26 COMB: the things whose tongues are plucked in a bar, in the order they are let go: those that are in and ring (not the weight's toll, not the last bar); none where a thing is listened to alone."""
+    if listened(bar) or bar >= BARS - LAST:
+        return []
+    return [k for k in COMB['tines'] if k in things() and bar >= enters(k) and not any(a <= bar < b for a, b in [OUT_OF.get(k, (0, 0))])
+            and not (k == 'weight' and ON['toll'] and bar in TOLLS) and ring_at(k, bar) >= COMB['ringing']]
+
+
+def comb_notes():
+    """v26 COMB: a bar's notes: a tongue for each thing that rings; SPREAD: as evenly as that many can be over the bar; FOLLOWS: as hard as its thing rings."""
+    out, whole = [], len(COMB['tines'])
+    for bar in range(BARS):
+        who = comb_rings(bar)
+        for i, k in enumerate(who):
+            s16 = COMB['at'] + (16 * i // len(who) if ON['spread'] else 16 * list(COMB['tines']).index(k) // whole)
+            if s16 >= 16 and not comb_rings(bar + 1):            # the phrase's end crosses the bar line: not into a bar where the comb rests
+                continue
+            db = (round(COMB['soft'] * (1 - ring_at(k, bar)), 1) if ON['follows'] else 0) + COMB['trim'].get((len(who), i), 0)
+            out.append({'at': bar * 4 + s16 / 4, 'len': COMB['len'], 'pitch': COMB['tines'][k], 'vel': COMB['vel'], **({'gain': f'{db:g}dB'} if db else {})})
+    return out
+
+
 def build():
     T = {k: [] for k in things()}
     if ON['room']:
@@ -1097,6 +1153,9 @@ def song(T, bars=BARS):
     if T.get('metal-twin-room'):                                  # v22 HALLPAIR: the second bar's own way to the hall, as the first's
         first = next(t for t in doc['tracks'] if t['name'] == 'metal-room')
         doc['tracks'].append({**{x: y for x, y in first.items() if x != 'notes'}, 'name': 'metal-twin-room', 'notes': T['metal-twin-room']})
+    if ON['comb'] and bars == BARS:                               # v26 COMB: the tenth thing, plucked
+        doc['patches'] = {**doc['patches'], COMB['patch']: COMB_PATCH}
+        doc['tracks'].append({'name': 'comb', 'patch': COMB['patch'], 'gain': COMB['gain'], 'pan': COMB['pan'], **({'sends': {'room': COMB['room']}} if 'room' in doc.get('buses', {}) else {}), 'notes': comb_notes()})
     return doc
 
 
@@ -1130,7 +1189,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the sixty-one that are on: all off is v1; the last fifty-six off is v2; the last fifty-two off is v3; the last forty-nine off is v4; the last forty-six off is v5; the last forty-five off is v6; the last forty-two off is v7; the last forty off is v8; the last thirty-seven off is v9; the last thirty-three off is v10; the last twenty-nine off is v11; the last twenty-seven off is v12; the last twenty-five off is v13; the last twenty-three off is v14; the last twenty-two off is v15; the last twenty-one off is v16; the last twenty off is v17; the last nineteen off is v18; the last seventeen off is v19; the last fourteen off is v20; the last eleven off is v21; the last eight off is v22; the last six off is v23; the last three off is v24)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the sixty-four that are on: all off is v1; the last fifty-nine off is v2; the last fifty-five off is v3; the last fifty-two off is v4; the last forty-nine off is v5; the last forty-eight off is v6; the last forty-five off is v7; the last forty-three off is v8; the last forty off is v9; the last thirty-six off is v10; the last thirty-two off is v11; the last thirty off is v12; the last twenty-eight off is v13; the last twenty-six off is v14; the last twenty-five off is v15; the last twenty-four off is v16; the last twenty-three off is v17; the last twenty-two off is v18; the last twenty off is v19; the last seventeen off is v20; the last fourteen off is v21; the last eleven off is v22; the last nine off is v23; the last six off is v24; the last three off is v25)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -1222,6 +1281,17 @@ if __name__ == '__main__':
             print("    the metal is a pair wherever it is let go: a second bar struck with the first, tuned over it by the tempo: " + '; '.join(f"bars {a + 1}-{b}: {BPM * 4 / 60 / (g if ON['quicken'] else TWIN['gap']):.2f} Hz (one wave {'a beat' if (g if ON['quicken'] else TWIN['gap']) == 4 else 'an eighth' if (g if ON['quicken'] else TWIN['gap']) == 2 else 'a sixteenth'})" for a, b, g in TWIN['bars']) + f": in step at the stroke, against each other half a wave later; each {-TWIN['db']} dB under the old stroke")
         if ON['slack']:
             print(f"    the weight's head goes slack, bars {SLACK['from'] + 1}-{SLACK['from'] + len(SLACK['steps'])}: a step down the five notes each bar: " + ' '.join(step(STROKES['weight'][0][1], k) for k in SLACK['steps']) + f", and {STROKES['weight'][0][1]} again on bar {SLACK['from'] + len(SLACK['steps']) + 1}")
+        if ON['comb']:
+            runs = []
+            for bar in range(BARS):
+                who = comb_rings(bar)
+                if who and runs and runs[-1][2] == who and runs[-1][1] == bar:
+                    runs[-1][1] = bar + 1
+                elif who:
+                    runs.append([bar, bar + 1, who])
+            print(f"    the tenth thing is plucked: a comb of steel tongues ({COMB['patch']}), one for each thing in the order they are let go: " + ', '.join(f'the {k} {v}' for k, v in COMB['tines'].items()) +
+                  ": in every bar the tongues of the things that ring" + (', spread as evenly as that many can be over the bar' if ON['spread'] else ', each in its own place') + (', each as hard as its thing rings' if ON['follows'] else '') + ': ' +
+                  '; '.join(f"bars {a + 1}-{b}: {' '.join(COMB['tines'][k] for k in who)}" + (f" on {' '.join(str(COMB['at'] + 16 * i // len(who)) for i in range(len(who)))}" if ON['spread'] else '') for a, b, who in runs) + f" (sixteenths of the bar; 16 is the next bar's one); {len(comb_notes())} notes")
         print(f'{BARS} bars, {BARS * sec:.1f} s; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in build().items()))
     else:
         a.out.write_text(dump(bench() if a.bench else song(build())))
