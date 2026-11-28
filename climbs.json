@@ -9446,7 +9446,14 @@
         "score": 98.703,
         "version": "v39",
         "commit": "see git log songs/chirpers11-t5.yaml",
-        "judged": true
+        "judged": true,
+        "rescored": {
+          "by": "chirp-eco",
+          "at": "2026-11-28T11:15:36Z",
+          "was": 98.703,
+          "how": "compscore f2de91438: section frames 0.4907 s, not 0.5 (chirper-one's finding; Harry: fix now, re-read Escapement's bests)",
+          "seed11": 98.716
+        }
       },
       "passes": 1,
       "enabled": true,
