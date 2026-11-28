@@ -94,6 +94,7 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Small Change v27 (09:07): BOTH ENDS 0.2 TO 0.3 dB LOWER, nothing written at either (the first new note is in bar 33, the last in bar 175): the bass now holds its largest debt in every second bar and the loudness target takes that from the rest. Bars 1-16 by four -22.7 -23.6 -23.8 -20.8 dBFS (were -22.4 -23.4 -23.6 -20.6; seed 11 -22.7 -23.6 -23.9 -20.8); the last sixteen by four -23.2 -23.9 -23.2 -19.9 (were -22.9 -23.8 -23.1 -19.6); bars 185-192 -21.26 / -21.25 (were -21.02 / -21.01); highest sample -1.30. By band against the album the lows are now on it: 71 Hz 2.1 short (was 4.6), 83 to 133 Hz within 0.7 (were 1.5 to 2.8 short); 6.7 kHz 3.3 short (was 2.5). For the album's master: this song's bass is no longer only sixteenths: between the drum's strokes 50 to 130 Hz reads -18.0 dBFS where it read -43.9.
 - Wind Down v27 (08:35): both ends as they were to 0.1 dB (no note before bar 91; one more on the last stroke):
   bars 1 to 8 by two -30.0 -30.2 -30.0 -30.1 dBFS; from the last stroke by second -10.4 -21.1 -33.5 -40.7 -42.9
   -44.8 -43.1 -45.0 -35.6 (seed 11 -9.8 -19.9 -32.8 ...); highest sample -1.30. Inside: a low wooden note that
