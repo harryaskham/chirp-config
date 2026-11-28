@@ -362,6 +362,13 @@ one row of eighths, to the note (the second row of "both"). The tune's first not
 round later and later (on the triangular numbers: 1, 2, 3 ... 7 eighths apart) and its
 last note sooner and sooner (7, 6, 5 ... 1 apart): time given, and time taken. The
 process is Rzewski's "Les Moutons de Panurge" (1969).
+
+v30 (28 Nov): HALF-LIFE (C11T1_LIFE=0 takes it out: v29). A low string (D2) is struck
+every two bars in the second row of "the nudge". Its first tone is half as loud a bar
+later; its second after half a bar; its third after a third of a bar; its fourth after
+a quarter: the nth tone halves n times as fast. Nothing ticks and nothing counts: every
+tone is a clock that runs down, and the string's colour says how long ago it was
+struck.
 """
 import json
 import math
@@ -576,6 +583,25 @@ def sped(steps):
 def speed_st(t):
     """Semitones deck B is sharp by at grid time t."""
     return 12 * math.log2(max(speed(t), 0.03))
+
+
+def life_row():
+    """The first bar (from 0) of the row with the string that runs down, or None."""
+    sec = next((x for x in SECS if x[0] == LIFE_IN[0]), None)
+    return sec[1] + ROW * LIFE_IN[1] if LIFE and sec is not None and LIFE_IN[1] * ROW < sec[2] else None
+
+
+def life_strokes():
+    """The beats of the strokes: every LIFE_EVERY beats from LIFE_AT of the row."""
+    return [life_row() * BEATS + LIFE_AT + k * LIFE_EVERY for k in range(ROW * BEATS // LIFE_EVERY)]
+
+
+def life_lane(n):
+    """The nth tone's level by time, as a lane in dB: nothing off at a stroke, then 6.0206 n dB less for every LIFE_HALF beats, in a straight line (dB by time: a half-life), back to nothing off at the next stroke."""
+    pts = [["0b", 0.0]]
+    for t in life_strokes():
+        pts += [[f"{t:g}b", 0.0], [f"{t + LIFE_EVERY - 0.001:g}b", round(-6.0206 * n * (LIFE_EVERY - 0.001) / LIFE_HALF, 4)]]
+    return {"points": pts + [[f"{BARS * BEATS}b", 0.0]], "curve": 0}
 
 
 def give_row():
@@ -912,6 +938,14 @@ GIVE_AT = 0.25                                         # the beat of the row its
 GIVE_LEN = 0.45                                        # beats a note is written
 GIVE_PAN = 0.25                                        # the giving a little to the left, the taking as far to the right
 GIVE_GAIN = os.environ.get("C11T1_GIVE_GAIN", "-24dB")   # both tracks. The bench (the row alone at -20 dB): a note's first 100 ms -35.1 dBFS. Read in the whole song's master at -30dB and -36dB (seed 0), BEFORE any score: -34.5 and -40.5 dBFS (this master lifts it 10.6 dB in this row, no more than a note on the drum: both decks are playing), nine in ten within 1.5 dB, the two places in the beat 0.2 dB apart: no trims. The old music in a sixth of an octave round each note is -37 to -42 dBFS in the middle: at -30dB the tune was level with it. -24dB is meant to bring it to -28.5 dBFS, as loud as the strobe
+LIFE = os.environ.get("C11T1_LIFE", "1") != "0" and GIVE   # v30: HALF-LIFE: a low string is struck every two bars. Its first tone is half as loud a bar later; its second half as loud after half a bar; its third after a third; its fourth after a quarter: the nth tone halves n times as fast. Every tone of the string is a clock that runs down, and the string's colour says how long ago it was struck: no tick, no count: time told by what is left
+LIFE_IN = ("the nudge", 1)                             # the section and its row (from 0): bars 105 to 112, the row after the two records beat; nothing held is in it
+LIFE_NOTES = ("D2", "D3", "A3", "D4")                  # the string's first four tones: 73.4 Hz and two, three, four times it (A3 is two cents under three times): D is the fifth of the song's G; 71 Hz is the one band the song is short in
+LIFE_EVERY = 8                                         # beats from stroke to stroke: two bars
+LIFE_AT = 0.125                                        # the beat of the bar a stroke is on: an eighth of a beat after the drum: 26 ms or more from every stroke of every part in bars 105, 107, 109 and 111 (searched on v29's notes)
+LIFE_HALF = 4.0                                        # beats in which the first tone halves (6.02 dB): one bar; the nth tone's half-life is this over n
+LIFE_TILT = 6.0206                                     # dB the nth tone is under the first at the stroke, for each doubling of n: as 1 over n (a plucked string's)
+LIFE_GAIN = os.environ.get("C11T1_LIFE_GAIN", "-26dB")   # the first tone's track; the others are under it by the tilt. The bench (the row alone, the first tone at -20 dB): its first beat -30.0 dBFS. Read in the whole song's master at -36dB (both seeds), BEFORE any score: -35.4 / -35.3 dBFS: THE MASTER LIFTS IT 10.6 dB (a full row: the same 10.6 the tune of v29 had), not the 17 a held tone had in other songs: the first tone was 9 to 17 dB under the old music in its own sixth of an octave: 10 dB up, for -25.4
 BASSB_MODE = os.environ.get("C11T1_BASSB_MODE", "swap")                        # swap: it is heard where deck A's bass is out ; full: wherever deck B's record plays from "no ruler" on
 BASSB_IN = {"swap": ("no ruler", "the stretch", "out"), "full": ("no ruler", "both", "the stretch", "the nudge", "locked", "out")}[BASSB_MODE]
 BASSB_GAIN = os.environ.get("C11T1_BASSB_GAIN", "-15dB")                       # at -10 it was louder than everything else in "no ruler" put together (measured): 5 dB down
@@ -1657,6 +1691,17 @@ def song():
             doc["tracks"].append({"name": gv_name, "patch": "gt-give", "gain": GIVE_GAIN, "pan": gv_pan, "notes": [{"at": round(t, 5), "len": GIVE_LEN, "pitch": p, "vel": 0.8} for t, p, _, _, g in gv if g == gv_giving]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v29 a tune is given and taken a note at a time (bars {give_row() + 1} to {give_row() + ROW}, the second row of 'both'): {' '.join(GIVE_TUNE)}: first its first note, then its first two, then three, until it is whole ({gv_n * (gv_n + 1) // 2} notes); then without its first note, without its first two, until only the last is left ({gv_n * (gv_n - 1) // 2} notes): {gv_n * gv_n} notes, {gv_n} squared, an eighth each: the row to the note. Generated by")
         assert "From v29" in doc["about"]
+    if life_row() is not None:
+        import math as lf_math
+        lf_g = float(LIFE_GAIN.replace("dB", ""))
+        PATCHES["gt-life"] = {"about": "Give or Take's string that runs down (chirper-zero, 28 Nov, v30): one plain held tone, 4 ms to come and 40 ms to go; its track's lane (auto.life, dB) is its whole shape: a straight line in dB by time, which is a half-life.",
+                              "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": ["sine phase=0"], "filters": ["lp cutoff=7000"], "amp": {"a": "4ms", "d": "0s", "s": 1, "r": "40ms"}}}
+        for lf_n, lf_p in enumerate(LIFE_NOTES, 1):
+            doc["tracks"].append({"name": f"life-{lf_n}", "patch": "gt-life", "gain": f"{round(lf_g - LIFE_TILT * lf_math.log2(lf_n), 2):g}dB", "pan": 0.0, "auto": {"life": life_lane(lf_n)},
+                                  "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.life", "amount": 1}]}}],
+                                  "notes": [{"at": t, "len": LIFE_EVERY - 0.2, "pitch": lf_p, "vel": 0.8} for t in life_strokes()]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v30 a string runs down (bars {life_row() + 1} to {life_row() + ROW}, the second row of 'the nudge'): struck every {LIFE_EVERY // BEATS} bars on {LIFE_NOTES[0]}, its first tone is half as loud after {LIFE_HALF / BEATS:g} bar, its second after a half of that, its third after a third, its fourth after a quarter ({', '.join(f'{6.0206 * n * BEATS / LIFE_HALF:.2f}' for n in range(1, len(LIFE_NOTES) + 1))} dB a bar): every tone is a clock that runs down and the string's colour says how long ago it was struck. Generated by")
+        assert "From v30" in doc["about"]
     return doc
 
 
@@ -1673,6 +1718,9 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if life_row() is not None:
+            lf_b = life_row()
+            print(f"half-life ({LIFE_GAIN}), bars {lf_b + 1}-{lf_b + ROW} ({int(lf_b * BEATS * 60 / BPM) // 60}:{lf_b * BEATS * 60 / BPM % 60:04.1f}): a string struck on beat {LIFE_AT:g} of every {LIFE_EVERY // BEATS} bars ({len(life_strokes())} strokes) ; its tones {' '.join(LIFE_NOTES)} ; the nth is {LIFE_TILT:g} dB under the first for each doubling of n at the stroke and halves every {LIFE_HALF:g}/n beats: " + ' ; '.join(f"{p}: {6.0206 * n * BEATS / LIFE_HALF:.2f} dB a bar, {-6.0206 * n * (LIFE_EVERY - 0.2) / LIFE_HALF:.1f} dB when it is let go" for n, p in enumerate(LIFE_NOTES, 1)))
         if give_row() is not None:
             gv = give_notes(); gv_b = give_row(); gv_n = len(GIVE_TUNE)
             print(f"give or take a note ({GIVE_GAIN}), bars {gv_b + 1}-{gv_b + ROW} ({int(gv_b * BEATS * 60 / BPM) // 60}:{gv_b * BEATS * 60 / BPM % 60:04.1f}): the tune {' '.join(GIVE_TUNE)} ; given a note at a time ({gv_n * (gv_n + 1) // 2} notes, pan {-GIVE_PAN:g}), then taken a note at a time from the front ({gv_n * (gv_n - 1) // 2} notes, pan {GIVE_PAN:g}): {len(gv)} notes = {gv_n} squared ; one every {GIVE_STEP:g} beat from beat {GIVE_AT:g}")
