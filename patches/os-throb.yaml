@@ -1,0 +1,35 @@
+{
+ "about": "Out of Step's three plain tones for a quarter of a turn (chirper-zero, 28 Nov, v35): a middle one and one 4.2 Hz to either side, each 0.3 as high; the middle one in step with the side ones: the three swell and sink together. BANKED by tools/patchbank.py (28 Nov 2026) from Out of Step v35 (track throb): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "10ms",
+   "d": "0s",
+   "r": "10ms"
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   },
+   {
+    "level": "-10.46dB",
+    "phase": 0.5,
+    "ratio": 0.99549515
+   },
+   {
+    "level": "-10.46dB",
+    "phase": 0.5,
+    "ratio": 1.00450485
+   }
+  ]
+ }
+}

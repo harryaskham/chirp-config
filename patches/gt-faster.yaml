@@ -1,0 +1,25 @@
+{
+ "about": "Give or Take's pip for the beat that speeds up for ever (chirper-zero, 28 Nov, v35): a plain tone, 25 ms, 3 ms to come and to go. Its loudness goes as the square of the velocity. BANKED by tools/patchbank.py (28 Nov 2026) from Give or Take v35 (track faster): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "3ms",
+   "d": "0s",
+   "r": "3ms"
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ]
+ }
+}

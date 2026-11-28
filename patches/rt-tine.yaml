@@ -1,0 +1,56 @@
+{
+ "about": "Ring True: the comb (v26), the tenth thing, the only one that is plucked: a steel tongue clamped at one end, bent and let go: a plain tone, the clamped bar's second mode (6.27 times the note) for a tenth of a second, and the nail's click on its front. It cannot be stopped: it is not played until it is let go. BANKED by tools/patchbank.py (28 Nov 2026) from Ring True v26 (track comb): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.5ms",
+   "d": "450ms",
+   "r": "90ms",
+   "s": 0
+  },
+  "env": {
+   "nail": {
+    "a": "0.1ms",
+    "d": "1.5ms",
+    "r": "1.5ms",
+    "s": 0
+   },
+   "ting": {
+    "a": "0.1ms",
+    "d": "200ms",
+    "r": "30ms",
+    "s": 0
+   }
+  },
+  "layers": [
+   {},
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 68.0,
+       "src": "env.ting"
+      }
+     ],
+     "value": "-80dB"
+    },
+    "ratio": 6.27
+   },
+   {
+    "level": {
+     "mod": [
+      {
+       "amount": 62.0,
+       "src": "env.nail"
+      }
+     ],
+     "value": "-80dB"
+    },
+    "type": "noise"
+   }
+  ]
+ }
+}

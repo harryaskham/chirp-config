@@ -1,0 +1,25 @@
+{
+ "about": "Least Common: the eleven (v26). A low wooden bar, a quarter of a second long, hollow (little above its first mode): written on G4 and tuned 11/8 over it: the eleventh harmonic of the drum's G1, 539 Hz, 51 cents over C5: a note the scale does not have. BANKED by tools/patchbank.py (28 Nov 2026) from Least Common v26 (tracks eleven, eleven-met): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.3ms",
+   "d": "450ms",
+   "r": "120ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "bright": 0.35,
+    "decay": "260ms",
+    "modes": "bar",
+    "ratio": 1.375,
+    "strike": 0.5,
+    "type": "modal"
+   }
+  ]
+ }
+}
