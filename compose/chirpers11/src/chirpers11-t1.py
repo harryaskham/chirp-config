@@ -404,6 +404,11 @@ v36 (28 Nov): THE BEAT THAT SLOWS FOR EVER (C11T1_SLOWER=0 takes it out: v35). I
 to 136 every pip of bars 121 to 128 is played again, turned round about the line between the
 two rows: as far after it as it was before it. What sped up for ever slows for ever. It is
 the row in which the record is switched off and runs down: the record stops; this does not.
+
+v37 (28 Nov): GIVE OR TAKE THIRTY MILLISECONDS (C11T1_SHRINK=0 takes it out: v36). In bars 49 to
+56, where there is no ruler, three clicks, twice a bar. The first and the last are always the
+same time apart; the middle one is in the middle, then 30 ms early, then 30 ms late, then
+early and late side by side.
 """
 import json
 import math
@@ -655,6 +660,21 @@ def faster_strokes():
             amp = sum(0.5 * (1 - math.cos(2 * math.pi * (k + x) / FASTER_LAYERS)) for k in ks) / (FASTER_LAYERS / 2)
             if amp > 0 and 20 * math.log10(amp) >= FASTER_FLOOR:
                 out.append((turn, j, faster_row() * BEATS + FASTER_FROM + (turn + x) * FASTER_TURN, amp, ks))
+    return out
+
+
+def shrink_row():
+    """The first bar (from 0) of the row with the three clicks, or None."""
+    sec = next((x for x in SECS if x[0] == SHRINK_IN[0]), None)
+    return sec[1] + ROW * SHRINK_IN[1] if SHRINK and sec is not None and SHRINK_IN[1] * ROW < sec[2] else None
+
+
+def shrink_clicks():
+    """[(click from 0, beat of the song, triple from 0, place in the triple 0 1 2, the triple's kind)]: len(SHRINK_AT) triples a bar for ROW bars."""
+    b0 = shrink_row() * BEATS; n = len(SHRINK_AT); assert len(SHRINK_ORDER) == ROW * n and len(SHRINK_TRIM) == 3 * ROW * n; out = []
+    for j, kind in enumerate(SHRINK_ORDER):
+        t0 = b0 + (j // n) * BEATS + SHRINK_AT[j % n]
+        for q, dt in enumerate((0, SHRINK_MID[kind], SHRINK_SPAN)): out.append((3 * j + q, t0 + dt, j, q, kind))
     return out
 
 
@@ -1117,6 +1137,17 @@ SLOWER = os.environ.get("C11T1_SLOWER", "1") != "0" and FASTER   # v36: THE BEAT
 SLOWER_NOTE = FASTER_NOTE                              # the same pip
 SLOWER_TRIM = {(0, 0): -6, (0, 1): -3.2, (0, 2): 2.7, (0, 3): -5.6, (0, 4): -3.5, (0, 5): 8, (0, 6): -5.8, (0, 7): -5.1, (0, 8): 1.7, (0, 9): -5.7, (0, 10): -3, (0, 11): -2, (0, 12): 9.5, (0, 13): -6.2, (0, 14): -1, (0, 15): -1.8, (0, 16): 9.1, (0, 17): -6.2, (0, 18): -2.6, (0, 19): -3.1, (0, 20): 2.9, (0, 22): -5.3, (0, 24): -1.7, (0, 26): -5.9, (0, 28): -4.8, (0, 30): 5.5, (1, 0): -6, (1, 1): -3.1, (1, 2): 2.8, (1, 3): -5.4, (1, 4): -3.5, (1, 5): 8.1, (1, 6): -5.8, (1, 7): -5.1, (1, 8): 1.7, (1, 9): -6.2, (1, 10): -3.4, (1, 11): -2.2, (1, 12): 9.6, (1, 13): -6.2, (1, 14): -1.3, (1, 15): -1.8, (1, 16): 8.7, (1, 17): -6.3, (1, 18): -3.1, (1, 19): -3.2, (1, 20): 2.8, (1, 22): -5.4, (1, 24): -1.7, (1, 26): -5.7, (1, 28): -4.9, (1, 30): 6.1, (2, 0): -5.9, (2, 1): -3.3, (2, 2): 2.7, (2, 3): -5.6, (2, 4): -3.4, (2, 5): 8.3, (2, 6): -5.6, (2, 7): -5.1, (2, 8): 1.7, (2, 9): -5.8, (2, 10): -3.3, (2, 11): -2, (2, 12): 9.7, (2, 13): -6.2, (2, 14): -1.3, (2, 15): -1.8, (2, 16): 9, (2, 17): -6.3, (2, 18): -3.1, (2, 19): -2.9, (2, 20): 2.9, (2, 22): -5.2, (2, 24): -1.7, (2, 26): -5.6, (2, 28): -4.9, (2, 30): 6.1, (3, 0): -5.8, (3, 1): -3.3, (3, 2): 3.4, (3, 3): -5.6, (3, 4): -3.5, (3, 5): 8.2, (3, 6): -5.4, (3, 7): -5.1, (3, 8): 1.6, (3, 9): -5.9, (3, 10): -3.5, (3, 11): -2.3, (3, 12): 9.5, (3, 13): -6.3, (3, 14): -2.4, (3, 15): -1.9, (3, 16): 9, (3, 17): -6.3, (3, 18): -2.9, (3, 19): -3, (3, 20): 3, (3, 22): -5.2, (3, 24): -1.6, (3, 26): -6, (3, 28): -4.9, (3, 30): 6}   # dB on a stroke, by (turn as played, stroke of the fastest beat): THE FIRST BUILD READ TURNED OVER. With no trims (-27.3 dB) the master put the four strokes of all the beats in a turn at -19.5, -26.2, -32.9 and -23.2 dBFS, the same in every turn within 1.2 dB and on both seeds: a stroke was off the law by -8.5 to +5.5 dB, by where it falls in this row (the record is running down under it). Each stroke's own miss (the two seeds' mean), turned over and written 1.15 times as deep; the largest is taken off all of them and given to the fader
 SLOWER_GAIN = os.environ.get("C11T1_SLOWER_GAIN", "-17.3dB")   # THE BENCH FIRST (the track alone at -20 dB): a stroke of all the beats -25.7 dBFS at its top; the first build set for -22 in the song with 11 dB of lift (v35 got 9.6 in the row before): -27.3 dB: the middle one read -24.7. The second build is set for -24.4 (v35's own middle) with the trims: -17.3 dB
+SHRINK = os.environ.get("C11T1_SHRINK", "1") != "0" and SLOWER   # v37: GIVE OR TAKE THIRTY MILLISECONDS: TAKEN, IT IS NOT MISSED; GIVEN, IT IS. Three clicks. The first and the last are always the same time apart (0.625 of a beat); only the middle one moves: in the middle (two even gaps), a sixteenth of a beat early (a short gap, then a long one) or a sixteenth of a beat late (long, then short). A short gap is said to shrink the gap after it towards itself, so short-long is said to sound even; long-short is said to sound as uneven as it is (time-shrinking: Nakajima, ten Hoopen and van der Wilk, 1991)
+SHRINK_IN = ("no ruler", 0)                            # the section and its row (from 0): bars 49 to 56: there is no kick and no tick here and deck B wanders half a beat (the hat, the knock and the tock go on). Read on v36 first (b/oldat2.py): the old music in D5's band under a triple from beat 0 is -45.7 dBFS at the most (seed 0), from beat 2 -35.3
+SHRINK_AT = (0, 2)                                     # beats of the bar a triple begins on
+SHRINK_SPAN = 0.625                                    # beats from the first click to the last
+SHRINK_MID = {"even": 0.3125, "short-long": 0.25, "long-short": 0.375}   # beats from the first click to the middle one
+SHRINK_ORDER = ("even",) * 4 + ("short-long",) * 4 + ("long-short",) * 4 + ("short-long", "long-short") * 2   # triple by triple: two bars of each, then two bars of the two side by side
+SHRINK_NOTE = "D5"                                     # the click's tone
+SHRINK_MS = 15                                         # ms a click is held
+SHRINK_EDGE = (1, 5)                                   # ms it takes to come and to go
+SHRINK_TRIM = (10.4, 0.5, -2.3, 9.2, -0.4, -2.4, 6, -2, -0.4, 4.5, -2, -2.5, 11.6, 1.4, -1.9, -2.3, 7.6, -0.9, -2.1, -2.5, 1.6, -1.5, -2, -0.1, 11.8, -0.7, -0.1, 0.5, -2.6, 9.6, -0.7, -2, 5.5, -1.2, -2.5, -2.6, 10.6, 1, -1.8, -1.5, -2.2, 1.7, -1.4, -2.5, 5.3, -1.1, 8.2, 0.4)   # dB on a click, click by click. MEASURED, NOT REASONED: with no trims (-25.7 dB) the master gave the 48 clicks -34.2 to -21.7 dBFS (up to 12.4 dB apart within a triple; the two seeds within 1.93 dB): each click's level less -24, turned over and written 1.15 times as deep
+SHRINK_GAIN = os.environ.get("C11T1_SHRINK_GAIN", "-13.9dB")   # THE BENCH FIRST (the track alone at -20 dB): every click -30.3 dBFS (root mean square over 20 ms), every gap within 0.04 ms of what is written; the first build set for -24 in the song with 12 dB of lift; the second build: the trims' top (11.8) added to the first build's -25.7 dB
 assert sum(fu_b for _, fu_b in FUSE_STEPS) % BEATS == 0
 BASSB_MODE = os.environ.get("C11T1_BASSB_MODE", "swap")                        # swap: it is heard where deck A's bass is out ; full: wherever deck B's record plays from "no ruler" on
 BASSB_IN = {"swap": ("no ruler", "the stretch", "out"), "full": ("no ruler", "both", "the stretch", "the nudge", "locked", "out")}[BASSB_MODE]
@@ -1918,6 +1949,13 @@ def song():
         doc["tracks"].append({"name": "slower", "patch": "gt-faster", "gain": SLOWER_GAIN, "pan": 0.0, "notes": [{"at": round(t, 6), "len": round(FASTER_MS / 1000 * BPM / 60, 6), "pitch": SLOWER_NOTE, "vel": round(amp ** 0.5 * 10 ** ((SLOWER_TRIM.get((turn, j), 0.0) - max(SLOWER_TRIM.values(), default=0.0)) / 40), 5)} for turn, j, t, amp, _ in slower_strokes()]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v36 the beat slows for ever (bars {slower_row() + 1} to {slower_row() + ROW}): the strokes of bars {faster_row() + 1} to {faster_row() + ROW} turned round about the line between the two rows: what sped up for ever slows for ever, while the record itself runs down to a stop. Generated by")
         assert "From v36" in doc["about"]
+    if shrink_row() is not None:
+        sc_ = shrink_clicks(); s_top = max(SHRINK_TRIM); s_ms = 60000 / BPM
+        PATCHES["gt-shrink"] = {"about": f"Give or Take's click for the three clicks (chirper-zero, 28 Nov, v37): a plain tone held {SHRINK_MS} ms, {SHRINK_EDGE[0]} ms to come and {SHRINK_EDGE[1]} to go. Its loudness goes as the square of the velocity.",
+                                "play": {"vel_sens": 1, "gate": 1}, "synth": {"layers": ["sine phase=0"], "filters": ["lp cutoff=6000"], "amp": {"a": f"{SHRINK_EDGE[0]}ms", "d": "0s", "s": 1, "r": f"{SHRINK_EDGE[1]}ms"}}}
+        doc["tracks"].append({"name": "shrink", "patch": "gt-shrink", "gain": SHRINK_GAIN, "pan": 0.0, "notes": [{"at": round(t, 6), "len": round(SHRINK_MS / s_ms, 6), "pitch": SHRINK_NOTE, "vel": round(10 ** ((SHRINK_TRIM[i] - s_top) / 40), 5)} for i, t, _, _, _ in sc_]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v37 give or take thirty milliseconds (bars {shrink_row() + 1} to {shrink_row() + ROW}): three clicks, the first and the last always {SHRINK_SPAN * s_ms:.0f} ms apart; the middle one in the middle, then {(SHRINK_MID['even'] - SHRINK_MID['short-long']) * s_ms:.0f} ms early (short, long: said to sound even), then {(SHRINK_MID['long-short'] - SHRINK_MID['even']) * s_ms:.0f} ms late (long, short: said to sound uneven), then the two side by side. Generated by")
+        assert "From v37" in doc["about"]
     return doc
 
 
@@ -1934,6 +1972,9 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if shrink_row() is not None:
+            sc_ = shrink_clicks(); k_sec = shrink_row() * BEATS * 60 / BPM; k_ms = 60000 / BPM
+            print(f"give or take thirty milliseconds ({SHRINK_GAIN}), bars {shrink_row() + 1}-{shrink_row() + ROW} ({int(k_sec) // 60}:{k_sec % 60:04.1f}): {len(sc_)} clicks ({SHRINK_NOTE}, {SHRINK_MS} ms) in {len(SHRINK_ORDER)} triples on beats {' '.join(f'{x:g}' for x in SHRINK_AT)} of every bar ; the first and the last click {SHRINK_SPAN:g} of a beat apart ({SHRINK_SPAN * k_ms:.1f} ms) ; the middle click after " + " ; ".join(f"{k}: {v:g} of a beat (gaps {v * k_ms:.1f} and {(SHRINK_SPAN - v) * k_ms:.1f} ms)" for k, v in SHRINK_MID.items()) + " ; triple by triple (e even, s short-long, l long-short): " + " ".join(k[0] for k in SHRINK_ORDER) + (f" ; trims {min(SHRINK_TRIM):+.1f} to {max(SHRINK_TRIM):+.1f} dB" if any(SHRINK_TRIM) else " ; no trims"))
         if slower_row() is not None:
             sl_ = slower_strokes(); s_sec = slower_row() * BEATS * 60 / BPM; s_ms = 60000 / BPM; s_g = lambda k: [t for _, _, t, _, ks in sl_ if k in ks]
             print(f"the beat that slows for ever ({SLOWER_GAIN}), bars {slower_row() + 1}-{slower_row() + ROW} ({int(s_sec) // 60}:{s_sec % 60:04.1f}): the {len(sl_)} strokes of bars {faster_row() + 1}-{faster_row() + ROW} turned round about beat {slower_row() * BEATS} (the line of bar {slower_row() + 1}): a pip ({SLOWER_NOTE}, {FASTER_MS} ms) that began t beats before the line ends t beats after it ; the first begins on beat {sl_[0][2] - slower_row() * BEATS:.4f} of the row, the last on {sl_[-1][2] - slower_row() * BEATS:.4f} ; each beat's first gap and last gap in the row (ms): " + " ; ".join(f"{(s_g(k)[1] - s_g(k)[0]) * s_ms:.0f} to {(s_g(k)[-1] - s_g(k)[-2]) * s_ms:.0f}" for k in range(FASTER_LAYERS)) + (f" ; trims {min(SLOWER_TRIM.values()):+.1f} to {max(SLOWER_TRIM.values()):+.1f} dB on {len(SLOWER_TRIM)} strokes" if SLOWER_TRIM else " ; no trims"))
