@@ -434,6 +434,12 @@ v33 (28 Nov): THE ROOM HOLDS ITS BREATH (C11T3_KEPT=0 takes it out: v32). One cl
 hall in bar 139. Half a beat after it the hall stops dying: its tail hangs as it was for
 six and a half beats, as if time had stopped in the room. On the first beat of bar 141,
 where the applause begins, it lets go, and dies as a hall does.
+
+v34 (28 Nov): THE KNOCK GOES AWAY, THE ROOM DOES NOT (C11T3_RECEDE=0 takes it out: v33).
+In bars 89 to 96 a low knock twice a bar, each time twice as far off (1.3 m to 163 m) and
+then back. Each doubling takes 6 dB off the knock itself and makes it later, a whole beat
+at the far end; the room's answer to it is the same wherever it is struck. From 2.5 m on
+there is more room than knock: that is how an ear tells how far off a sound is.
 """
 import json
 import math
@@ -808,6 +814,17 @@ KEPT_FROM = 0.5                                        # beats after the clap at
 KEPT_TO = (4, 0.0)                                     # the bar of the row and the beat at which it lets go: bar 141, where the applause begins
 KEPT_HALL = {"kind": "hall", "decay": "1.2s", "mix": 0.6, "low_cut": 120, "high_cut": 5000}   # the engine's hall on this one track: 1.2 s to die when it is let
 KEPT_GAIN = os.environ.get("C11T3_KEPT_GAIN", "-7dB")   # the track. THE FIRST BUILD (-15 dB) WAS UNDER THE MUSIC: read between the strokes in the whole song (the new less the old), the held tail was -31.9 dBFS against the old music's -20.3 in its own band (120 to 5000 Hz), and over it in 3 of 13 windows; in 700 to 2000 Hz, where the tail is strongest, 8.7 dB under. So 8 dB more: the tail -24.3 / -23.8 dBFS (seeds 0 / 11) against -20.3 / -20.7, over it in 3 of 13 still; in 700 to 2000 Hz -25.0 / -24.6 against -23.9 / -24.3, over it in 5 / 6 of 13: level with the music where it is strongest, under it elsewhere. THE BENCH (alone at -20 dB): the held tail -51.4 to -53.4 dBFS by half beat, 2.0 dB down over the 6.5 beats; let go, 60 dB in 1.07 s
+RECEDE = os.environ.get("C11T3_RECEDE", "1") != "0" and KEPT   # v34: THE KNOCK GOES AWAY, THE ROOM DOES NOT (how far off a sound is, told by the room): a knock twice a bar, each time twice as far off, and then back. Each doubling takes 6 dB off the knock itself and makes it later (343 m/s); the room's answer to it is as loud wherever in the room it is struck. So near, the knock is over the room; at one distance (the critical distance) they are equal; beyond it there is more room than knock, and at the far end the room is nearly all there is
+RECEDE_IN = ("the hangar", 1)                          # the section and its row (from 0): bars 89 to 96. Read on v33: 160 to 200 Hz is -40 to -58 dBFS between the strokes here (twelfths 1 to 10 of the beat)
+RECEDE_AT = (1 / 3, 2 + 1 / 3)                         # the beats of the bar at which it is struck: a third of a beat after beats 0 and 2
+RECEDE_NOTE = ("F3", 174.614)                          # the knock: a low thud, a sine and its octave, 90 ms
+RECEDE_FAR = SOUND * 60 / BPM                          # metres at the far end: a beat of air (163.3 m): the knock is heard a beat after it is struck
+RECEDE_STEPS = 8                                       # distances, each half the next: 1.28, 2.55, 5.1, 10.2, 20.4, 40.8, 81.7, 163.3 m: out in bars 89 to 92, back in bars 93 to 96
+RECEDE_CRIT = 1                                        # the step (from 0) at which the knock and the room's whole answer to it carry the same energy (the mean of the two ears): 2.55 m: the critical distance of this room, a church's (my choice: by Sabine's rule the hangar's own would be 21 m, and the room's answer would be under everything)
+RECEDE_ROOM = {"kind": "hall", "decay": "1.6s", "mix": 1.0, "low_cut": 120, "high_cut": 3000}   # the room's answer: the engine's hall, all of it (no knock in it), on a track of its own
+RECEDE_TRIM = (-4.4, -2.7, -4.6, -2.5, -4.5, -2.0, -4.5, -2.0, -4.5, -2.0, -4.5, -2.0, -4.7, -1.0, -4.3, 0.0)   # dB on each knock in turn (by its velocity). THE FIRST BUILD HAD NONE, and in the finished song the steps were not 6 dB: out -7.8 -4.0 -7.9 -4.2, back -1.8 -9.3 -2.6 -4.7: the master lifts a knock after beat 0 by 21.2 to 21.6 dB and one after beat 2 by 16.9 to 19.6 (bar by bar). These are what the first build read, turned over; for the eight far knocks (under the room: they cannot be read) the place's middle
+RECEDE_GAIN = os.environ.get("C11T3_RECEDE_GAIN", "-23.9dB")   # the knock's track. THE BENCH FIRST (one knock alone at -20 dB, velocity 1): highest sample -25.5 dBFS. The first build (-25.5 dB, no trims): the nearest knock -9.7 dBFS going and -14.1 coming back; with the trims and 1.6 dB more both are aimed at -12.5. THE SECOND BUILD READ (both seeds, before any score): -12.5 and -12.5 / -12.2 and -12.4 dBFS; the steps -6.0 -5.9 -5.1 going and -6.1 -6.0 -4.2 coming back; the room after the knock -43.4 to -35.1 dBFS, level with the old music in 160 to 200 Hz and 18 dB under it in 120 to 450
+RECEDE_ROOM_GAIN = os.environ.get("C11T3_RECEDE_ROOM_GAIN", "-35.9dB")   # the room's track. THE BENCH (one knock's whole answer alone at the knock's fader): its energy is 4.4 dB over the knock's (the two ears 5.6 and 2.6 dB over: the engine's hall answers more on the left); so 6.0 dB (step RECEDE_CRIT) and 4.4 dB under the knock's fader makes them equal at 2.55 m
 AIR_PAN = 0.4                                          # the other ear
 RAIL_VEL = 0.8
 SONIC_AT = tuple(int(x) for x in os.environ.get("C11T3_SONIC_AT", "90").split(","))    # the bar lines (bars from 0) on which it is nearest: two bars after the last of the three that went by
@@ -1137,6 +1154,23 @@ def whistle_heard(width, n, after):
 def whistle_pipes():
     """Every pipe the click stands in: (its note, metres across, the bar)."""
     return [(p, SOUND / (2 * hz(p)), b) for _, p, _, b0, b1 in pipes() for b in range(b0, b1)] if WHISTLE else []
+
+
+def recede_row():
+    """The first bar (from 0) of the row in which the knock goes away, or None."""
+    sec = next((x for x in SECS if x[0] == RECEDE_IN[0]), None)
+    return sec[1] + ROW * RECEDE_IN[1] if RECEDE and sec is not None and RECEDE_IN[1] * ROW < sec[2] else None
+
+
+def recede_knocks():
+    """[(beat struck, beat heard, step (0 the nearest), metres off, the knock's velocity)]: out and back, two a bar."""
+    assert 2 * RECEDE_STEPS == len(RECEDE_AT) * ROW == len(RECEDE_TRIM)
+    out = []
+    for j in range(2 * RECEDE_STEPS):
+        k = j if j < RECEDE_STEPS else 2 * RECEDE_STEPS - 1 - j
+        m = RECEDE_FAR / 2 ** (RECEDE_STEPS - 1 - k); struck = (recede_row() + j // 2) * BEATS + RECEDE_AT[j % 2]
+        out.append((round(struck, 7), round(struck + m / SOUND * BPM / 60, 7), k, m, round(2 ** (-k / 2) * 10 ** (RECEDE_TRIM[j] / 40), 5)))
+    return out
 
 
 def kept_row():
@@ -2079,6 +2113,14 @@ def song():
                               "notes": [{"at": kt_c, "len": 0.25, "pitch": "C4", "vel": 0.8}]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v33 the room holds its breath (bars {int(kt_c) // BEATS + 1} to {int(kt_t) // BEATS}): one clap in a hall on beat {kt_c % BEATS + 1:g} of bar {int(kt_c) // BEATS + 1}; {KEPT_FROM:g} of a beat after it the hall stops dying and its tail hangs as it was for {kt_t - kt_f:g} beats ({(kt_t - kt_f) * 60 / BPM:.1f} s); on the first beat of bar {int(kt_t) // BEATS + 1}, where the applause begins, it lets go and dies in {KEPT_HALL['decay']}. Generated by")
         assert "From v33" in doc["about"]
+    if recede_row() is not None:
+        rk = recede_knocks()
+        PATCHES["sr-recede"] = {"about": f"Standing Room's knock that goes away (chirper-zero, 28 Nov, v34): a low thud ({RECEDE_NOTE[0]} and its octave), 90 ms, whose loudness is all velocity (the amplitude goes as the velocity squared): half the velocity squared for every doubling of the distance. The same patch on a second track is the room's answer: every knock at one velocity through the engine's hall, all of it.",
+                                "play": {"vel_sens": 1, "gate": 1}, "synth": {"layers": ["sine phase=0", "sine phase=0 ratio=2 level=-12dB"], "filters": ["lp cutoff=7000"], "amp": {"a": "1ms", "d": "90ms", "s": 0, "r": "20ms"}}}
+        doc["tracks"].append({"name": "recede", "patch": "sr-recede", "gain": RECEDE_GAIN, "pan": 0.0, "notes": [{"at": h, "len": 0.25, "pitch": RECEDE_NOTE[0], "vel": v} for _, h, _, _, v in rk]})
+        doc["tracks"].append({"name": "recede-room", "patch": "sr-recede", "gain": RECEDE_ROOM_GAIN, "pan": 0.0, "fx": [{"type": "reverb", **RECEDE_ROOM}], "notes": [{"at": h, "len": 0.25, "pitch": RECEDE_NOTE[0], "vel": 1.0} for _, h, _, _, _ in rk]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v34 the knock goes away and the room does not (bars {recede_row() + 1} to {recede_row() + ROW}): a low knock twice a bar, each time twice as far off ({rk[0][3]:.1f} m to {RECEDE_FAR:.0f} m) and then back; each doubling takes 6 dB off the knock and makes it later (a whole beat at the far end), and the room's answer stays as loud: from {RECEDE_FAR / 2 ** (RECEDE_STEPS - 1 - RECEDE_CRIT):.1f} m on there is more room than knock. Generated by")
+        assert "From v34" in doc["about"]
     return doc
 
 
@@ -2134,6 +2176,9 @@ def echoes(a, b, n=16):
 
 if __name__ == "__main__":
     if os.environ.get("C11T3_SHOW"):
+        if recede_row() is not None:
+            rk = recede_knocks(); rc_sec = recede_row() * BEATS * 60 / BPM
+            print(f"the knock goes away, the room does not ({RECEDE_GAIN}; the room {RECEDE_ROOM_GAIN}), bars {recede_row() + 1}-{recede_row() + ROW} ({int(rc_sec) // 60}:{rc_sec % 60:04.1f}): a low knock ({RECEDE_NOTE[0]}, {RECEDE_NOTE[1]:.1f} Hz and its octave, 90 ms) struck on beats {RECEDE_AT[0]:.3f} and {RECEDE_AT[1]:.3f} of every bar ; {RECEDE_STEPS} distances out (bars {recede_row() + 1}-{recede_row() + ROW // 2}) and back ; the room's answer ({RECEDE_ROOM['kind']}, {RECEDE_ROOM['decay']} to die) the same every time ; step: metres off, heard ms after it is struck, the knock dB, the knock against the room's whole answer dB: " + " | ".join(f"{k}: {m:.2f} m, {1000 * m / SOUND:.1f} ms, {-20 * math.log10(2) * k:.1f}, {20 * math.log10(2) * (RECEDE_CRIT - k):+.1f}" for _, _, k, m, _ in rk[:RECEDE_STEPS]) + f" ; {len(rk)} knocks ; trimmed by place for the master (dB, knock by knock): " + " ".join(f"{t:g}" for t in RECEDE_TRIM))
         if kept_row() is not None:
             kt_c, kt_f, kt_t = kept_times(); kt_sec = kt_c * 60 / BPM
             print(f"the room holds its breath ({KEPT_GAIN}), bars {int(kt_c) // BEATS + 1}-{int(kt_t) // BEATS} ({int(kt_sec) // 60}:{kt_sec % 60:04.1f}): one clap in a hall ({KEPT_HALL['kind']}, {KEPT_HALL['decay']} to die, {KEPT_HALL['low_cut']} to {KEPT_HALL['high_cut']} Hz) on beat {kt_c % BEATS:g} of bar {int(kt_c) // BEATS + 1} ; the hall stops dying {KEPT_FROM:g} of a beat ({1000 * KEPT_FROM * 60 / BPM:.0f} ms) after it and holds for {kt_t - kt_f:g} beats ({(kt_t - kt_f) * 60 / BPM:.2f} s) ; it lets go on beat {kt_t % BEATS:g} of bar {int(kt_t) // BEATS + 1}")
