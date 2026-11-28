@@ -1,0 +1,68 @@
+{
+ "about": "Small Change: the till multiplies (v26): the purse's coins 5 and 7 as two plain tones at 5 and 7 times the note, each ring-modulated by the other over 5 sixteenths: they melt into 2 and 12 times the note (the product of two tones is their difference and their sum), one from each side. BANKED by tools/patchbank.py (28 Nov 2026) from Small Change v26 (track product-57): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.3
+ },
+ "synth": {
+  "amp": {
+   "a": "4ms",
+   "d": "10ms",
+   "r": "40ms"
+  },
+  "env": {
+   "mul": {
+    "a": "615ms",
+    "d": "1ms",
+    "r": "50ms"
+   }
+  },
+  "layers": [
+   {
+    "level": "-140dB",
+    "phase": 0.0,
+    "ratio": 7.0
+   },
+   {
+    "pan": -0.5,
+    "phase": 0.0,
+    "ratio": 5.0,
+    "ringmod": {
+     "from": "0",
+     "mix": {
+      "mod": [
+       {
+        "amount": 1.0,
+        "src": "env.mul"
+       }
+      ],
+      "value": 0
+     }
+    }
+   },
+   {
+    "level": "-140dB",
+    "phase": 0.0,
+    "ratio": 5.0
+   },
+   {
+    "pan": 0.5,
+    "phase": 0.0,
+    "ratio": 7.0,
+    "ringmod": {
+     "from": "2",
+     "mix": {
+      "mod": [
+       {
+        "amount": 1.0,
+        "src": "env.mul"
+       }
+      ],
+      "value": 0
+     }
+    }
+   }
+  ]
+ }
+}

@@ -1,0 +1,57 @@
+{
+ "about": "Out of Step's note for the wave that slips under its own beat (chirper-zero, 28 Nov, v36), step 1 of 8: plain tones at 4.125 5.125 6.125 7.125 8.125 9.125 10.125 times the note, under one window; every one 1/8 of the note higher than a harmonic. Its loudness goes as the square of the velocity. BANKED by tools/patchbank.py (28 Nov 2026) from Out of Step v36 (track under-1): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "4ms",
+   "d": "0s",
+   "r": "12ms"
+  },
+  "filters": [
+   {
+    "cutoff": 9000
+   }
+  ],
+  "layers": [
+   {
+    "level": "-50.05dB",
+    "phase": 0.0,
+    "ratio": 4.125
+   },
+   {
+    "level": "-12.62dB",
+    "phase": 0.0,
+    "ratio": 5.125
+   },
+   {
+    "level": "-3.54dB",
+    "phase": 0.0,
+    "ratio": 6.125
+   },
+   {
+    "level": "-0.25dB",
+    "phase": 0.0,
+    "ratio": 7.125
+   },
+   {
+    "level": "-0.69dB",
+    "phase": 0.0,
+    "ratio": 8.125
+   },
+   {
+    "level": "-5.10dB",
+    "phase": 0.0,
+    "ratio": 9.125
+   },
+   {
+    "level": "-16.69dB",
+    "phase": 0.0,
+    "ratio": 10.125
+   }
+  ]
+ }
+}

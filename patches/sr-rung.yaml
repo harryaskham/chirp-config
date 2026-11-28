@@ -1,0 +1,25 @@
+{
+ "about": "Standing Room's pip on the ladder (chirper-zero, 28 Nov, v36): one plain tone, 90 ms, 8 ms to come and to go; in the middle, no room. BANKED by tools/patchbank.py (28 Nov 2026) from Standing Room v36 (track rung): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "8ms",
+   "d": "0s",
+   "r": "8ms"
+  },
+  "filters": [
+   {
+    "cutoff": 9000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ]
+ }
+}

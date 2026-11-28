@@ -1,0 +1,24 @@
+{
+ "about": "Wind Down: the eleven (v26): Least Common's fourth voice (lc-eleven) under this song's name: a low wooden bar, short (benched alone: 20 dB down in 70 ms, 40 in 140), its next mode two octaves up and 13 to 18 dB under. Its notes are written in Hz: harmonics 11 to 12 of the G an octave under the drum's; dry, each reads within 4 cents of what is written. BANKED by tools/patchbank.py (28 Nov 2026) from Wind Down v26 (tracks eleven, pre-eleven): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.3ms",
+   "d": "450ms",
+   "r": "120ms",
+   "s": 0
+  },
+  "layers": [
+   {
+    "bright": 0.35,
+    "decay": "260ms",
+    "modes": "bar",
+    "strike": 0.5,
+    "type": "modal"
+   }
+  ]
+ }
+}

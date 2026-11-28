@@ -1,0 +1,25 @@
+{
+ "about": "Hearing Things' note that does not move (chirper-zero, 28 Nov, v36): one plain tone, held; 40 ms to come and to go. After the bass that falls for ever it is said to seem to rise. BANKED by tools/patchbank.py (28 Nov 2026) from Hearing Things v36 (track after): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "40ms",
+   "d": "0s",
+   "r": "40ms"
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ]
+ }
+}
