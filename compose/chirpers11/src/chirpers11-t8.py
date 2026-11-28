@@ -71,6 +71,24 @@ between the drum (47 Hz) and the bass's second harmonics (98 up). Three switches
          before the filter had moved a third of the way): the meetings' last word gets brighter as it gets
          quieter, a door opening on something leaving.
 
+v26 (28 Nov): THE ELEVEN COMES HOME. Three switches (`--without-eleven`, `-lands`, `-creeps`; all three off is
+v25 byte for byte).
+  ELEVEN  in Least Common (v26) a fourth voice counts eleven beats, the next prime after that song's three,
+          and misses its home by one beat: 210 is nineteen elevens and one over. This song's home is the
+          album's: the last stroke. From the bar everything is gathered (bar 113) to the last stroke is 88
+          bars, 352 beats: thirty-two elevens and nothing over. So the eleven begins when all are gathered
+          (`wd-eleven`: Least Common's low wooden bar under this song's name), is struck every eleven beats
+          with its echo every eleven sixteenths between, as there, through the hold, the leaving and the
+          spring's running down, and its thirty-third stroke is the last stroke of the record: it comes home.
+  LANDS   there its note is the eleventh harmonic of the drum's G (539 Hz), a note no scale here has. Here
+          it is an octave lower, 269.5 Hz (this song is already 5.8 dB over the album in the band at 547 Hz:
+          read with compscore --bands after the first build), and on the last stroke it is the TWELFTH:
+          294 Hz, the fifth, the D over the hour bell's B flat: in tune. It is dry: in the hall a note this
+          short is answered at the hall's own nearest pitch (up to 43 cents off, read), and that is not home.
+  CREEPS  and it gets there as the song runs down: each stroke is a thirty-second of a harmonic nearer
+          (harmonic 11, 11 1/32, 11 2/32 ... 12 of 24.5 Hz: 0.77 Hz a stroke, 4 to 5 cents): the one thing
+          in this song that rises while everything else leaves or slows.
+
 v25 (28 Nov): SOMEBODY KEEPS THE SCORE AS THEY LEAVE. Three switches (`--without-tally`, `-back`, `-full`; all
 three off is v24 byte for byte).
   TALLY  in Ring True (v25) a ninth thing counts the others: a notched stick, a notch for every thing that
@@ -535,13 +553,19 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t8.yaml'
 # ---- v2: the switches and their numbers. Nothing above is changed by them.
 ON = {'catch': True, 'comp': True, 'hat': True, 'learnt': True, 'stop': True, 'tuck': True,
       'spent': True, 'held': True, 'taken': True, 'real': True, 'slip': True, 'sink': True,
-      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True, 'quarters': True, 'hour': True, 'hammer': True, 'one': True, 'sympathy': True, 'groove': True, 'surface': True, 'lift': True, 'leadin': True, 'reveal': True, 'inner': True, 'spiral': False, 'preecho': True, 'nearer': True, 'pallet': True, 'exit': True, 'rumble': True, 'rundown': True, 'limp': True, 'wow': True, 'waver': True, 'tally': True, 'back': True, 'full': True}
+      'mid': True, 'body': True, 'open': True, 'sing': True, 'nudge': True, 'ease': True, 'strings': True, 'paid': True, 'knock': True, 'early': False, 'true': True, 'turn': True, 'tame': True, 'drop': True, 'part': True, 'answer': True, 'interest': True, 'chest': True, 'exchange': True, 'rate': True, 'given': True, 'grip': True, 'choke': True, 'lead': True, 'tell': True, 'whole': True, 'left': True, 'ajar': True, 'wall': True, 'cede': True, 'clocks': True, 'linger': True, 'fifth': True, 'stand': True, 'tuned': True, 'resolve': True, 'quarters': True, 'hour': True, 'hammer': True, 'one': True, 'sympathy': True, 'groove': True, 'surface': True, 'lift': True, 'leadin': True, 'reveal': True, 'inner': True, 'spiral': False, 'preecho': True, 'nearer': True, 'pallet': True, 'exit': True, 'rumble': True, 'rundown': True, 'limp': True, 'wow': True, 'waver': True, 'tally': True, 'back': True, 'full': True, 'eleven': True, 'lands': True, 'creeps': True}
 GROOVE = {'patch': 'wd-groove', 'turn': 1.8, 'after': 1.1, 'turns': 4, 'dust': ((0, 'G2', 1.0, 0), (3, 'D4', .7, -9), (8, 'A3', .6, -14), (15, 'F4', .8, -6)),   # v20: the run-out groove: seconds a turn (33 1/3 a minute); seconds from the last stroke to the first joint; turns; what is in a turn: (sixteenths of a turn after the joint, the chip noise's note: its step rate, how hard, dB)
           'gain': '-28dB', 'pan': 0, 'ms': 4, 'hp': 180, 'lp': 2600, 'rest': 1.5}   # its fader (bench: at -24 dB the joint's highest sample stood 2 to 6 dB over the wall clock's ticks: 4 dB off) and place; a speck's length, ms; its band; seconds of the song after the last joint (the surface goes in them)
 SPIRAL = {'patch': 'wd-spiral', 'gain': '-51dB', 'hp': 700, 'lp': 6000, 'in': 4, 'to': 8, 'out': 4, 'radius': (146.05, 60.3, 53.2), 'lock': 'wd-inner', 'every': 8, 'walls': 2, 'up': 4, 'down': 70}   # v21: the playing groove's surface: its patch, fader (bench, alone: at the run-out's -58 dB the white hiss stood 10 dB under the locked groove's chip noise: -78 dBFS for -68: so 7 dB up, to meet it at the first joint with INNER's 3.8) and band at the first groove (the run-out's, v20); bars over which it comes in; the bar to which it is held, and bars over which it goes, where it does not stay; an LP's first, last and locked groove, mm from the centre; the run-out surface's name when its band has slid; bars between the points of the slide's line; low-pass filters in a row at the band's top (Out of Step's last bars lie over the first eight: nothing over 10 kHz); REVEAL: bars over which it comes up again from the bar the spring runs down; dB it is down in between
 RUMBLE = {'patch': 'wd-rumble', 'gain': '-32dB', 'hp': 25, 'lp': 90, 'pitch': 'C3', 'vel': 0.8, 'in': (-6,), 'from': 'joint'}   # v23: the bearing's rumble: its patch, fader (the second build's -20 dB stood 10 dB OVER the surface in the run-out: this master lifted it 13.6 dB), band, the chip noise's note (its step rate), touch, and the dB on its first turns as it comes in
 PALLET = {'patch': 'wd-pallet', 'gain': '-20dB', 'hp': 10000, 'ms': 6, 'bars': (8, 144), 'vel': 0.8, 'exit': {'patch': 'wd-pallet-exit', 'gain': '-10dB', 'band': (8000, 11000), 'steep': 3, 'on': (6, 14)}}   # v23: the tooth on the pallet: its patch, fader (bench), where it begins (Hz), how long it is, the bars (from 0, to but not with) in which it is struck with the click where the drum plays, and its touch (the click's own shape is not copied: one touch)
 NEARER = {'up': 9, 'lock': 6}   # v22: dB on the playing groove's surface where it comes back as the spring runs down (the lead-in in bars 1 to 8 is as it was: chirper-zero's seam), and on the locked groove's hiss
+ELEVEN = {'patch': 'wd-eleven', 'gain': '-12dB', 'pan': -0.3, 'hall': None, 'from': ALL, 'beats': 11, 'of': 24.4997, 'harmonic': (11, 12), 'vel': 0.9, 'len': 1.0, 'last': 4.0,
+          'echo': (-4, -7, -10), 'echo_vel': 0.6, 'echo_len': 0.5, 'bare': -9.5,
+          'trim': {0: 1.5, 1: 0.8, 2: -1.3, 3: 0.8, 4: -1.2, 5: 1.0, 6: -3.0, 7: 1.9, 8: -0.3, 9: 1.5, 10: -2.1, 11: 1.2, 12: 0.3, 13: -0.1, 14: 0.6, 15: 2.7, 16: 1.0, 17: 2.6, 18: -0.3, 19: 3.5, 20: -1.6, 21: -1.7, 22: -2.1, 23: -1.7, 24: -1.6, 25: 0.2, 26: -1.9, 27: -1.2, 28: -1.4, 29: 0.9, 30: -8.6, 31: -8.6}}   # v26: the eleven: its patch, fader, place, hall (NONE: it is dry: the note is 20 dB down in 80 ms and the hall then answers at its OWN nearest pitch: sent there at -14 dB, the strokes read over 0.3 s gathered at 277, 282, 288 and 299 Hz, up to 43 cents from what was written, and the last, written 294.0, read 299.6: not home); the bar it begins in (from 0); its cycle (beats; its echo's is that many sixteenths); the G an octave under the drum's G1 (Hz) and the harmonics of it the voice begins on and comes home on (269.5 to 294 Hz: an octave under Least Common's: this song is already 5.8 dB over the album's envelope in the band at 547 Hz, and the eleven there, 6 dB under its fader here, put it 0.9 dB past the tolerance; from 250 to 292 Hz the song is 0.5 dB under); touch and length (beats) of a stroke, and of the last; dB, touch and length of its three echoes; dB on an echo that falls in the bare last bars when its stroke did not (the last full bar's stroke has its echoes after the grid has gone: at their written level they came out up to 2.1 dB OVER the two strokes that follow them); dB on a stroke by its number (from 0), and on its echoes, SET FROM A FINISHED BUILD, every stroke read (200 to 350 Hz): at one written level the first 30 came out 6.5 dB apart (-14.1 to -20.6 dBFS with the fader at -16), level with or under what else is in that band; each is written to come out level, the two in the bare last bars (the spring running down) 3 dB under, the last as it falls
+ELEVEN_PATCH = {'about': "Wind Down: the eleven (v26): Least Common's fourth voice (lc-eleven) under this song's name: a low wooden bar, short (benched alone: 20 dB down in 70 ms, 40 in 140), its next mode two octaves up and 13 to 18 dB under. Its notes are written in Hz: harmonics 11 to 12 of the G an octave under the drum's; dry, each reads within 4 cents of what is written.",
+                'synth': {'layers': [{'type': 'modal', 'modes': 'bar', 'decay': '260ms', 'bright': 0.35, 'strike': 0.5}], 'amp': {'a': '0.3ms', 'd': '450ms', 's': 0, 'r': '120ms'}},
+                'play': {'event_stable': True, 'vel_sens': 0.5}}
 TALLY = {'patch': 'wd-rasp', 'gain': '-12dB', 'notch': -2, 'first': 3, 'fall': -1.5, 'more': 0, 'pan': -0.45, 'bars': (ALL + HOLD, RUNS_DOWN), 'at': 8, 'gap': 1 / 16, 'ladder': ('D7', 'C7', 'Bb6', 'G6', 'F6', 'D6', 'C6', 'Bb5'), 'vel': (0.05, 0.85), 'len': 0.04}   # v25: the tally: its patch, fader, dB on every notch but the row's click on the beat, dB more on the notch next to the click (this master dips whatever falls in the 30 ms after the drum: at one level that notch read 3 to 5 dB under the next), dB more on each notch than on the one before it (at one level the notches did not fall away: the farther from the drum the more this master lifts them), dB more on the whole row for each notch in it (Ring True's is 1: there the more things ring the louder the song; here the song thins as they leave, and with 1 the click on the beat read -7.4 to -9.1 dBFS while six to four were here, 7 to 10 dB over what else is on that beat: with none it is the same click in every bar), place; the bars it plays in (from 0, to but not with); the sixteenth of the bar its click is on; the gap between notches (beats: a sixty-fourth); the notes from the click outwards (a step of the five notes each); touch (how much less each notch has than the one before it; the click): the same row whoever is here, cut a notch shorter each time somebody leaves; a click's length (beats)
 TALLY_PATCH = {'about': "Wind Down: the tally (v25): Ring True's ninth thing (rt-rasp) under this song's name: one notch of a notched stick: a very small dry bar (six milliseconds) with two milliseconds of grit on it. Nothing in it rings.",
                'synth': {'layers': [{'type': 'modal', 'modes': 'bar', 'decay': '6ms', 'bright': 0.9, 'strike': 0.8},
@@ -885,6 +909,30 @@ def left(bar):
 
 def here(thing, bar):
     return COMES[thing] <= bar < GOES[thing] and not caught(bar)
+
+
+def eleven_hz(k, n):
+    """v26: the eleven's k-th stroke of n + 1 (from 0), Hz: LANDS: the last on the twelfth harmonic; CREEPS: each a step nearer."""
+    lo, hi = ELEVEN['harmonic']
+    h = lo + (hi - lo) * k / n if ON['creeps'] and ON['lands'] else hi if ON['lands'] and k == n else lo
+    return ELEVEN['of'] * h
+
+
+def eleven_notes():
+    """v26 ELEVEN: a stroke every ELEVEN['beats'] beats from the bar all are gathered to the last stroke, three echoes after each (none after the last)."""
+    first, n = ELEVEN['from'] * 4, (BARS - ELEVEN['from']) * 4 // ELEVEN['beats']
+    out = []
+    for k in range(n + 1):
+        at, pitch = first + k * ELEVEN['beats'], f'{eleven_hz(k, n):.2f}hz'
+        if at > BARS * 4:
+            break
+        trim = ELEVEN['trim'].get(k, 0)
+        out.append({'at': at, 'len': ELEVEN['last'] if at == BARS * 4 else ELEVEN['len'], 'pitch': pitch, 'vel': ELEVEN['vel'], **({'gain': f'{trim:g}dB'} if trim else {})})
+        for j, db in enumerate(ELEVEN['echo'], 1):
+            if at + j * ELEVEN['beats'] / 4 < BARS * 4:
+                bare = ELEVEN['bare'] if at < RUNS_DOWN * 4 <= at + j * ELEVEN['beats'] / 4 else 0
+                out.append({'at': at + j * ELEVEN['beats'] / 4, 'len': ELEVEN['echo_len'], 'pitch': pitch, 'vel': ELEVEN['echo_vel'], 'gain': f'{db + trim + bare:g}dB'})
+    return out
 
 
 def tally_count(bar):
@@ -1289,6 +1337,9 @@ def song():
     if ON['tally']:                                            # v25 TALLY: Ring True's notched stick counts who is still here
         doc['patches'] = {**doc['patches'], TALLY['patch']: TALLY_PATCH}
         doc['tracks'].append({'name': 'tally', 'patch': TALLY['patch'], 'gain': TALLY['gain'], 'pan': TALLY['pan'], 'notes': tally_notes()})
+    if ON['eleven']:                                           # v26 ELEVEN: Least Common's eleven, from all gathered to the last stroke
+        doc['patches'] = {**doc['patches'], ELEVEN['patch']: ELEVEN_PATCH}
+        doc['tracks'].append({'name': 'eleven', 'patch': ELEVEN['patch'], 'gain': ELEVEN['gain'], 'pan': ELEVEN['pan'], **({'sends': {'hall': ELEVEN['hall']}} if ELEVEN['hall'] and 'hall' in doc.get('buses', {}) else {}), 'notes': eleven_notes()})
     if ON['preecho'] and ON['catch']:                           # v22 PREECHO: in each caught bar the first turn of the bar after it, a turn early
         turn = GROOVE['turn'] * BPM / 60                        # beats in one turn of the record (the tempo is steady at every catch)
         for t in list(doc['tracks']):
@@ -1332,7 +1383,7 @@ if __name__ == '__main__':
     for k in [k for k, on in ON.items() if not on]:
         ap.add_argument(f'--with-{k}', action='store_true', help=f'put in {k} (written, and off)')
     for k in [k for k, on in ON.items() if on]:
-        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v24, the last seven off is v23, the last ten v22, the last twelve v21, the last fifteen v20, the last eighteen v19, the last twenty-one v18, the last twenty-three v17, the last twenty-five v16, the last twenty-seven v15, the last twenty-nine v14, the last thirty-one v13, the last thirty-three v12, the last thirty-five v11, the last thirty-eight v10, the last forty-one v9, the last forty-four v8, the last forty-six v7, the last forty-nine v6, the last fifty-two v5, the last fifty-five v4, the last fifty-eight v3, the last sixty-four v2, all seventy v1)')
+        ap.add_argument(f'--without-{k}', action='store_true', help=f'leave out {k} (the last three off is v25, the last six v24, the last ten v23, the last thirteen v22, the last fifteen v21, the last eighteen v20, the last twenty-one v19, the last twenty-four v18, the last twenty-six v17, the last twenty-eight v16, the last thirty v15, the last thirty-two v14, the last thirty-four v13, the last thirty-six v12, the last thirty-eight v11, the last forty-one v10, the last forty-four v9, the last forty-seven v8, the last forty-nine v7, the last fifty-two v6, the last fifty-five v5, the last fifty-eight v4, the last sixty-one v3, the last sixty-seven v2, all seventy-three v1)')
     a = ap.parse_args()
     for k in ON:
         ON[k] = getattr(a, f'with_{k}') if not ON[k] else not getattr(a, f'without_{k}')
@@ -1360,6 +1411,9 @@ if __name__ == '__main__':
                        ([(RUNS_DOWN, f"the turntable rumbles: its bearing is heard {'in the run-out' if RUMBLE['from'] == 'joint' else 'under the last ticks and the run-out'}, {RUMBLE['hp']} to {RUMBLE['lp']} Hz, the same at every turn, from {'its first joint' if RUMBLE['from'] == 'joint' else f'bar {RUNS_DOWN + 1}'} to the needle's lift")] if ON['rumble'] and ON['groove'] and ON['surface'] and ON['stop'] and lifted() else []) +
                        ([(PALLET['bars'][0], f"the escapement has two pallets: the tooth on the first (the click on sixteenths 2 and 10: tick) is all above {PALLET['hp'] / 1000:g} kHz; on the second (sixteenths {' and '.join(str(x) for x in PALLET['exit']['on'])}: tock) it is lower, {PALLET['exit']['band'][0] / 1000:g} to {PALLET['exit']['band'][1] / 1000:g} kHz, with less of the first one's top")] if ON['pallet'] and ON['exit'] else []) +
                        ([(PALLET['bars'][0], f"the click shows its tooth where the drum plays, bars {PALLET['bars'][0] + 1} to {PALLET['bars'][1]}: {PALLET['ms']} ms of noise above {PALLET['hp'] / 1000:g} kHz with every click (the escape wheel's tooth on the pallet); not in the caught bars, where the click is bare")] if ON['pallet'] else []) +
+                       ([(ELEVEN['from'], f"the eleven comes home: Least Common's fourth voice ({ELEVEN['patch']}) is struck every {ELEVEN['beats']} beats from here, its echo every {ELEVEN['beats']} sixteenths between: from here to the last stroke is {(BARS - ELEVEN['from']) * 4} beats, {(BARS - ELEVEN['from']) * 4 // ELEVEN['beats']} elevens and {(BARS - ELEVEN['from']) * 4 % ELEVEN['beats']} over (in Least Common 210: 19 and 1 over): {(BARS - ELEVEN['from']) * 4 // ELEVEN['beats'] + 1} strokes" +
+                         (f"; its note: harmonic {ELEVEN['harmonic'][0]} of the G an octave under the drum's ({eleven_hz(0, 32):.1f} Hz, an octave under Least Common's)" + (f", each stroke a thirty-second of a harmonic nearer the next ({eleven_hz(1, 32) - eleven_hz(0, 32):.2f} Hz a stroke): {' '.join(f'{eleven_hz(k, 32):.1f}' for k in (0, 8, 16, 24, 31))} Hz at strokes 1 9 17 25 32" if ON['creeps'] and ON['lands'] else ''))),
+                         (BARS, f"the eleven's last stroke is the last stroke: " + (f"harmonic {ELEVEN['harmonic'][1]}, {eleven_hz(32, 32):.1f} Hz: the fifth, D4, over the hour bell's {ONE['bell']}: in tune" if ON['lands'] else f"still harmonic {ELEVEN['harmonic'][0]}, {eleven_hz(32, 32):.1f} Hz"))] if ON['eleven'] else []) +
                        ([(TALLY['bars'][0], f"somebody keeps the score as they leave: Ring True's notched stick ({TALLY['patch']}): a row of dry clicks a sixty-fourth apart ({60000 / BPM * TALLY['gap']:.0f} ms) on beat {TALLY['at'] // 4 + 1} of every bar, bars {TALLY['bars'][0] + 1} to {TALLY['bars'][1]}, a notch for each of the seven still here: " +
                          ', '.join(f"bars {b + 1}-{b + LEAVE}: {tally_count(b)}" for b in range(TALLY['bars'][0], TALLY['bars'][1], LEAVE)) + '; when only the click is left the stick is put down' +
                          ('; the full house is read once before, in bar ' + str(TALLY['bars'][0]) + ': seven' if ON['full'] else '') +
