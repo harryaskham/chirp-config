@@ -58,7 +58,24 @@ OUT = Path(__file__).resolve().parents[3] / 'songs/chirpers11-t6.yaml'
 #          section keeps four: the song thins out to nothing. Off because with it the scorer no longer counts the
 #          drum's entry as a section (88.3 against 97), and whether the silence is a pause or a hole is not mine to say.
 ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, 'turn': True, 'chord': True, 'wait': True,
-      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True, 'spun': True, 'lands': True, 'metal': True, 'damped': True, 'flick': True, 'tally': True, 'reckon': True, 'linger': True, 'rounded': True, 'paid': True, 'cannot': True, 'late': True, 'offkey': True, 'closing': True, 'receipt': True}
+      'leave': True, 'flip': True, 'fill': True, 'smaller': True, 'inside': False, 'roll': True, 'gap': True, 'tumble': True, 'lone': True, 'grow': True, 'owed': True, 'zeno': True, 'meet': True, 'exchange': True, 'rate': True, 'seven': True, 'abroad': True, 'herald': True, 'count': True, 'spell': True, 'bought': True, 'back': True, 'rings': True, 'coin': True, 'through': True, 'let': True, 'bare': True, 'octave': True, 'root': True, 'follow': True, 'comes': True, 'both': True, 'three': True, 'lift': True, 'spun': True, 'lands': True, 'metal': True, 'damped': True, 'flick': True, 'tally': True, 'reckon': True, 'linger': True, 'rounded': True, 'paid': True, 'cannot': True, 'late': True, 'offkey': True, 'closing': True, 'receipt': True, 'clasp': True, 'miss': True, 'snap': True}
+# ---- v25 (28 Nov): THE PURSE HAS A CLASP. Three switches (`--without-clasp`, `-miss`, `-snap`; all three off is
+# v24 byte for byte).
+#   CLASP  the song had a drum, a bass, a hat and no backbeat. A purse has a clasp: two small metal balls that
+#          pass each other, click-CLICK (`sc-clasp`: two very short glockenspiel bars, G7 then D7, the first as
+#          long before the beat as the hand takes to shut a purse: SHUT, 0.06 of a beat, 30 ms; the second on
+#          the beat). It is snapped on beats 2 and 4, not where the drum has given the beat to the purse (a
+#          roll, a wait, the bought beats of the drum again), and only where the purse can PAY the beat: where the time since the section's last seed is an amount its coins make. With
+#          3 and 5 a seed every two bars buys beat 4 of its own bar (12) and both beats of the next (20, 28)
+#          and not beat 2 of its own (4 is a debt): half a backbeat, then a whole one, by turns. With 3 and 4
+#          every beat is bought. Off the beat the drum plays one and three only and the clasp has two and
+#          four to itself; the seed is on sixteenth 6 and every beat after it is bought (6, 14, 22, 30). From the second half of the drum (bar 25) to the end of home. Dry: it is not
+#          money and goes into no purse.
+#   MISS   where the purse cannot pay the beat the clasp does not catch: the first ball only, before the
+#          beat, and nothing on it.
+#   SNAP   the hand that shuts the purse of small change on the one after every roll was never heard: now
+#          the clasp is snapped there, on the one of bars 17 33 49 65 81 97 113 145, a little harder.
+#
 # ---- v24 (28 Nov): THE TILL CLOSES AT HOME, AND GIVES A RECEIPT. Three switches (`--without-offkey`, `-closing`,
 # `-receipt`; all three off is v23 byte for byte).
 #   OFFKEY   v23's fault, measured after it was out: off the beat (bars 129 to 160) a payment's first stroke falls
@@ -103,6 +120,13 @@ ON = {'hat': True, 'debts': True, 'till': True, 'denser': False, 'long': True, '
 # the two answer each other, one exact, one rounded worse each time. At home nothing is rounded.
 PAID = {'patch': 'sc-key', 'gain': '-20dB', 'pan': -0.15, 'octave': 12, 'fold': (-7, 12), 'vel': (0.9, 0.75), 'len': 0.2, 'steps': (7, -5), 'long': 24,
         'where': ('threes and fours', 'both purses', 'three purses'), 'cannot': ('the drum again',), 'late': ('off the beat', 'off the beat, up')}   # v23: the key: its patch, fader (bench, raw, bars 49 to 56: at -12 dB its strokes stood 9 to 13 dB over the purse's echoes from 160 to 560 Hz: a lead; -18 is beside them; but an octave under the seed its strokes on the beat were 10 to 15 dB under the drum there: at the seed's own octave its first two strokes were the seed and the purse's first echo over again, 12 to 21 dB under them: it is an octave over the seed), place, semitones from the seed's note, the span its notes are folded into (semitones from its first), touch (a payment's first stroke, the rest), length (beats), what the first and the second coin do to its note (as in the purses), the amount a purse pays when it cannot pay a bar, and the sections
+CLASP = {'patch': 'sc-clasp', 'gain': '-14dB', 'pan': 0.12, 'from': 24, 'on': (4, 12), 'balls': (('G7', 0.6, -14), ('D7', 0.9, 0)), 'miss': 3, 'snap': 3, 'nodrum': -3, 'bare': {4: -10, 12: -7}, 'len': 0.05, 'purses': 'abcd'}   # v25: the clasp: its patch, fader, place; the bar it begins in (from 0); the sixteenths it is snapped on; its two balls (note, touch, dB), the first SHUT beats before the beat and the second on it; dB on the one ball of a miss; dB on a snap on the one; dB more on it where no drum plays that one (bar 81, the break: it read -9.3 dBFS, 3 to 4 dB over the other snaps); dB on the second ball where the drum does not play the beat (off the beat), by the sixteenth it is on (with 7 dB off both, beat 2 still read 3.5 dB over beat 4). SET FROM A FINISHED BUILD, ball by ball: with the first ball 6 dB under the second it came out as loud as the second or louder (-10.7 to -14.4 dBFS against -11.5 to -14.4: this master lifts a click 30 ms before the drum 20 to 22 dB and one on the drum 10 to 12), so a miss was as loud as a snap; off the beat, with no drum under it, the second ball came out -5.6 to -10.0; a ball's length (beats); the purses that can buy a beat
+CLASP_PATCH = {'about': "Small Change: the purse's clasp (v25). Two small metal balls that pass each other: each a very short glockenspiel bar (18 ms) with a millisecond and a half of grit on its front. Dry: it is not money and goes into no purse.",
+               'synth': {'layers': [{'type': 'modal', 'modes': 'glock', 'decay': '18ms', 'bright': 0.8, 'strike': 0.6},
+                                    {'type': 'noise', 'color': 'white', 'level': {'value': '-70dB', 'mod': [{'src': 'env.grit', 'amount': 52}]}}],
+                         'env': {'grit': {'a': '0.1ms', 'd': '1.5ms', 's': 0, 'r': '1.5ms'}},
+                         'amp': {'a': '0.1ms', 'd': '0s', 's': 1, 'r': '30ms'}},
+               'play': {'event_stable': True, 'vel_sens': 0.6}}
 OFFKEY = {'db': -9}                         # v24: dB on a payment's first stroke where the payments begin off the beat (PAID['late']) and no seed is sown with it: read in the finished song (there it came out at -6.5 dBFS, the seed's own level; with a seed it is 8 dB under the seed and is left)
 CLOSING = {'where': ('home',), 'bars': 12}  # v24: the sections where the till closes (a payment to each seed), and for how many of their bars (the coin is spun in home's last four)
 RECEIPT = {'vel': 0.9, 'db': 3}             # v24: the receipt's touch, and dB on it (read in the finished song: at 0 dB it came out 2 to 10 dB under what else is on its bar line from 440 to 2400 Hz)
@@ -675,6 +699,45 @@ def key_notes():
     return out
 
 
+def clasp_notes(doc):
+    """v25 CLASP: (the clasp's notes, {what: how many}, {section: its two-bar pattern}) read from the finished song: where the drum plays beats 2 and 4 and the purse can pay them."""
+    tr = {t['name']: t for t in doc['tracks']}
+    drum = {round(n['at'], 4) for n in tr['kick']['notes']} if 'kick' in tr else set()
+    out, tell, told = [], {'whole': 0, 'miss': 0, 'rest': 0, 'snap': 0}, {}
+
+    def ball(k, at, db=0):
+        pitch, vel, own = CLASP['balls'][k]
+        out.append({'at': round(at - (SHUT if k == 0 else 0), 4), 'len': CLASP['len'], 'pitch': pitch, 'vel': vel, **({'gain': f'{own + db:g}dB'} if own + db else {})})
+
+    for i, (name, pairs, every, at16, notes, has_drum, bass) in enumerate(SECTIONS):
+        sown = {k: sorted(n['at'] for n in tr[f'seed-{k}']['notes'] if i * SEC * 4 <= n['at'] < (i + 1) * SEC * 4 and round(n['at'] * 4) % BAR == at16 and (int(n['at'] // 4) - i * SEC) % every == 0)
+                for k in CLASP['purses'] if f'seed-{k}' in tr}
+        for bar in range(max(i * SEC, CLASP['from']), (i + 1) * SEC) if has_drum else ():
+            for s16 in CLASP['on']:
+                at = bar * 4 + s16 / 4
+                gone = not any(bar * 4 <= x < bar * 4 + 4 for x in drum) or (bar in rolls() and s16 / 4 >= ROLL['beat'])   # the drum waits, or the roll has the beat
+                if gone or (round(at, 4) not in drum and not at16):   # on the beat the drum plays four to the bar, and a beat it leaves out it has given to the purse; off the beat it plays one and three and the clasp has two and four to itself
+                    tell['rest'] += 1
+                    told.setdefault(name, []).append('-')
+                    continue
+                owed = [round((at - max(x for x in v if x <= at)) * 4) for k, v in sown.items() if any(x <= at for x in v)]
+                can = any(a > 0 and coins_for(a, *purses()[k]) is not None for k, v in sown.items() if any(x <= at for x in v) for a in [round((at - max(x for x in v if x <= at)) * 4)])
+                bare = 0 if round(at, 4) in drum else CLASP['bare'][s16]
+                if can:
+                    ball(0, at), ball(1, at, bare)
+                    tell['whole'] += 1
+                elif ON['miss']:
+                    ball(0, at, CLASP['miss'])
+                    tell['miss'] += 1
+                told.setdefault(name, []).append(f"{min(owed) if owed else 0}{'' if can else '?'}")
+    if ON['snap'] and ON['roll']:                                # v25 SNAP: the hand shuts the purse of small change on the one after every roll
+        for b in sorted(rolls()):
+            hard = CLASP['snap'] + (0 if round((b + 1) * 4, 4) in drum else CLASP['nodrum'])
+            ball(0, (b + 1) * 4, hard), ball(1, (b + 1) * 4, hard)
+            tell['snap'] += 1
+    return sorted(out, key=lambda n: n['at']), tell, told
+
+
 def build():
     T = {'kick': [], 'bass': [], 'hat': [], **{f'seed-{k}': [] for k in purses()}, **({'seed-z': []} if ON['zeno'] and ON['roll'] else {}), **({'open': []} if ON['meet'] and ON['owed'] and ON['hat'] else {}), **{f'long-{k}': [] for k in purses()}}
     lifted = []                                                  # v17 LIFT: the bass's moved notes, an octave up
@@ -936,6 +999,9 @@ def song():
             if k in doc['buses']:
                 doc['buses'][k] = {**doc['buses'][k], 'fx': list(doc['buses'][k].get('fx', [])) + [f"crush bits={ROUNDED['bits']} rate={ROUNDED['rate']}+auto.held*{ROUNDED['octaves']}"],
                                    'auto': {**doc['buses'][k].get('auto', {}), 'held': {'points': [['0b', free], [f'{at - 0.01}b', free], [f'{at}b', 0], [f'{at + SEC * 4}b', 1]], 'curve': 0}}}
+    if ON['clasp']:                                              # v25 CLASP: the purse's clasp, on the beats the purse can pay
+        doc['patches'] = {**doc['patches'], CLASP['patch']: CLASP_PATCH}
+        doc['tracks'].append({'name': 'clasp', 'patch': CLASP['patch'], 'gain': CLASP['gain'], 'pan': CLASP['pan'], 'notes': clasp_notes(doc)[0]})
     return doc
 
 
@@ -955,7 +1021,7 @@ if __name__ == '__main__':
     ap.add_argument('--out', type=Path, default=OUT)
     ap.add_argument('--form', action='store_true', help='print the form and the coins and stop')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last three off is v23, the last six v22, the last seven v21, the last nine v20, the last ten v19, the last thirteen v18, the last fifteen v17, the last nineteen v16, the last twenty-one v15, the last twenty-three v14, the last twenty-four v13, the last twenty-six v12, the last twenty-eight v11, the last thirty v10, the last thirty-three v9, the last thirty-six v8, the last thirty-eight v7, the last forty v6, the last forty-four v5, the last forty-five v4, the last forty-eight v3, the last fifty-two v2, all fifty-five v1)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of those that are on: the last three off is v24, the last six v23, the last nine v22, the last ten v21, the last twelve v20, the last thirteen v19, the last sixteen v18, the last eighteen v17, the last twenty-two v16, the last twenty-four v15, the last twenty-six v14, the last twenty-seven v13, the last twenty-nine v12, the last thirty-one v11, the last thirty-three v10, the last thirty-six v9, the last thirty-nine v8, the last forty-one v7, the last forty-three v6, the last forty-seven v5, the last forty-eight v4, the last fifty-one v3, the last fifty-five v2, all fifty-eight v1)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -1068,6 +1134,12 @@ if __name__ == '__main__':
                 can = [n for n in range(1, max(uptos) + 1) if any((n - a * pp) % qq == 0 for a in range(n // pp + 1))]
                 run, seeds = frobenius(pp, qq) + 1, len(uptos)
                 print(f"    the coin counts the change in {where}: after {'each of its first ' + str(seeds) + ' seeds' if seeds > 1 else 'its first seed'} (bar{'s' if seeds > 1 else ''} {' '.join(str(j * SEC + k * SECTIONS[j][2] + 1) for k in range(seeds))}) a clink on every amount the purse can pay, in {'sixteenths' if smaller == 1 else 'the coins each seed is paid in (sixteenths, then thirty-seconds)'}: {' '.join(str(n) for n in can if n < run)}, and from {run} every one, to {', then to '.join(str(u) for u in uptos)} ({frobenius(pp, qq)} is the largest that cannot be made of {pp}s and {qq}s" + (f'; {pp * qq} is the first made two ways, and is struck on both sides' if max(uptos) >= pp * qq else '') + f"); {pp}s alone on the left, {qq}s alone on the right, both in the middle; {-TALLY['coin']:g} dB quieter with each coin")
+        if ON['clasp']:
+            _, c_tell, c_told = clasp_notes(song())
+            print(f"    the purse has a clasp ({CLASP['patch']}): two balls, {CLASP['balls'][0][0]} {1000 * SHUT * 60 / BPM:.0f} ms before the beat and {CLASP['balls'][1][0]} on it, on beats 2 and 4 from bar {CLASP['from'] + 1}, where the drum has not given the beat away and the purse can pay it (the sixteenths since the section's last seed are an amount its coins make): {c_tell['whole']} whole" +
+                  (f", {c_tell['miss']} that do not catch (the first ball only: the purse cannot pay)" if ON['miss'] else '') + f"; it rests on the {c_tell['rest']} beats the drum gives away" +
+                  (f"; and the hand that shuts the purse of small change is heard: a snap on the one of bars {' '.join(str(b + 2) for b in sorted(rolls()))}" if ON['snap'] and ON['roll'] else ''))
+            print('    what each backbeat owes, by section (its first four bars; ? is a debt): ' + '; '.join(f"{nm}: {' '.join(v[:8])}" for nm, v in c_told.items()))
         print(f'{BARS} bars, {BARS * sec:.1f} s; written notes: ' + ', '.join(f'{k} {len(v)}' for k, v in T.items() if v or not k.startswith('long-')))
     else:
         a.out.write_text(dump(song()))
