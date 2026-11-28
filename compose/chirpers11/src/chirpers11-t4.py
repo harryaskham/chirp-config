@@ -32,6 +32,23 @@ v2 (26 Nov), five switches, each `--without-…` (all five off is v1 byte for by
   HUSH   in the last bar before the weight is lifted, a hand is laid on everything else: one bar of the whole
          family stopped dead under the weight's toll, and on the next one they are all let go.
 
+v28 (28 Nov), THE ELEVENTH THING IS SHAKEN. Four switches (`--without-shaken`, `-doubles`, `-swirls`, `-walks`;
+all four off is v27 byte for byte). By band against the album this song was 3.7 to 6.3 dB short from 5.7 to
+9.2 kHz: ten things, and none of them a hiss.
+  SHAKEN   seven things are struck, one is sung, one scraped, one plucked. The eleventh is shaken: a gourd of
+           dry seeds (`rt-seeds`: noise from 4.5 to 11 kHz; the seeds do not arrive together, so its front is
+           3 ms and not a click's). A shake is two sounds: the seeds thrown against the far wall, and falling
+           back against the near one, softer. Where there is no weight (bars 97-112) it keeps the time the
+           weight left: a shake a beat, thrown on the beat, back on the off-beat. Like the rasp it rests where
+           a thing is listened to alone (bars 113-116, the weight), and it is put down on bar 129, where the
+           first hands go on.
+  DOUBLES  when the weight is let go the hand is free to shake twice as fast: from bar 117 a shake an eighth:
+           thrown on every eighth, back on the sixteenths between.
+  SWIRLS   it is let go as the others are: the more the family rings, the longer a few seeds run on round
+           the shell after the throw (the note is held; the patch's sustain is 14 dB under its front).
+  WALKS    the comb's tongue to follow (the wood's, v27) walks across the stereo as it walks through the bar:
+           in the first place it is on the left, in the last on the right, a place a bar, and back.
+
 v27 (28 Nov), THE COMB RINGS THE CHANGES. Four switches (`--without-changes`, `-courses`, `-treble`, `-clear`;
 all four off is v26 byte for byte).
   CHANGES  for fourteen bars at the peak the comb played its seven tongues in one order, the order the things
@@ -457,7 +474,7 @@ ring at any bar is the straight line between them (`ring_at`). A ring r is a rin
 """
 import argparse
 import json
-from math import log10, log2
+from math import cos, log10, log2, pi, sin
 from pathlib import Path
 
 BPM = 125
@@ -525,7 +542,12 @@ PATCH = {k: 'rt-' + k for k in STROKES}
 
 # ---- v2: the switches, and what each adds. Nothing above is changed by them.
 ON = {'plate': True, 'boom': True, 'room': True, 'toll': True, 'hush': True, 'listen': True, 'off': True, 'fore': True, 'note': True,
-      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True, 'trade': True, 'slack': True, 'hint': True, 'twin': True, 'quicken': True, 'told': True, 'third': True, 'foretold': True, 'hallpair': True, 'slows': True, 'fall': True, 'glass': True, 'rub': True, 'four': True, 'rasp': True, 'tally': True, 'zip': True, 'comb': True, 'spread': True, 'follows': True, 'changes': True, 'courses': True, 'treble': True, 'clear': True}
+      'answer': True, 'even': True, 'after': True, 'flue': True, 'remember': True, 'lift': True, 'sympathy': True, 'wash': False, 'own': True, 'close': True, 'soft': True, 'drop': True, 'skin': True, 'empty': True, 'blow': True, 'long': True, 'touch': True, 'cap': True, 'press': True, 'pinch': True, 'choke': True, 'grip': True, 'show': True, 'fade': True, 'equal': True, 'call': True, 'laid': True, 'edge': True, 'turn': True, 'aside': True, 'heard': True, 'floor': True, 'motor': True, 'disc': True, 'flutter': False, 'tongue': True, 'heft': True, 'trade': True, 'slack': True, 'hint': True, 'twin': True, 'quicken': True, 'told': True, 'third': True, 'foretold': True, 'hallpair': True, 'slows': True, 'fall': True, 'glass': True, 'rub': True, 'four': True, 'rasp': True, 'tally': True, 'zip': True, 'comb': True, 'spread': True, 'follows': True, 'changes': True, 'courses': True, 'treble': True, 'clear': True, 'shaken': True, 'doubles': True, 'swirls': True, 'walks': True}
+GOURD = {'patch': 'rt-seeds', 'gain': '-16dB', 'pan': 0.35, 'room': '-14dB', 'bars': (TOP[6], TOP[8]), 'fast': TOP[7], 'pitch': 'C5', 'vel': (0.9, 0.8), 'back': -2, 'len': 0.06, 'swirl': 0.3, 'hard': 5, 'trim': {4: 4, 8: 2, 12: 4}}   # v28: the gourd: patch, fader, place, send; the bars it plays (where there is no weight, and the peak); DOUBLES: the bar from which a shake is an eighth; touch of the throw and of the fall back, and the fall back's dB; a stroke's length (beats); SWIRLS: beats more at full ring; DOUBLES: dB harder at the peak (at one level its throw was 12.2 dB over what was on the bare beats and 3.6 over the peak); dB on a throw by its sixteenth where a shake is a beat (the master left beats 2 and 4 seven dB under beat 1)
+GOURD_PATCH = {'about': "Ring True: the gourd (v28), the eleventh thing, the only one that is shaken: dry seeds in a shell. They do not arrive together (a front of 3 ms), rattle on the wall for 30 ms, and a few run on round it for as long as the note is held, 14 dB under. Nothing in it has a note: noise from 4.5 to 11 kHz, most of it near 6.8 kHz.",
+               'synth': {'layers': [{'type': 'noise', 'color': 'white'}], 'filters': ['hp cutoff=4500', 'lp cutoff=11000', 'peak cutoff=6800 q=1.2 gain=6dB'], 'amp': {'a': '3ms', 'd': '30ms', 's': 0.2, 'r': '25ms', 'curve': 2}},
+               'play': {'event_stable': True, 'vel_sens': 0.6, 'gate': 1}}
+WALK = {'pan': 0.6, 'room': '-15.5dB', 'ends': 1.5}   # v28 WALKS: the two tracks the comb's tongue to follow is shared between (pan, left and right), equal power; their send to the room; dB more at the two ends of the walk, none in the middle (at equal power the two sides together, as one speaker hears them, were 2.6 to 3.0 dB under v27 at the ends: half of that is given back)
 TRADE = {'to': 128, 'pairs': (('wood', 'metal', 12, 120), ('string', 'skin', 0, 124))}   # v20: the bar (from 0) at which each has its own cell again; the pairs that play each other's: how many semitones the second is over the first, and the bar (from 0) they trade at
 TWIN = {'patch': 'rt-true', 'ring': 0.3, 'db': -6, 'gap': 1, 'bars': ((48, 64, 4), (96, 112, 2), (112, 144, 1))}   # v21: the metal's patch while it is a pair (the motor's, with the engine's stroke-to-stroke wander off: another sound, another name); the least ring, s, at which the second bar is struck; dB on each of the two (in step at the stroke they add to the old stroke); sixteenths to one wave of the gap between them where QUICKEN is off; the bars (from 0, to but not with) in which the metal is a pair, and the sixteenths to a wave there with QUICKEN
 THIRD = {'pair': ('air', 'plate', 24), 'at': 116, 'told': (78, 80), 'lift': 4}   # v22: (the last: dB on the plate's strokes while it plays the pipe's cell: two of its four fall on the bass drum, and the first build's peak read 2 to 3 dB poorer above 6 kHz, bars 117 to 128) v22: the third pair that trades (how many semitones the second is over the first), the bar (from 0) it trades at, and the bars (from 0, to but not with) in which it is told once before, stopped
@@ -992,6 +1014,22 @@ def comb_patch():
     return {**COMB_PATCH, 'about': HUNT['about']} if ON['changes'] or ON['courses'] or ON['treble'] or ON['clear'] else COMB_PATCH
 
 
+def gourd_notes():
+    """v28 SHAKEN: a shake a beat (thrown on the beat, back on the off-beat) where there is no weight; it rests where a thing is listened to alone; DOUBLES: a shake an eighth from GOURD['fast']; SWIRLS: the throw held longer the more the family rings."""
+    out = []
+    for bar in range(*GOURD['bars']):
+        if listened(bar):
+            continue
+        per = 2 if ON['doubles'] and bar >= GOURD['fast'] else 4      # sixteenths in a shake
+        run = GOURD['swirl'] * sum(ring_at(k, bar) for k in things()) / len(things()) if ON['swirls'] else 0
+        hard = GOURD['hard'] if per == 2 else 0
+        for s16 in range(0, BAR, per):
+            db = hard + (GOURD['trim'].get(s16, 0) if per == 4 else 0)
+            out.append({'at': bar * 4 + s16 / 4, 'len': round(min(GOURD['len'] + run, per / 8 - 0.02), 3), 'pitch': GOURD['pitch'], 'vel': GOURD['vel'][0], **({'gain': f'{db:g}dB'} if db else {})})
+            out.append({'at': bar * 4 + (s16 + per // 2) / 4, 'len': GOURD['len'], 'pitch': GOURD['pitch'], 'vel': GOURD['vel'][1], 'gain': f"{GOURD['back'] + hard:g}dB"})
+    return out
+
+
 def comb_notes():
     """v26 COMB: a bar's notes: a tongue for each thing that rings; SPREAD: as evenly as that many can be over the bar; FOLLOWS: as hard as its thing rings. v27 CHANGES, COURSES: which tongue is in which place; TREBLE: the one to follow."""
     out, whole, runs = [], len(COMB['tines']), comb_runs()
@@ -1003,8 +1041,23 @@ def comb_notes():
             if s16 >= 16 and not comb_rings(bar + 1):            # the phrase's end crosses the bar line: not into a bar where the comb rests
                 continue
             db = (round(COMB['soft'] * (1 - ring_at(k, bar)), 1) if ON['follows'] else 0) + COMB['trim'].get((len(who), i), 0) + (HUNT['db'] if ON['treble'] and row is not None and i and k == HUNT['treble'] else 0) + (HUNT['clear'].get((len(who), i), 0) if ON['clear'] else 0)
-            out.append({'at': bar * 4 + s16 / 4, 'len': COMB['len'], 'pitch': COMB['tines'][k], 'vel': COMB['vel'], **({'gain': f'{db:g}dB'} if db else {})})
+            out.append({'at': bar * 4 + s16 / 4, 'len': COMB['len'], 'pitch': COMB['tines'][k], 'vel': COMB['vel'], **({'gain': f'{db:g}dB'} if db else {}),
+                        **({'_walk': i / (len(order) - 1)} if ON['walks'] and ON['treble'] and row is not None and k == HUNT['treble'] and len(order) > 1 else {})})   # v28 WALKS: where the tongue to follow is in its bar, 0 (first) to 1 (last)
     return out
+
+
+def comb_walk(notes):
+    """v28 WALKS: (the comb's notes that stay in the middle, the left track's, the right track's): a walking note is shared between the two by equal power, by its place in the bar."""
+    mid, left, right = [], [], []
+    for n in notes:
+        if '_walk' not in n:
+            mid.append(n)
+            continue
+        w, base = n['_walk'], float(n.get('gain', '0dB')[:-2]) + WALK['ends'] * abs(2 * n['_walk'] - 1)
+        for side, g in ((left, cos(w * pi / 2)), (right, sin(w * pi / 2))):
+            if g > 0.01:
+                side.append({**{x: y for x, y in n.items() if x not in ('_walk', 'gain')}, 'gain': f'{round(base + 20 * log10(g), 1):g}dB'})
+    return mid, left, right
 
 
 def build():
@@ -1085,6 +1138,8 @@ def build():
         T['glass'] = [{'at': a * 4, 'len': (b - a) * 4 - GLASS['early'], 'pitch': pitch, 'vel': GLASS['vel'], **({'gain': f'{db}dB'} if db else {})} for a, b, pitch, db in GLASS['notes']]
     if ON['rasp']:                                                # v25 RASP: the ninth thing, scraped: a row of clicks a bar
         T['rasp'] = rasp_notes()
+    if ON['shaken']:                                              # v28 SHAKEN: the eleventh thing, shaken
+        T['gourd'] = gourd_notes()
     if ON['twin'] and ON['motor'] and T.get('metal'):             # v21 TWIN: the metal is a pair; QUICKEN: the gap between them doubles twice
         both, second = [], []
         for n in T['metal']:
@@ -1220,9 +1275,15 @@ def song(T, bars=BARS):
     if T.get('metal-twin-room'):                                  # v22 HALLPAIR: the second bar's own way to the hall, as the first's
         first = next(t for t in doc['tracks'] if t['name'] == 'metal-room')
         doc['tracks'].append({**{x: y for x, y in first.items() if x != 'notes'}, 'name': 'metal-twin-room', 'notes': T['metal-twin-room']})
+    if T.get('gourd'):                                            # v28 SHAKEN: its patch and its track
+        doc['patches'] = {**doc['patches'], GOURD['patch']: GOURD_PATCH}
+        doc['tracks'].append({'name': 'gourd', 'patch': GOURD['patch'], 'gain': GOURD['gain'], 'pan': GOURD['pan'], **({'sends': {'room': GOURD['room']}} if 'room' in doc.get('buses', {}) else {}), 'notes': T['gourd']})
     if ON['comb'] and bars == BARS:                               # v26 COMB: the tenth thing, plucked
         doc['patches'] = {**doc['patches'], COMB['patch']: comb_patch()}
-        doc['tracks'].append({'name': 'comb', 'patch': COMB['patch'], 'gain': COMB['gain'], 'pan': COMB['pan'], **({'sends': {'room': COMB['room']}} if 'room' in doc.get('buses', {}) else {}), 'notes': comb_notes()})
+        doc['tracks'].append({'name': 'comb', 'patch': COMB['patch'], 'gain': COMB['gain'], 'pan': COMB['pan'], **({'sends': {'room': COMB['room']}} if 'room' in doc.get('buses', {}) else {}), 'notes': (c_mid := comb_walk(comb_notes()))[0]})
+        for c_name, c_pan, c_notes in (('comb-left', -WALK['pan'], c_mid[1]), ('comb-right', WALK['pan'], c_mid[2])):   # v28 WALKS: the tongue to follow, between two tracks
+            if c_notes:
+                doc['tracks'].append({'name': c_name, 'patch': COMB['patch'], 'gain': COMB['gain'], 'pan': c_pan, **({'sends': {'room': WALK['room']}} if 'room' in doc.get('buses', {}) else {}), 'notes': c_notes})
     return doc
 
 
@@ -1256,7 +1317,7 @@ if __name__ == '__main__':
     ap.add_argument('--form', action='store_true', help='print the form and stop')
     ap.add_argument('--bench', action='store_true', help='write the bench song (each thing at six rings) instead')
     for k, on in ON.items():
-        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the sixty-eight that are on: all off is v1; the last sixty-three off is v2; the last fifty-nine off is v3; the last fifty-six off is v4; the last fifty-three off is v5; the last fifty-two off is v6; the last forty-nine off is v7; the last forty-seven off is v8; the last forty-four off is v9; the last forty off is v10; the last thirty-six off is v11; the last thirty-four off is v12; the last thirty-two off is v13; the last thirty off is v14; the last twenty-nine off is v15; the last twenty-eight off is v16; the last twenty-seven off is v17; the last twenty-six off is v18; the last twenty-four off is v19; the last twenty-one off is v20; the last eighteen off is v21; the last fifteen off is v22; the last thirteen off is v23; the last ten off is v24; the last seven off is v25; the last four off is v26)")
+        ap.add_argument(f"--{'without' if on else 'with'}-{k}", action='store_true', help=f"{'leave out' if on else 'put in'} {k} (of the seventy-two that are on: all off is v1; the last sixty-seven off is v2; the last sixty-three off is v3; the last sixty off is v4; the last fifty-seven off is v5; the last fifty-six off is v6; the last fifty-three off is v7; the last fifty-one off is v8; the last forty-eight off is v9; the last forty-four off is v10; the last forty off is v11; the last thirty-eight off is v12; the last thirty-six off is v13; the last thirty-four off is v14; the last thirty-three off is v15; the last thirty-two off is v16; the last thirty-one off is v17; the last thirty off is v18; the last twenty-eight off is v19; the last twenty-five off is v20; the last twenty-two off is v21; the last nineteen off is v22; the last seventeen off is v23; the last fourteen off is v24; the last eleven off is v25; the last eight off is v26; the last four off is v27)")
     a = ap.parse_args()
     for k, on in list(ON.items()):
         ON[k] = on != getattr(a, f"{'without' if on else 'with'}_{k}")
@@ -1375,6 +1436,13 @@ if __name__ == '__main__':
                 print(f"    the {HUNT['treble']}'s tongue is the one to follow: {HUNT['db']} dB harder wherever it is not first in its bar: it goes from the first place to the last, a place a bar, and back")
         if ON['comb'] and ON['clear']:
             print("    the comb's weakest places are written up: " + ', '.join(f"note {c_i + 1} of {c_n} {c_db:+g} dB" for (c_n, c_i), c_db in HUNT['clear'].items()))
+        if ON['shaken']:
+            g_bars = [g_b + 1 for g_b in range(*GOURD['bars']) if not listened(g_b)]
+            print(f"    the eleventh thing is shaken: a gourd of seeds ({GOURD['patch']}): a shake is two sounds, the throw and the fall back ({-GOURD['back']} dB under, and a softer touch): bars {g_bars[0]}-{g_bars[-1]}, where there is no weight and through the peak: a shake a beat, thrown on the beat" +
+                  (f"; from bar {max(GOURD['fast'], min(g_b for g_b in range(GOURD['fast'], GOURD['bars'][1]) if not listened(g_b))) + 1} a shake an eighth, {GOURD['hard']} dB harder" if ON['doubles'] else '') + f"; it rests where a thing is listened to alone (bars {' '.join(str(g_b + 1) for g_b in range(*GOURD['bars']) if listened(g_b))}) and is put down on bar {GOURD['bars'][1] + 1}" +
+                  (f"; the throw is held longer the more the family rings: {' '.join(f'{1000 * 60 / BPM * g_l:.0f}' for g_l in sorted({g_n['len'] for g_n in gourd_notes() if g_n['vel'] == GOURD['vel'][0]}))} ms" if ON['swirls'] else ''))
+        if ON['walks'] and ON['treble'] and ON['comb']:
+            print(f"    the comb's tongue to follow walks across the stereo as it walks through the bar: the first place on the left, the last on the right (two tracks at {WALK['pan']} either side, equal power): {sum(1 for w_n in comb_notes() if '_walk' in w_n)} strokes")
         print(f'{BARS} bars, {BARS * sec:.1f} s; strokes: ' + ', '.join(f'{k} {len(v)}' for k, v in build().items()))
     else:
         a.out.write_text(dump(bench() if a.bench else song(build())))
