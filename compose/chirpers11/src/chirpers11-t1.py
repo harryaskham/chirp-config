@@ -369,6 +369,12 @@ later; its second after half a bar; its third after a third of a bar; its fourth
 a quarter: the nth tone halves n times as fast. Nothing ticks and nothing counts: every
 tone is a clock that runs down, and the string's colour says how long ago it was
 struck.
+
+v31 (28 Nov): TIME'S ARROW (C11T1_ARROW=0 takes it out: v30). The string of HALF-LIFE
+is heard before it is struck: bars 93 to 96 are the film of bars 105 to 108 run
+backwards about the first beat of bar 101. It grows out of nothing, the low tone
+first and slowly, the upper ones later and faster, and stops dead where the stroke
+was: an eighth of a beat before the drum comes back.
 """
 import json
 import math
@@ -583,6 +589,24 @@ def sped(steps):
 def speed_st(t):
     """Semitones deck B is sharp by at grid time t."""
     return 12 * math.log2(max(speed(t), 0.03))
+
+
+def arrow_mirror():
+    """The beat about which time is turned: ARROW_GAP bars before the string's row; or None."""
+    return (life_row() - ARROW_GAP) * BEATS if ARROW and life_row() is not None else None
+
+
+def arrow_ends():
+    """The beats at which the turned string stops dead: each of the string's first ARROW_STROKES strokes, as far before the mirror as the stroke is after it; the earliest first."""
+    return sorted(2 * arrow_mirror() - t for t in life_strokes()[:ARROW_STROKES])
+
+
+def arrow_lane(n):
+    """The nth tone's level by time, as a lane in dB: the string's lane (life_lane) turned round about the mirror: 6.0206 n dB MORE for every LIFE_HALF beats, in a straight line, to nothing off where it stops."""
+    low = round(-6.0206 * n * (LIFE_EVERY - 0.001) / LIFE_HALF, 4); pts = [["0b", low]]
+    for e in arrow_ends():
+        pts += [[f"{e - LIFE_EVERY + 0.001:g}b", low], [f"{e:g}b", 0.0]]
+    return {"points": pts + [[f"{BARS * BEATS}b", 0.0]], "curve": 0}
 
 
 def life_row():
@@ -946,6 +970,12 @@ LIFE_AT = 0.125                                        # the beat of the bar a s
 LIFE_HALF = 4.0                                        # beats in which the first tone halves (6.02 dB): one bar; the nth tone's half-life is this over n
 LIFE_TILT = 6.0206                                     # dB the nth tone is under the first at the stroke, for each doubling of n: as 1 over n (a plucked string's)
 LIFE_GAIN = os.environ.get("C11T1_LIFE_GAIN", "-26dB")   # the first tone's track; the others are under it by the tilt. The bench (the row alone, the first tone at -20 dB): its first beat -30.0 dBFS. Read in the whole song's master at -36dB (both seeds), BEFORE any score: -35.4 / -35.3 dBFS: THE MASTER LIFTS IT 10.6 dB (a full row: the same 10.6 the tune of v29 had), not the 17 a held tone had in other songs: the first tone was 9 to 17 dB under the old music in its own sixth of an octave: 10 dB up, for -25.4
+ARROW = os.environ.get("C11T1_ARROW", "1") != "0" and LIFE   # v31: TIME'S ARROW: the string of HALF-LIFE is heard BEFORE it is struck: the film of its first two strokes run backwards. It grows out of nothing, the low tone first and slowly, the upper ones later and faster, and stops dead where the stroke was. Every instant of it is as far before the mirror as the string's is after
+ARROW_GAP = 4                                          # bars before the string's row at which the mirror stands: the first beat of bar 101, the middle of the row between (the two records beat)
+ARROW_STROKES = 2                                      # how many of the string's strokes are turned round: the first two, which fall in bars 93 to 96. The other two would fall in bars 89 to 92, where deck B's bass plays the string's own D2 (read on v30: the old music in 73 Hz is -22 dBFS on its strokes there and -40 to -72 in bars 93 to 96)
+ARROW_COME = 0.040                                     # seconds the turned string takes to come: the string's 40 ms to go, turned round
+ARROW_GO = 0.004                                       # seconds it takes to stop: the string's 4 ms to come, turned round
+ARROW_GAIN = os.environ.get("C11T1_ARROW_GAIN", "-32dB")   # the first tone's track; the others are under it by the string's tilt. THE BENCH (the turned string and the string alone, first tones at -20 dB): the last beat -30.0 dBFS; before the mirror and after it within 0.07 dB in the middle. Read in the whole song's master at -32dB (both seeds) BEFORE any score: the last beat -29.6 (bar 94, under the knock's roll) and -26.9 / -27.1 dBFS (bar 96): this master lifts it 12.4 and 15.1 dB
 BASSB_MODE = os.environ.get("C11T1_BASSB_MODE", "swap")                        # swap: it is heard where deck A's bass is out ; full: wherever deck B's record plays from "no ruler" on
 BASSB_IN = {"swap": ("no ruler", "the stretch", "out"), "full": ("no ruler", "both", "the stretch", "the nudge", "locked", "out")}[BASSB_MODE]
 BASSB_GAIN = os.environ.get("C11T1_BASSB_GAIN", "-15dB")                       # at -10 it was louder than everything else in "no ruler" put together (measured): 5 dB down
@@ -1702,6 +1732,17 @@ def song():
                                   "notes": [{"at": t, "len": LIFE_EVERY - 0.2, "pitch": lf_p, "vel": 0.8} for t in life_strokes()]})
         doc["about"] = doc["about"].replace(" Generated by", f" From v30 a string runs down (bars {life_row() + 1} to {life_row() + ROW}, the second row of 'the nudge'): struck every {LIFE_EVERY // BEATS} bars on {LIFE_NOTES[0]}, its first tone is half as loud after {LIFE_HALF / BEATS:g} bar, its second after a half of that, its third after a third, its fourth after a quarter ({', '.join(f'{6.0206 * n * BEATS / LIFE_HALF:.2f}' for n in range(1, len(LIFE_NOTES) + 1))} dB a bar): every tone is a clock that runs down and the string's colour says how long ago it was struck. Generated by")
         assert "From v30" in doc["about"]
+    if arrow_mirror() is not None:
+        import math as ar_math
+        ar_g = float(ARROW_GAIN.replace("dB", "")); ar_b = BPM / 60; ar_e = arrow_ends()
+        PATCHES["gt-arrow"] = {"about": "Give or Take's string heard before it is struck (chirper-zero, 28 Nov, v31): gt-life turned round: one plain held tone, 40 ms to come and 4 ms to go; its track's lane (auto.arrow, dB) is its whole shape: the string's line run backwards.",
+                               "play": {"vel_sens": 0, "gate": 1}, "synth": {"layers": ["sine phase=0"], "filters": ["lp cutoff=7000"], "amp": {"a": f"{1000 * ARROW_COME:g}ms", "d": "0s", "s": 1, "r": f"{1000 * ARROW_GO:g}ms"}}}
+        for ar_n, ar_p in enumerate(LIFE_NOTES, 1):
+            doc["tracks"].append({"name": f"arrow-{ar_n}", "patch": "gt-arrow", "gain": f"{round(ar_g - LIFE_TILT * ar_math.log2(ar_n), 2):g}dB", "pan": 0.0, "auto": {"arrow": arrow_lane(ar_n)},
+                                  "fx": [{"type": "gain", "gain": {"value": "0dB", "mod": [{"src": "auto.arrow", "amount": 1}]}}],
+                                  "notes": [{"at": round(e - (LIFE_EVERY - 0.2) - ARROW_COME * ar_b, 5), "len": round(LIFE_EVERY - 0.2 + (ARROW_COME - ARROW_GO) * ar_b, 5), "pitch": ar_p, "vel": 0.8} for e in ar_e]})
+        doc["about"] = doc["about"].replace(" Generated by", f" From v31 the string is heard before it is struck (bars {int(ar_e[0] - (LIFE_EVERY - 0.2)) // BEATS + 1} to {int(ar_e[-1]) // BEATS + 1}): the string of bars {life_row() + 1} to {life_row() + ARROW_STROKES * LIFE_EVERY // BEATS} run backwards about the first beat of bar {arrow_mirror() // BEATS + 1}: it grows out of nothing, the low tone first and the upper ones later and faster ({', '.join(f'{6.0206 * n * BEATS / LIFE_HALF:.1f}' for n in range(1, len(LIFE_NOTES) + 1))} dB a bar), and stops dead {BEATS - ar_e[0] % BEATS:g} of a beat before bars {' and '.join(str(int(e) // BEATS + 2) for e in ar_e)}. Generated by")
+        assert "From v31" in doc["about"]
     return doc
 
 
@@ -1718,6 +1759,11 @@ def dump(doc):
 
 if __name__ == "__main__":
     if os.environ.get("C11T1_SHOW"):
+        if arrow_mirror() is not None:
+            ar_e = arrow_ends(); ar_b = int(ar_e[0] - (LIFE_EVERY - 0.2)) // BEATS
+            print(f"time's arrow ({ARROW_GAIN}), bars {ar_b + 1}-{int(ar_e[-1]) // BEATS + 1} ({int(ar_b * BEATS * 60 / BPM) // 60}:{ar_b * BEATS * 60 / BPM % 60:04.1f}): the string of bars {life_row() + 1}-{life_row() + ARROW_STROKES * LIFE_EVERY // BEATS} turned round about beat {arrow_mirror()} (the first beat of bar {arrow_mirror() // BEATS + 1}) ; its tones {' '.join(LIFE_NOTES)} ; the nth rises {6.0206 * BEATS / LIFE_HALF:.2f} n dB a bar ; it comes in {1000 * ARROW_COME:g} ms and stops in {1000 * ARROW_GO:g} ms")
+            for e in ar_e:
+                print(f"   from beat {(e - (LIFE_EVERY - 0.2)) % BEATS:.3f} of bar {int(e - (LIFE_EVERY - 0.2)) // BEATS + 1} to beat {e % BEATS:.3f} of bar {int(e) // BEATS + 1}, where it stops dead: the stroke it is the film of is on beat {(2 * arrow_mirror() - e) % BEATS:.3f} of bar {int(2 * arrow_mirror() - e) // BEATS + 1}")
         if life_row() is not None:
             lf_b = life_row()
             print(f"half-life ({LIFE_GAIN}), bars {lf_b + 1}-{lf_b + ROW} ({int(lf_b * BEATS * 60 / BPM) // 60}:{lf_b * BEATS * 60 / BPM % 60:04.1f}): a string struck on beat {LIFE_AT:g} of every {LIFE_EVERY // BEATS} bars ({len(life_strokes())} strokes) ; its tones {' '.join(LIFE_NOTES)} ; the nth is {LIFE_TILT:g} dB under the first for each doubling of n at the stroke and halves every {LIFE_HALF:g}/n beats: " + ' ; '.join(f"{p}: {6.0206 * n * BEATS / LIFE_HALF:.2f} dB a bar, {-6.0206 * n * (LIFE_EVERY - 0.2) / LIFE_HALF:.1f} dB when it is let go" for n, p in enumerate(LIFE_NOTES, 1)))
