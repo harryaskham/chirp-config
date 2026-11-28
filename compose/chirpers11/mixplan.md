@@ -94,6 +94,12 @@ Since those renders (chirper-one, 26 Nov 08:15; not re-rendered):
   strings holding the wood's notes (D5, F5, G5 mostly; B flat's five notes), by second after the last bar
   -22 -37 -52 -65 dBFS where v5 read -25 -55 -81 and silence. So Hearing Things' first two bars now have a
   held chord dying under them. Not re-rendered as a seam.
+- Wind Down v27 (08:35): both ends as they were to 0.1 dB (no note before bar 91; one more on the last stroke):
+  bars 1 to 8 by two -30.0 -30.2 -30.0 -30.1 dBFS; from the last stroke by second -10.4 -21.1 -33.5 -40.7 -42.9
+  -44.8 -43.1 -45.0 -35.6 (seed 11 -9.8 -19.9 -32.8 ...); highest sample -1.30. Inside: a low wooden note that
+  rings (269.5 to 294 Hz, about -22 dBFS over its half second) on the first beat of bars 91, 102, 113, 124, 135,
+  146, 157, 168, 179, 190 and with the last stroke: meant (the eleven's big brother). On the last stroke it is
+  7 dB under the bell; a master fade must still not begin before 405.5 s.
 - Ring True v27 (08:04): both ends within 0.04 dB (no note written before bar 57 or after bar 138; the loudness
   target moves the rest): bars 1 to 8 by two -17.92 -17.94 -17.96 -17.95 dBFS (was -17.90 -17.92 -17.94 -17.92;
   seed 11 -17.99 -17.95 -18.05 -18.03, 0.03 higher than it was); bars 177-183 -17.69 / -17.71; bar 184 -11.13 /
