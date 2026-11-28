@@ -1,0 +1,30 @@
+{
+ "about": "Wind Down: the escape wheel's tooth on the pallet (v23): 6 ms of white noise above 10 kHz, struck with the click where the drum plays: the click's top, which the drum's level takes from it. BANKED by tools/patchbank.py (28 Nov 2026) from Wind Down v23 (track pallet): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "6ms",
+   "r": "4ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 10000,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 10000,
+    "kind": "hp"
+   }
+  ],
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}

@@ -1,0 +1,34 @@
+{
+ "about": "Out of Step's beat in the head (chirper-zero, 28 Nov, v30): one plain held tone whose pitch follows its track's lane (auto.tune, semitones). One track in each ear, the right ear's a few waves a bar more: each ear by itself is steady and the difference in phase between them goes round. BANKED by tools/patchbank.py (28 Nov 2026) from Out of Step v30 (tracks head-l, head-r): every extends and override resolved, so it stands by itself. IT READS THE TRACK'S AUTOMATION (`tune`): give the track that plays it `auto: {tune: \u2026}`, as the song does.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "0.9524s",
+   "d": "0s",
+   "r": "1.9048s"
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ],
+  "pitch": {
+   "mod": [
+    {
+     "amount": 1.0,
+     "src": "auto.tune"
+    }
+   ],
+   "value": 0
+  }
+ }
+}

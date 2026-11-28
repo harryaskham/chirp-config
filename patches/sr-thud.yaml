@@ -1,0 +1,30 @@
+{
+ "about": "Standing Room's thud at the bottom of the stairwell (chirper-zero, 28 Nov, v31): a low plain tone and its octave struck together and gone in a tenth of a second, nothing over 600 Hz; how hard it is struck is how loud it is. BANKED by tools/patchbank.py (28 Nov 2026) from Standing Room v31 (track drop-thud): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "110ms",
+   "r": "30ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 600
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   },
+   {
+    "level": "-3dB",
+    "phase": 0.0,
+    "ratio": 2.0
+   }
+  ]
+ }
+}

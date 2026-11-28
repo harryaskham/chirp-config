@@ -1,0 +1,39 @@
+{
+ "about": "Wind Down: the tooth on the exit pallet, the tock (v23): wd-pallet's 6 ms of noise, through a band from 8 to 11 kHz: lower than the tick's tooth, with less of its top. BANKED by tools/patchbank.py (28 Nov 2026) from Wind Down v23 (track pallet-exit): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "0.1ms",
+   "d": "6ms",
+   "r": "4ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 8000,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 8000,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 11000
+   },
+   {
+    "cutoff": 11000
+   },
+   {
+    "cutoff": 11000
+   }
+  ],
+  "layers": [
+   {
+    "type": "noise"
+   }
+  ]
+ }
+}

@@ -1,0 +1,25 @@
+{
+ "about": "Standing Room's tap of letting go (chirper-zero, 28 Nov, v31): one short plain tone. BANKED by tools/patchbank.py (28 Nov 2026) from Standing Room v31 (track drop-tap): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "0.5ms",
+   "d": "25ms",
+   "r": "10ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ]
+ }
+}

@@ -1,0 +1,36 @@
+{
+ "about": "Wind Down: the turntable's rumble (v23): the bearing under the platter: the engine's chip noise with no chip's clock (the same samples at each note-on), 25 to 90 Hz, one note a turn: it comes round with the record. BANKED by tools/patchbank.py (28 Nov 2026) from Wind Down v23 (track rumble): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.5
+ },
+ "synth": {
+  "amp": {
+   "a": "20ms",
+   "d": "0s",
+   "r": "20ms"
+  },
+  "filters": [
+   {
+    "cutoff": 25,
+    "kind": "hp"
+   },
+   {
+    "cutoff": 90
+   },
+   {
+    "cutoff": 90
+   }
+  ],
+  "layers": [
+   {
+    "chip": {
+     "clock": 0.0,
+     "kind": "noise"
+    },
+    "type": "chip"
+   }
+  ]
+ }
+}
