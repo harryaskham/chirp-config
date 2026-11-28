@@ -1,0 +1,31 @@
+{
+ "about": "Standing Room's knock that goes away (chirper-zero, 28 Nov, v34): a low thud (F3 and its octave), 90 ms, whose loudness is all velocity (the amplitude goes as the velocity squared): half the velocity squared for every doubling of the distance. The same patch on a second track is the room's answer: every knock at one velocity through the engine's hall, all of it. BANKED by tools/patchbank.py (28 Nov 2026) from Standing Room v34 (tracks recede, recede-room): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 1.0
+ },
+ "synth": {
+  "amp": {
+   "a": "1ms",
+   "d": "90ms",
+   "r": "20ms",
+   "s": 0
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   },
+   {
+    "level": "-12dB",
+    "phase": 0.0,
+    "ratio": 2.0
+   }
+  ]
+ }
+}

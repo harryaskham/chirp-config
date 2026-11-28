@@ -1,0 +1,26 @@
+{
+ "about": "Hearing Things' plain tone for step 0 (chirper-zero, 28 Nov, v34): the note the three tones of step 0 are said to make (+0.0 cents from G3), 12 semitones up. BANKED by tools/patchbank.py (28 Nov 2026) from Hearing Things v34 (track plain-0): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "5ms",
+   "d": "0s",
+   "r": "5ms"
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0
+   }
+  ],
+  "pitch": 12
+ }
+}

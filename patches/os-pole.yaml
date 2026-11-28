@@ -1,0 +1,26 @@
+{
+ "about": "Out of Step's one low note with all its overtones (chirper-zero, 28 Nov, v33): a sawtooth, nothing over 3 kHz, held. Its track carries the engine's barber's pole (five narrow windows an octave apart, all climbing) and a lane that brings it in and takes it out. BANKED by tools/patchbank.py (28 Nov 2026) from Out of Step v33 (track pole): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "20ms",
+   "d": "0s",
+   "r": "50ms"
+  },
+  "filters": [
+   {
+    "cutoff": 3000
+   }
+  ],
+  "layers": [
+   {
+    "phase": 0.0,
+    "wave": "saw"
+   }
+  ]
+ }
+}

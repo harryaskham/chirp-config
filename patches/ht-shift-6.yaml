@@ -1,0 +1,37 @@
+{
+ "about": "Hearing Things' three tones a note apart, step 6 (chirper-zero, 28 Nov, v34): 1127.0, 1323.0, 1519.0 Hz: G3's overtones 5 6 7, all moved up 6/8 of the note's own frequency. BANKED by tools/patchbank.py (28 Nov 2026) from Hearing Things v34 (track shift-6): every extends and override resolved, so it stands by itself.",
+ "play": {
+  "event_stable": true,
+  "gate": 1.0,
+  "vel_sens": 0.0
+ },
+ "synth": {
+  "amp": {
+   "a": "5ms",
+   "d": "0s",
+   "r": "5ms"
+  },
+  "filters": [
+   {
+    "cutoff": 7000
+   }
+  ],
+  "layers": [
+   {
+    "level": "-9.5dB",
+    "phase": 0.0,
+    "ratio": 5.75
+   },
+   {
+    "level": "-9.5dB",
+    "phase": 0.0,
+    "ratio": 6.75
+   },
+   {
+    "level": "-9.5dB",
+    "phase": 0.0,
+    "ratio": 7.75
+   }
+  ]
+ }
+}
